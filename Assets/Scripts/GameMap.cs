@@ -27,10 +27,6 @@ public class GameMap : MonoBehaviour
         AttackRangeMat = Resources.Load( "AttackRange" ) as Material;
         m_MapInternal = new Map( 10, 10, tilePrefab.tileData);
 
-        foreach ( var child in this.GetComponentsInChildren<GameTile>() )
-        {
-        }
-
         foreach ( Tile tile in m_MapInternal )
         {
             var gameTile = Instantiate( tilePrefab );
@@ -105,16 +101,6 @@ public class GameMap : MonoBehaviour
                         }
                     }
                 }
-
-            //for ( int i = clampX( unit.Position.x - unit.Movement ) ; i <= clampX( unit.Position.x + unit.Movement ) ; i++ )
-            //    for ( int j = clampY( unit.Position.y - unit.Movement ) ; j <= clampY( unit.Position.y + unit.Movement ) ; j++ )
-            //    {
-            //        if ( ( unit.Position - new Vector2Int( i, j ) ).ManhattanNorm() <= unit.Movement )
-            //        {
-            //            AddTrianglesForPosition( i, j, MovementSet );
-            //            movementTiles.Add( new Vector2Int( i, j ) );
-            //        }
-            //    }
 
             foreach ( var attackTile in GetAttackTiles(movementTiles, unit.AttackRange ))
             {

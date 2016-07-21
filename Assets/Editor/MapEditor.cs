@@ -7,6 +7,9 @@ using Assets.Map;
 public class MapEditor : EditorWindow
 {
     public GameMap map = null;
+    public int width= 0;
+    public int height= 0;
+    public GameTile defaultTile;
 
     [MenuItem("Window/MyWindow")]
     public static void ShowWindow()
@@ -18,12 +21,15 @@ public class MapEditor : EditorWindow
     {
 
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField( "MapCreator and some other stuff" );
-        map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
-        if ( map.MapInternal != null )
-        {
-            EditorGUILayout.LabelField( string.Format( "Map Size: {0}", map.MapInternal.MapSize ) );
-        }
+        EditorGUILayout.LabelField( "It's a map maker, whaddaya want me to do" );
+
+        EditorGUILayout.LabelField( "Width: " );
+        width = EditorGUILayout.IntField( width );
+
+        EditorGUILayout.LabelField( "Height: " );
+        height = EditorGUILayout.IntField( height );
+
+        defaultTile = EditorGUILayout.ObjectField( defaultTile, typeof( GameTile ), true ) as GameTile;
         EditorGUILayout.EndVertical();
     }
 }
