@@ -19,7 +19,6 @@ public class MapEditor : EditorWindow
 
     void OnGUI()
     {
-
         EditorGUILayout.BeginVertical();
         EditorGUILayout.LabelField( "It's a map maker, whaddaya want me to do" );
 
@@ -30,6 +29,20 @@ public class MapEditor : EditorWindow
         height = EditorGUILayout.IntField( height );
 
         defaultTile = EditorGUILayout.ObjectField( defaultTile, typeof( GameTile ), true ) as GameTile;
+        map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
+
+        if ( map != null )
+        {
+            for ( int i = 0 ; i < map.MapSize.x ; i++ )
+            {
+                EditorGUILayout.BeginHorizontal();
+                for ( int j = 0 ; j < map.MapSize.y ; j++ )
+                {
+                    GUILayout.Button( string.Format( "({0},{1})", i, j ) );
+                }
+                EditorGUILayout.EndHorizontal();
+            }
+        }
         EditorGUILayout.EndVertical();
     }
 }

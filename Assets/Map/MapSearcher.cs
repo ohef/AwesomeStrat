@@ -79,7 +79,6 @@ namespace Assets.Map
             }
 
             path.Add( temp.Tile );
-
             return path;
         }
 
@@ -89,11 +88,10 @@ namespace Assets.Map
             Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
             foreach ( var direction in directions )
             {
-                if ( pivotNode.Location.x + direction.x > map.GetLength( 1 ) - 1 ||
+                if ( pivotNode.Location.x + direction.x > map.GetLength( 0 ) - 1 ||
                     pivotNode.Location.x + direction.x < 0 ||
-                    pivotNode.Location.y + direction.y > map.GetLength( 0 ) - 1 ||
+                    pivotNode.Location.y + direction.y > map.GetLength( 1 ) - 1 ||
                     pivotNode.Location.y + direction.y < 0 )
-                    //|| pivotNode.isWalkable == false )
                 {
                     continue;
                 }
@@ -115,7 +113,6 @@ namespace Assets.Map
                         pivotNode.Location.x + i < 0 ||
                         pivotNode.Location.y + j > map.GetLength( 1 ) ||
                         pivotNode.Location.y + j < 0 )
-                        //|| pivotNode.isWalkable == false )
                     {
                         continue;
                     }
@@ -138,7 +135,6 @@ namespace Assets.Map
         public GridNode Parent;
 
         public Vector2Int Location { get { return Tile.Position; } }
-        //public bool isWalkable { get { return Tile.isWalkable; } }
 
         public Tile Tile
         {

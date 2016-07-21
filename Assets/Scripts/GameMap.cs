@@ -12,6 +12,7 @@ public class GameMap : MonoBehaviour
 {
     private Map m_MapInternal;
     public Map MapInternal { get { return m_MapInternal; } }
+    public Vector2Int MapSize;
 
     private Mesh m_MapMesh;
     public GameTile tilePrefab;
@@ -25,15 +26,16 @@ public class GameMap : MonoBehaviour
     {
         MovementMat = Resources.Load( "MovementMaterial" ) as Material;
         AttackRangeMat = Resources.Load( "AttackRange" ) as Material;
-        m_MapInternal = new Map( 10, 10, tilePrefab.tileData);
 
-        foreach ( Tile tile in m_MapInternal )
-        {
-            var gameTile = Instantiate( tilePrefab );
-            gameTile.tileData = tile;
-        }
+        //foreach ( Tile tile in m_MapInternal )
+        //{
+        //    var gameTile = Instantiate( tilePrefab );
+        //    gameTile.tileData = tile;
+        //}
 
+        m_MapInternal = new Map( MapSize.x, MapSize.y, tilePrefab.tileData );
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
+
     }
 
     // Use this for initialization
@@ -49,10 +51,6 @@ public class GameMap : MonoBehaviour
     #endregion
 
     #region Member Functions
-    public void InstantiateMapData( int mapSizeX, int mapSizeY)
-    {
-        m_MapInternal = new Map( mapSizeX, mapSizeY );
-    }
 
     private void AddTrianglesForPosition(int i, int j, List<int> triangleList)
     {
