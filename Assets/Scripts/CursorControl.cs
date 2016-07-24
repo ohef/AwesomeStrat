@@ -53,7 +53,7 @@ public class CursorControl : MonoBehaviour {
                 case CursorState.Stationary:
                     state = CursorState.Moving;
                     StartCoroutine( MoveCursorDiscreteAnim( internalCursor.MoveCursor( internalCursor.currentLocation + direction ) ) );
-                    map.RenderUnitMovement( new Unit { Position = map.MapInternal[ internalCursor.currentLocation ].Position, AttackRange = 1, Movement = 4 } );
+                    //map.RenderUnitMovement( new Unit { Position = map.MapInternal[ internalCursor.currentLocation ].Position, AttackRange = 1, Movement = 4 } );
                     break;
                 case CursorState.Moving:
                     break;

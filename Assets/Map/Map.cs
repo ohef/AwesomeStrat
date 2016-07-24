@@ -74,28 +74,35 @@ namespace Assets.Map
             return i < lowerBound || i > upperBound;
         }
 
-        private static int ClampInt( int i, int lowerBound, int upperBound )
+        private static T ClampNumber<T>( T i, T lowerBound, T upperBound ) where T : IComparable<T>
         {
-            i = i < lowerBound ? lowerBound : i;
-            i = i > upperBound ? upperBound : i;
+            i = i.CompareTo(lowerBound) < 0 ? lowerBound : i;
+            i = i.CompareTo(upperBound) > 0 ? upperBound : i;
             return i;
         }
 
         public int ClampX( int i )
         {
-            return ClampInt( i, 0, MapSize.x - 1 );
+            return ClampNumber( i, 0, MapSize.x - 1 );
         }
 
         public int ClampY( int i )
         {
-            return ClampInt( i, 0, MapSize.y - 1 );
+            return ClampNumber( i, 0, MapSize.y - 1 );
         }
 
-        public Vector2Int ClampPositionViaMap( Vector2Int toClamp )
+        public Vector2Int ClampWithinMap( Vector2Int toClamp )
         {
             var mapSize = MapSize;
-            toClamp.x = ClampInt( toClamp.x, 0, mapSize.x - 1 );
-            toClamp.y = ClampInt( toClamp.y, 0, mapSize.y - 1 );
+            toClamp.x = ClampNumber( toClamp.x, 0, mapSize.x - 1 );
+            toClamp.y = ClampNumber( toClamp.y, 0, mapSize.y - 1 );
+            return toClamp;
+        }
+
+        public Vector3 ClampWithinMapViaXZPlane( Vector3 toClamp )
+        {
+            toClamp.x = ClampNumber( toClamp.x, 0, MapSize.x - 1 );
+            toClamp.z = ClampNumber( toClamp.z, 0, MapSize.y - 1 );
             return toClamp;
         }
 

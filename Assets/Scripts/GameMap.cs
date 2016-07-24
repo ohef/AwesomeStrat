@@ -26,16 +26,16 @@ public class GameMap : MonoBehaviour
     {
         MovementMat = Resources.Load( "MovementMaterial" ) as Material;
         AttackRangeMat = Resources.Load( "AttackRange" ) as Material;
-
-        //foreach ( Tile tile in m_MapInternal )
-        //{
-        //    var gameTile = Instantiate( tilePrefab );
-        //    gameTile.tileData = tile;
-        //}
-
         m_MapInternal = new Map( MapSize.x, MapSize.y, tilePrefab.tileData );
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
 
+        foreach ( Tile tile in m_MapInternal )
+        {
+            var gameTile = Instantiate( tilePrefab );
+            gameTile.tileData = tile;
+            gameTile.name = tile.Position.ToString();
+            gameTile.transform.SetParent( this.transform );
+        }
     }
 
     // Use this for initialization
@@ -126,7 +126,7 @@ public class GameMap : MonoBehaviour
             {
                 for ( int i = 0 ; i < attackRange ; i++ )
                 {
-                    Vector2Int neighbour = m_MapInternal.ClampPositionViaMap( tile + direction * attackRange );
+                    Vector2Int neighbour = m_MapInternal.ClampWithinMap( tile + direction * attackRange );
                     if ( movementTiles.Contains( neighbour ) == false )
                         attackTiles.Add( neighbour );
                 }

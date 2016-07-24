@@ -3,6 +3,7 @@ using System.Collections;
 using Assets.Map;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
+using UnityEngine.EventSystems;
 using System;
 
 [ExecuteInEditMode]
@@ -22,6 +23,6 @@ public class GameTile : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        transform.position = tileData.Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.5f ) - 0.5f * ( Vector3.left + Vector3.back );
+        transform.position = tileData.Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
     }
 }
