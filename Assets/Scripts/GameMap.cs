@@ -17,17 +17,25 @@ public class GameMap : MonoBehaviour
     private Mesh m_MapMesh;
     public GameTile tilePrefab;
 
-    private Material MovementMat;
-    private Material AttackRangeMat;
+    public Material NormalMat;
+    public Material MovementMat;
+    public Material AttackRangeMat;
+    public Material SelectionMat;
 
     #region Monobehaviour Functions
 
     void Awake()
     {
-        MovementMat = Resources.Load( "MovementMaterial" ) as Material;
-        AttackRangeMat = Resources.Load( "AttackRange" ) as Material;
         m_MapInternal = new Map( MapSize.x, MapSize.y, tilePrefab.tileData );
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
+        m_MapMesh.subMeshCount = 4;
+        this.GetComponent<MeshRenderer>().materials = new Material[]
+            {
+                NormalMat,
+                MovementMat,
+                AttackRangeMat,
+                SelectionMat,
+            };
 
         foreach ( Tile tile in m_MapInternal )
         {
@@ -52,7 +60,7 @@ public class GameMap : MonoBehaviour
 
     #region Member Functions
 
-    private void AddTrianglesForPosition(int i, int j, List<int> triangleList)
+    private void AddTrianglesForPosition( int i, int j, List<int> triangleList )
     {
         int height = m_MapInternal.MapSize.y;
         int indiceFormat = j + i * ( height + 1 );
@@ -68,10 +76,25 @@ public class GameMap : MonoBehaviour
         triangleList.Add( indiceFormat + height + 1 );
     }
 
+    private int[] TrianglesForPosition( int i, int j)
+    {
+        int height = m_MapInternal.MapSize.y;
+        int indiceFormat = j + i * ( height + 1 );
+
+        return new int[] {
+        indiceFormat,
+        indiceFormat + 1 ,
+        indiceFormat + 1 + height + 1 ,
+
+        indiceFormat ,
+        indiceFormat + 1 + height + 1 ,
+        indiceFormat + height + 1 ,
+        };
+    }
+
     // Function that renders where a unit can move
     public void RenderUnitMovement( Unit unit )
     {
-        m_MapMesh.subMeshCount = 3;
         List<int> MovementSet = new List<int>();
         List<int> AttackSet = new List<int>();
 
@@ -100,7 +123,7 @@ public class GameMap : MonoBehaviour
                     }
                 }
 
-            foreach ( var attackTile in GetAttackTiles(movementTiles, unit.AttackRange ))
+            foreach ( var attackTile in GetAttackTiles( movementTiles, unit.AttackRange ) )
             {
                 AddTrianglesForPosition( attackTile.x, attackTile.y, AttackSet );
             }
@@ -109,12 +132,17 @@ public class GameMap : MonoBehaviour
         m_MapMesh.SetTriangles( MovementSet, 1 );
         m_MapMesh.SetTriangles( AttackSet, 2 );
 
-        this.GetComponent<MeshRenderer>().materials = new Material[]
-            {
-                Resources.Load( "New Material 1" ) as Material,
-                MovementMat,
-                AttackRangeMat,
-            };
+    }
+
+    public void RenderSelection( IEnumerable<Vector2Int> tiles )
+    {
+        //List<int> triangles = new List<int>() ;
+        //foreach ( var tile in tiles )
+        //{
+        //    AddTrianglesForPosition( tile.x, tile.y, triangles );
+        //}
+        //m_MapMesh.SetTriangles( triangles, 3 );
+        m_MapMesh.SetTriangles( tiles.SelectMany( tile => TrianglesForPosition( tile.x, tile.y ) ).ToList(), 3 );
     }
 
     private List<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )

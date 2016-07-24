@@ -1,20 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 using Assets.Map;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using UnityEngine.EventSystems;
+using System;
 
 public class MapEditorGame : MonoBehaviour
 {
     public GameObject cursorLook;
+    public GameMap Map;
 
     public enum MapCursorState
     {
         PlacingTile,
         PlacingUnit
     };
-
     public enum SelectionState
     {
         Multiple,
@@ -22,9 +24,12 @@ public class MapEditorGame : MonoBehaviour
     };
 
     MapCursorState mapCursorState = MapCursorState.PlacingTile;
+    SelectionState selectionState = SelectionState.Single;
+    HashSet<Vector2Int> selectionCanvas;
 
     void Awake()
     {
+        selectionCanvas = new HashSet<Vector2Int>();
     }
 
     // Use this for initialization
@@ -36,6 +41,7 @@ public class MapEditorGame : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        Map.RenderSelection( selectionCanvas );
         Ray ray = Camera.main.ScreenPointToRay( Input.mousePosition );
         RaycastHit hit;
         if ( Physics.Raycast( ray, out hit ) )
@@ -47,27 +53,30 @@ public class MapEditorGame : MonoBehaviour
                 {
                     case MapCursorState.PlacingTile:
                         hit.point = new Vector3( Mathf.Floor( hit.point.x ), hit.point.y, Mathf.Floor( hit.point.z ) );
+                        Vector2Int mapPoint = map.MapInternal.ClampWithinMap( new Vector2Int( ( int )hit.point.x, ( int )hit.point.z ) );
+                        HandleClick(mapPoint);
                         cursorLook.transform.position = map.MapInternal.ClampWithinMapViaXZPlane( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
-                        //cursorLook.transform.position = map.MapInternal.ClampPositionViaMap(
-                        //    new Vector2Int(
-                        //        ( int )Mathf.Floor( hit.point.x ),
-                        //        ( int )Mathf.Floor( hit.point.z ) ) )
-                        //        .ToVector3( Vector2IntExtensions.Axis.Y ) + new Vector3( 0.5f, 0, 0.5f );
                         break;
                     default:
                         break;
                 }
-                //    var map = obj.GetComponent<GameMap>();
-                //    map.RenderUnitMovement( 
-                //        new Unit {
-                //            AttackRange = 1,
-                //            Movement = 2,
-                //            Position = map.MapInternal.ClampPositionViaMap( 
-                //                new Vector2Int( ( int )Mathf.Floor( hit.point.x ), ( int )Mathf.Floor( hit.point.z ) ) )
-                //        } );
-                //}
-                //}
             }
+        }
+    }
+
+    public void HandleClick( Vector2Int clickedTile )
+    {
+        switch ( selectionState )
+        {
+            case SelectionState.Single:
+                if ( Input.GetMouseButtonUp( 0 ) == true )
+                {
+                    selectionCanvas.Clear();
+                    selectionCanvas.Add( clickedTile );
+                }
+                break;
+            default:
+                break;
         }
     }
 }
