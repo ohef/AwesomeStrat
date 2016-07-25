@@ -28,7 +28,6 @@ public class GameMap : MonoBehaviour
     {
         m_MapInternal = new Map( MapSize.x, MapSize.y, tilePrefab.tileData );
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
-        m_MapMesh.subMeshCount = 4;
         this.GetComponent<MeshRenderer>().materials = new Material[]
             {
                 NormalMat,
@@ -36,6 +35,7 @@ public class GameMap : MonoBehaviour
                 AttackRangeMat,
                 SelectionMat,
             };
+        m_MapMesh.subMeshCount = 4;
 
         foreach ( Tile tile in m_MapInternal )
         {

@@ -6,6 +6,7 @@ using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using UnityEngine.EventSystems;
 using System;
+using UnityEngine.UI;
 
 public class MapEditorGame : MonoBehaviour
 {
@@ -23,13 +24,25 @@ public class MapEditorGame : MonoBehaviour
         Single,
     };
 
-    MapCursorState mapCursorState = MapCursorState.PlacingTile;
-    SelectionState selectionState = SelectionState.Single;
-    HashSet<Vector2Int> selectionCanvas;
+    private MapCursorState mapCursorState = MapCursorState.PlacingTile;
+    private SelectionState selectionState = SelectionState.Single;
+    private HashSet<Vector2Int> selectionCanvas;
+    private GameObject cursorLabel;
 
     void Awake()
     {
         selectionCanvas = new HashSet<Vector2Int>();
+        cursorLabel = new GameObject();
+        cursorLabel.AddComponent<CanvasRenderer>();
+        cursorLabel.AddComponent<Text>();
+        var text = cursorLabel.GetComponent<Text>();
+        text.font = Resources.GetBuiltinResource( typeof( Font ), "Arial.ttf" ) as Font;
+        text.alignment = TextAnchor.MiddleCenter;
+        text.horizontalOverflow = HorizontalWrapMode.Overflow;
+        var rectTrans = cursorLabel.GetComponent<RectTransform>();
+        rectTrans.SetParent( FindObjectOfType<Canvas>().transform );
+        rectTrans.transform.localScale = Vector3.one;
+        cursorLabel.layer = 5;
     }
 
     // Use this for initialization
@@ -38,7 +51,7 @@ public class MapEditorGame : MonoBehaviour
         cursorLook = Instantiate( cursorLook );
     }
 
-    // Update is called once per frame
+   // Update is called once per frame
     void Update()
     {
         Map.RenderSelection( selectionCanvas );
@@ -49,12 +62,14 @@ public class MapEditorGame : MonoBehaviour
             var map = hit.transform.gameObject.tag == "Map" ? hit.transform.GetComponent<GameMap>() : null;
             if ( map != null )
             {
+                Vector2Int mapPoint = map.MapInternal.ClampWithinMap( new Vector2Int( ( int )hit.point.x, ( int )hit.point.z ) );
+                cursorLabel.transform.position = Input.mousePosition + Vector3.forward * 10;
+                cursorLabel.GetComponent<Text>().text = string.Format( "Map Position: {0}\n MovementCost: {1}", mapPoint, map.MapInternal[ mapPoint ].CostOfTraversal );
                 switch ( mapCursorState )
                 {
                     case MapCursorState.PlacingTile:
                         hit.point = new Vector3( Mathf.Floor( hit.point.x ), hit.point.y, Mathf.Floor( hit.point.z ) );
-                        Vector2Int mapPoint = map.MapInternal.ClampWithinMap( new Vector2Int( ( int )hit.point.x, ( int )hit.point.z ) );
-                        HandleClick(mapPoint);
+                        HandleClick( mapPoint );
                         cursorLook.transform.position = map.MapInternal.ClampWithinMapViaXZPlane( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
                         break;
                     default:
@@ -62,6 +77,11 @@ public class MapEditorGame : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void SwitchSelection( bool switchState )
+    {
+        selectionState = switchState == true ? SelectionState.Multiple : SelectionState.Single;
     }
 
     public void HandleClick( Vector2Int clickedTile )
@@ -72,6 +92,12 @@ public class MapEditorGame : MonoBehaviour
                 if ( Input.GetMouseButtonUp( 0 ) == true )
                 {
                     selectionCanvas.Clear();
+                    selectionCanvas.Add( clickedTile );
+                }
+                break;
+            case SelectionState.Multiple:
+                if ( Input.GetMouseButtonUp( 0 ) == true )
+                {
                     selectionCanvas.Add( clickedTile );
                 }
                 break;

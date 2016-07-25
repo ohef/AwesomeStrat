@@ -80,34 +80,4 @@ public class CursorControl : MonoBehaviour {
         state = CursorState.Stationary;
         yield return null;
     }
-
-    private Mesh CreatePyramidMesh()
-    {
-        Vector3[] vertices = new Vector3[] { Vector3.zero, Vector3.forward, Vector3.forward + Vector3.right, Vector3.right, Vector3.up + Vector3.forward * 0.5f + Vector3.right * 0.5f };
-
-        for ( int i = 0 ; i < vertices.Length ; i++ )
-        {
-            vertices[ i ] = Matrix4x4.Scale( new Vector3( 0.5f, -0.5f, 0.5f ) ) * ( vertices[ i ] + new Vector3( -0.5f, 0, -0.5f ) );
-        }
-
-        int[] triangles = new int[]
-        {
-            //bottom
-            0,1,2,
-            0,2,3,
-            //sides
-            0,1,4,
-            1,2,4,
-            2,3,4,
-            3,0,4,
-        };
-
-        Mesh mesh = new Mesh();
-        mesh.vertices = vertices;
-        mesh.triangles = triangles;
-
-        //GetComponent<MeshRenderer>().materials = new Material[] { Resources.Load( "New Material 1" ) as Material, };
-
-        return mesh;
-    }
 }
