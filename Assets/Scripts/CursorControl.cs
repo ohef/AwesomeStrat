@@ -3,6 +3,7 @@ using System.Collections;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using Assets.Map;
+using System;
 
 [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
 public class CursorControl : MonoBehaviour {
@@ -15,6 +16,14 @@ public class CursorControl : MonoBehaviour {
 
     private CursorState state = CursorState.Stationary;
     private MapCursor internalCursor;
+    public Tile CurrentTile {
+        get
+        {
+            if ( state != CursorState.Moving )
+                return internalCursor.currentTile;
+            return null;
+        }
+    }
 
     public GameMap map;
     public Camera cursorCamera;
@@ -44,23 +53,22 @@ public class CursorControl : MonoBehaviour {
 
     void Start() { }
 
-    void Update()
+    void Update() { }
+    #endregion
+
+    public void MoveCursor( Vector2Int direction )
     {
-        //assuming button input?
-        var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
-        if ( direction.ManhattanNorm() > 0 )
+        if ( direction.x != 0 || direction.y != 0 )
             switch ( state )
             {
                 case CursorState.Stationary:
                     state = CursorState.Moving;
                     StartCoroutine( MoveCursorDiscreteAnim( internalCursor.MoveCursor( internalCursor.currentLocation + direction ) ) );
-                    //map.RenderUnitMovement( new Unit { Position = map.MapInternal[ internalCursor.currentLocation ].Position, AttackRange = 1, Movement = 4 } );
                     break;
                 case CursorState.Moving:
                     break;
             }
     }
-    #endregion
 
     IEnumerator MoveCursorDiscreteAnim( Vector2Int to )
     {

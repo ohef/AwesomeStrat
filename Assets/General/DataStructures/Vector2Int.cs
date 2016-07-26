@@ -37,7 +37,7 @@ namespace Assets.General.DataStructures
             return new Vector2Int( a.x * b, a.y * b );
         }
 
-        public int ManhattanNorm()
+        public int AbsoluteNormal()
         {
             return Math.Abs( this.x ) + Math.Abs( this.y );
         }

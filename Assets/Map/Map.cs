@@ -69,7 +69,7 @@ namespace Assets.Map
             return m_TileMap.GetEnumerator();
         }
 
-        private static bool OverBounded( int i, int lowerBound, int upperBound )
+        private static bool IsOverBounded( int i, int lowerBound, int upperBound )
         {
             return i < lowerBound || i > upperBound;
         }
@@ -108,7 +108,7 @@ namespace Assets.Map
 
         public bool OutOfBounds( Vector2Int v )
         {
-            return OverBounded( v.x, 0, MapSize.x - 1 ) || OverBounded( v.y, 0, MapSize.y - 1 );
+            return IsOverBounded( v.x, 0, MapSize.x - 1 ) || IsOverBounded( v.y, 0, MapSize.y - 1 );
         }
     }
 }

@@ -15,7 +15,7 @@ public class GameMap : MonoBehaviour
     public Vector2Int MapSize;
 
     private Mesh m_MapMesh;
-    public GameTile tilePrefab;
+    public GameTile TilePrefab;
 
     public Material NormalMat;
     public Material MovementMat;
@@ -26,7 +26,7 @@ public class GameMap : MonoBehaviour
 
     void Awake()
     {
-        m_MapInternal = new Map( MapSize.x, MapSize.y, tilePrefab.tileData );
+        m_MapInternal = new Map( MapSize.x, MapSize.y, TilePrefab.tileData );
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
         this.GetComponent<MeshRenderer>().materials = new Material[]
             {
@@ -40,7 +40,7 @@ public class GameMap : MonoBehaviour
 
         foreach ( Tile tile in m_MapInternal )
         {
-            var gameTile = Instantiate( tilePrefab );
+            var gameTile = Instantiate( TilePrefab );
             gameTile.tileData = tile;
             gameTile.name = tile.Position.ToString();
             gameTile.transform.SetParent( this.transform );
@@ -108,7 +108,7 @@ public class GameMap : MonoBehaviour
             for ( int i = clampX( unit.Position.x - unit.Movement ) ; i <= clampX( unit.Position.x + unit.Movement ) ; i++ )
                 for ( int j = clampY( unit.Position.y - unit.Movement ) ; j <= clampY( unit.Position.y + unit.Movement ) ; j++ )
                 {
-                    if ( ( unit.Position - new Vector2Int( i, j ) ).ManhattanNorm() <= unit.Movement )
+                    if ( ( unit.Position - new Vector2Int( i, j ) ).AbsoluteNormal() <= unit.Movement )
                     {
                         List<Tile> result = MapSearcher.Search( MapInternal[ unit.Position ], MapInternal[ i, j ], MapInternal );
 
