@@ -35,6 +35,7 @@ public class GameMap : MonoBehaviour
                 AttackRangeMat,
                 SelectionMat,
             };
+
         m_MapMesh.subMeshCount = 4;
 
         foreach ( Tile tile in m_MapInternal )
