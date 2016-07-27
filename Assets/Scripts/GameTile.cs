@@ -14,18 +14,11 @@ public class GameTile : MonoBehaviour
 
     public void OnDrawGizmos()
     {
-        Gizmos.DrawSphere( this.transform.position, 0.25f );
+        Gizmos.DrawSphere( this.transform.position, 0.11f );
     }
 
-    // Use this for initialization
-    void Start() { }
-
-    // Update is called once per frame
-    void Update()
+    public void SnapToPosition()
     {
         transform.position = tileData.Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
-        if ( tileData.UnitOccupying != null )
-        {
-        }
     }
 }

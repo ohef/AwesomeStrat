@@ -55,8 +55,6 @@ public class CursorControl : MonoBehaviour {
         cursorCamera.transform.LookAt( this.transform );
         internalCursor = new MapCursor( map.MapInternal );
     }
-
-    void Update() { }
     #endregion
 
     public void MoveCursor( Vector2Int direction )

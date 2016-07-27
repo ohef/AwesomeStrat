@@ -40,9 +40,9 @@
 			ENDGLSL
 		}
 		UsePass "Custom/Standard/FORWARD" 
-		UsePass "Custom/Standard/FORWARD_DELTA" 
+		//UsePass "Custom/Standard/FORWARD_DELTA" 
 		//UsePass "Custom/Standard/ShadowCaster" 
-		UsePass "Custom/Standard/DEFERRED" 
-		UsePass "Custom/Standard/META" 
+		//UsePass "Custom/Standard/DEFERRED" 
+		//UsePass "Custom/StandardMETA" 
 	}
 }

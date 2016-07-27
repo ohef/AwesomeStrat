@@ -7,7 +7,7 @@ using Assets.Map;
 using System.Linq;
 
 [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
-//[ExecuteInEditMode]
+[ExecuteInEditMode]
 public class GameMap : MonoBehaviour
 {
     private Map m_MapInternal;
@@ -39,12 +39,17 @@ public class GameMap : MonoBehaviour
         m_MapMesh.subMeshCount = 4;
         IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 2, AttackRange = 1, Defense = 2, HP = 20, Movement = 6, Position = new Vector2Int( 0, 0 ) } };
 
+        var collider = this.GetComponent<BoxCollider>();
+        collider.size = new Vector3( m_MapInternal.MapSize.x, 0, m_MapInternal.MapSize.y );
+        collider.center = collider.size * 0.5f;
+
         foreach ( Tile tile in m_MapInternal )
         {
             var gameTile = Instantiate( TilePrefab );
             gameTile.tileData = tile;
             gameTile.name = tile.Position.ToString();
             gameTile.transform.SetParent( this.transform );
+            gameTile.SnapToPosition();
         }
 
         foreach ( var unit in units )
@@ -70,10 +75,6 @@ public class GameMap : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-    }
-
     #endregion
 
     #region Member Functions
