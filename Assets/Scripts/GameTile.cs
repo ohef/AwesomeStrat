@@ -24,5 +24,8 @@ public class GameTile : MonoBehaviour
     void Update()
     {
         transform.position = tileData.Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
+        if ( tileData.UnitOccupying != null )
+        {
+        }
     }
 }

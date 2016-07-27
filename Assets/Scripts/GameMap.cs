@@ -37,6 +37,7 @@ public class GameMap : MonoBehaviour
             };
 
         m_MapMesh.subMeshCount = 4;
+        IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 2, AttackRange = 1, Defense = 2, HP = 20, Movement = 6, Position = new Vector2Int( 0, 0 ) } };
 
         foreach ( Tile tile in m_MapInternal )
         {
@@ -45,6 +46,22 @@ public class GameMap : MonoBehaviour
             gameTile.name = tile.Position.ToString();
             gameTile.transform.SetParent( this.transform );
         }
+
+        foreach ( var unit in units )
+        {
+            m_MapInternal[ unit.Position ].UnitOccupying = unit;
+        }
+
+    }
+
+    public void OnDrawGizmos()
+    {
+        if ( m_MapInternal != null )
+            foreach ( Tile tile in m_MapInternal )
+            {
+                if ( tile.UnitOccupying != null )
+                    Gizmos.DrawCube( tile.UnitOccupying.Position.ToVector3( Vector2IntExtensions.Axis.Y ) + new Vector3( 0.5f, 0.0f, 0.5f ), Vector3.one * 0.5f );
+            }
     }
 
     // Use this for initialization
@@ -60,6 +77,8 @@ public class GameMap : MonoBehaviour
     #endregion
 
     #region Member Functions
+
+    private void InstantiateGameTiles() { }
 
     private void AddTrianglesForPosition( int i, int j, List<int> triangleList )
     {
@@ -77,7 +96,7 @@ public class GameMap : MonoBehaviour
         triangleList.Add( indiceFormat + height + 1 );
     }
 
-    private int[] TrianglesForPosition( int i, int j)
+    private int[] TrianglesForPosition( int i, int j )
     {
         int height = m_MapInternal.MapSize.y;
         int indiceFormat = j + i * ( height + 1 );
@@ -176,8 +195,8 @@ public class GameMap : MonoBehaviour
                 vertices[ indiceFormat ] = new Vector2( i, j );
             }
 
-        for ( int i = 0 ; i < width; i++ )
-            for ( int j = 0 ; j < height; j++ )
+        for ( int i = 0 ; i < width ; i++ )
+            for ( int j = 0 ; j < height ; j++ )
             {
                 int indiceFormat = j + i * ( height + 1 );
                 int triIndiceFormat = ( j + ( i * height ) ) * 6;
@@ -191,7 +210,7 @@ public class GameMap : MonoBehaviour
                 //Lower Tri
                 triangles[ triIndiceFormat + 3 ] = indiceFormat;
                 triangles[ triIndiceFormat + 4 ] = indiceFormat + 1 + height + 1;
-                triangles[ triIndiceFormat + 5 ] = indiceFormat + height + 1; 
+                triangles[ triIndiceFormat + 5 ] = indiceFormat + height + 1;
             }
 
         var mesh = new Mesh();
@@ -231,7 +250,7 @@ public class GameMap : MonoBehaviour
                 triangles[ j + 2 ] = i + 1;
 
                 //Triangle 2
-                triangles[ j + 3 ] = i ;
+                triangles[ j + 3 ] = i;
                 triangles[ j + 4 ] = i + 2;
                 triangles[ j + 5 ] = i + 3;
 

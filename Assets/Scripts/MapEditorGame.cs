@@ -18,6 +18,7 @@ public class MapEditorGame : MonoBehaviour
         PlacingTile,
         PlacingUnit
     };
+
     public enum SelectionState
     {
         Multiple,
@@ -32,6 +33,7 @@ public class MapEditorGame : MonoBehaviour
     void Awake()
     {
         selectionCanvas = new HashSet<Vector2Int>();
+
         cursorLabel = new GameObject();
         cursorLabel.AddComponent<CanvasRenderer>();
         cursorLabel.AddComponent<Text>();

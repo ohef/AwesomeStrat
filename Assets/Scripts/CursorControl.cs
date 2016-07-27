@@ -16,6 +16,7 @@ public class CursorControl : MonoBehaviour {
 
     private CursorState state = CursorState.Stationary;
     private MapCursor internalCursor;
+
     public Tile CurrentTile {
         get
         {
@@ -47,11 +48,13 @@ public class CursorControl : MonoBehaviour {
 
     void Awake()
     {
-        internalCursor = new MapCursor( map.MapInternal );
-        cursorCamera.transform.LookAt( this.transform );
     }
 
-    void Start() { }
+    void Start()
+    {
+        cursorCamera.transform.LookAt( this.transform );
+        internalCursor = new MapCursor( map.MapInternal );
+    }
 
     void Update() { }
     #endregion

@@ -44,7 +44,7 @@ namespace Assets.Map
         }
 
         //TODO: Error Handle plz
-        public Tile this[Vector2Int v]
+        public Tile this[ Vector2Int v ]
         {
             get { return m_TileMap[ v.x, v.y ]; }
             set { m_TileMap[ v.x, v.y ] = value; }

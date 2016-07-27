@@ -4,20 +4,61 @@ using System;
 using Assets.General.DataStructures;
 using Assets.Map;
 
-public class BattleSystem : MonoBehaviour {
+public class BattleSystem : MonoBehaviour
+{
     private enum BattleTurn
     {
         Player,
         Enemy
     };
 
-    protected interface IPlayerState
+    public GameMap map;
+    private PlayerState _PlayerState;
+    private EnemyState _EnemyState;
+    private BattleTurn _Turn;
+
+    void Awake()
     {
-        void Update(IPlayerState state);
+        _PlayerState = new PlayerState( map );
     }
 
-    protected IPlayerState turnState;
+    // Use this for initialization
+    void Start()
+    {
+    }
 
+    // Update is called once per frame
+    void Update()
+    {
+        switch(_Turn)
+        {
+            case BattleTurn.Player:
+                _PlayerState.Update();
+                break;
+            case BattleTurn.Enemy:
+                _EnemyState.Update();
+                break;
+                
+        }
+    }
+}
+
+public class EnemyState
+{
+    public void Update() { }
+}
+
+public class PlayerState
+{
+
+    #region Interfaces
+    protected interface IPlayerState
+    {
+        IPlayerState Update( IPlayerState state );
+    }
+    #endregion
+
+    #region Classes
     protected class PlayerSelectingUnit : IPlayerState
     {
         private CursorControl mapCursor;
@@ -29,17 +70,20 @@ public class BattleSystem : MonoBehaviour {
             this.map = map;
         }
 
-        public void Update( IPlayerState currentState )
+        public IPlayerState Update( IPlayerState currentState )
         {
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
-            if( direction.x != 0 || direction.y != 0 )
+            if ( direction.x != 0 || direction.y != 0 )
                 mapCursor.MoveCursor( direction );
 
             var tile = mapCursor.CurrentTile;
-            if ( tile != null && tile.UnitOccupying != null && Input.GetButton( "Submit" ) )
+            if ( tile != null && tile.UnitOccupying != null && Input.GetButtonDown( "Jump" ) )
             {
-                currentState = new PlayerSelectingForAttacks( map, tile.UnitOccupying );
+                map.RenderSelection( new Vector2Int[] { mapCursor.CurrentTile.Position } );
+                return new PlayerSelectingForAttacks( map, tile.UnitOccupying );
             }
+
+            return currentState;
         }
     }
 
@@ -54,27 +98,23 @@ public class BattleSystem : MonoBehaviour {
             _SelectedUnit = selectedUnit;
         }
 
-        public void Update( IPlayerState state )
+        IPlayerState IPlayerState.Update( IPlayerState state )
         {
+            return state;
         }
     }
+    #endregion
 
-    private static PlayerSelectingUnit playerSelectingUnit;
-    private static PlayerSelectingForAttacks playerSelectingForAttacks;
-    public GameMap map;
-
-    void Awake()
+    protected IPlayerState _State;
+    private static PlayerSelectingUnit playerSelectingUnit = null;
+    private static PlayerSelectingForAttacks playerSelectingForAttacks = null;
+    public PlayerState( GameMap map )
     {
-        playerSelectingUnit = new PlayerSelectingUnit( map );
-        turnState = playerSelectingUnit;
+        _State = playerSelectingUnit = new PlayerSelectingUnit( map );
     }
 
-    // Use this for initialization
-    void Start () {
-	}
-	
-	// Update is called once per frame
-	void Update () {
-        turnState.Update(turnState);
-	}
+    public void Update()
+    {
+        _State = _State.Update( _State );
+    }
 }
