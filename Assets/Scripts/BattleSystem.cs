@@ -61,26 +61,25 @@ public class PlayerState
     #region Classes
     protected class PlayerSelectingUnit : IPlayerState
     {
-        private CursorControl mapCursor;
-        private GameMap map;
+        private CursorControl _MapCursor;
+        private GameMap _Map;
 
-        public PlayerSelectingUnit( GameMap map )
+        public PlayerSelectingUnit( GameMap map, CursorControl cursor )
         {
-            mapCursor = map.GetComponentInChildren<CursorControl>();
-            this.map = map;
+            _MapCursor = cursor;
+            this._Map = map;
         }
 
         public IPlayerState Update( IPlayerState currentState )
         {
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
             if ( direction.x != 0 || direction.y != 0 )
-                mapCursor.MoveCursor( direction );
+                _MapCursor.MoveCursor( direction );
 
-            var tile = mapCursor.CurrentTile;
+            var tile = _MapCursor.CurrentTile;
             if ( tile != null && tile.UnitOccupying != null && Input.GetButtonDown( "Jump" ) )
             {
-                map.RenderSelection( new Vector2Int[] { mapCursor.CurrentTile.Position } );
-                return new PlayerSelectingForAttacks( map, tile.UnitOccupying );
+                return new PlayerSelectingForAttacks( _Map, _MapCursor, tile.UnitOccupying);
             }
 
             return currentState;
@@ -91,15 +90,29 @@ public class PlayerState
     {
         private Unit _SelectedUnit;
         private GameMap _Map;
+        private CursorControl _MapCursor;
 
-        public PlayerSelectingForAttacks( GameMap map, Unit selectedUnit )
+        public PlayerSelectingForAttacks( GameMap map, CursorControl cursor, Unit selectedUnit )
         {
             _Map = map;
             _SelectedUnit = selectedUnit;
+            _MapCursor = cursor;
         }
 
         IPlayerState IPlayerState.Update( IPlayerState state )
         {
+            _Map.RenderUnitMovement( _SelectedUnit );
+
+            var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
+            if ( direction.x != 0 || direction.y != 0 )
+                _MapCursor.MoveCursor( direction );
+
+            if ( Input.GetButtonDown( "Jump" ) )
+            {
+                _Map.StopRenderingOverlays();
+                return playerSelectingUnit;
+            }
+
             return state;
         }
     }
@@ -110,7 +123,7 @@ public class PlayerState
     private static PlayerSelectingForAttacks playerSelectingForAttacks = null;
     public PlayerState( GameMap map )
     {
-        _State = playerSelectingUnit = new PlayerSelectingUnit( map );
+        _State = playerSelectingUnit = new PlayerSelectingUnit( map, map.GetComponentInChildren<CursorControl>() );
     }
 
     public void Update()

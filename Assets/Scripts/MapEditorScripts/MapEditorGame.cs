@@ -12,6 +12,7 @@ public class MapEditorGame : MonoBehaviour
 {
     public GameObject cursorLook;
     public GameMap Map;
+    public Slider MovementSlider;
 
     public enum MapCursorState
     {
@@ -93,18 +94,34 @@ public class MapEditorGame : MonoBehaviour
             case SelectionState.Single:
                 if ( Input.GetMouseButtonUp( 0 ) == true )
                 {
-                    selectionCanvas.Clear();
-                    selectionCanvas.Add( clickedTile );
+                    if ( selectionCanvas.Contains( clickedTile ) )
+                        selectionCanvas.Remove( clickedTile );
+                    else
+                    {
+                        selectionCanvas.Clear();
+                        selectionCanvas.Add( clickedTile );
+                    }
                 }
                 break;
             case SelectionState.Multiple:
                 if ( Input.GetMouseButtonUp( 0 ) == true )
                 {
-                    selectionCanvas.Add( clickedTile );
+                    if ( selectionCanvas.Contains( clickedTile ) )
+                        selectionCanvas.Remove( clickedTile );
+                    else
+                        selectionCanvas.Add( clickedTile );
                 }
                 break;
             default:
                 break;
+        }
+    }
+
+    public void SetValuesForSelection()
+    {
+        foreach ( var pos in selectionCanvas )
+        {
+            Map.MapInternal[ pos ].CostOfTraversal = ( int )MovementSlider.value;
         }
     }
 }

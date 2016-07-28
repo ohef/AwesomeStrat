@@ -64,25 +64,26 @@ public class CursorControl : MonoBehaviour {
             {
                 case CursorState.Stationary:
                     state = CursorState.Moving;
-                    StartCoroutine( MoveCursorDiscreteAnim( internalCursor.MoveCursor( internalCursor.currentLocation + direction ) ) );
+                    StartCoroutine( MotionTweenMap( internalCursor.MoveCursor( internalCursor.currentLocation + direction ), 0.15f ) );
                     break;
                 case CursorState.Moving:
                     break;
             }
     }
 
-    IEnumerator MoveCursorDiscreteAnim( Vector2Int to )
+    IEnumerator MotionTweenMap( Vector2Int to, float seconds )
     {
         Vector3 oldPosition = CursorPosition;
         Vector3 updatedPosition = new Vector3( to.x, oldPosition.y, to.y );
 
-        for ( float i = 0 ; i < 0.99f ; i+=0.33f )
+        float rate = 1.0f / seconds;
+        for ( float i = 0 ; i < 1.0f ; i+= Time.deltaTime * rate )
         {
             CursorPosition = new Vector3(
             Mathf.Lerp( oldPosition.x, updatedPosition.x, i ),
             oldPosition.y,
             Mathf.Lerp( oldPosition.z, updatedPosition.z, i ) );
-            yield return null; 
+            yield return null;
         }
 
         CursorPosition = updatedPosition;

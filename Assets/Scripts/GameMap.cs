@@ -166,6 +166,13 @@ public class GameMap : MonoBehaviour
         m_MapMesh.SetTriangles( tiles.SelectMany( tile => TrianglesForPosition( tile.x, tile.y ) ).ToList(), 3 );
     }
 
+    public void StopRenderingOverlays()
+    {
+        m_MapMesh.SetTriangles( new int[] { }, 1 );
+        m_MapMesh.SetTriangles( new int[] { }, 2 );
+        m_MapMesh.SetTriangles( new int[] { }, 3 );
+    }
+
     private List<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
     {
         HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
