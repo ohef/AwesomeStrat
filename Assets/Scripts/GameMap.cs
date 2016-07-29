@@ -27,7 +27,10 @@ public class GameMap : MonoBehaviour
     void Awake()
     {
         m_MapInternal = new Map( MapSize.x, MapSize.y, TilePrefab.tileData );
+
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
+        m_MapMesh.subMeshCount = 4;
+
         this.GetComponent<MeshRenderer>().materials = new Material[]
             {
                 NormalMat,
@@ -36,8 +39,6 @@ public class GameMap : MonoBehaviour
                 SelectionMat,
             };
 
-        m_MapMesh.subMeshCount = 4;
-        IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 2, AttackRange = 1, Defense = 2, HP = 20, Movement = 6, Position = new Vector2Int( 0, 0 ) } };
 
         var collider = this.GetComponent<BoxCollider>();
         collider.size = new Vector3( m_MapInternal.MapSize.x, 0, m_MapInternal.MapSize.y );
@@ -52,11 +53,11 @@ public class GameMap : MonoBehaviour
             gameTile.SnapToPosition();
         }
 
+        IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 2, AttackRange = 1, Defense = 2, HP = 20, Movement = 6, Position = new Vector2Int( 0, 0 ) } };
         foreach ( var unit in units )
         {
             m_MapInternal[ unit.Position ].UnitOccupying = unit;
         }
-
     }
 
     public void OnDrawGizmos()
@@ -114,7 +115,7 @@ public class GameMap : MonoBehaviour
     }
 
     // Function that renders where a unit can move
-    public void RenderUnitMovement( Unit unit )
+    public void RenderUnitMovement( Unit unit, float alpha = 1.0f )
     {
         List<int> MovementSet = new List<int>();
         List<int> AttackSet = new List<int>();
@@ -153,6 +154,15 @@ public class GameMap : MonoBehaviour
         m_MapMesh.SetTriangles( MovementSet, 1 );
         m_MapMesh.SetTriangles( AttackSet, 2 );
 
+        Func<Material, Color> switchColor = mat =>
+        {
+            var temp = mat.GetColor( "_Color" );
+            temp.a = alpha;
+            return temp;
+        };
+
+        AttackRangeMat.SetColor( "_Color", switchColor( AttackRangeMat ) );
+        MovementMat.SetColor( "_Color", switchColor( MovementMat ) );
     }
 
     public void RenderSelection( IEnumerable<Vector2Int> tiles )

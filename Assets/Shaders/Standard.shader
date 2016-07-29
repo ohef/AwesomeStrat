@@ -47,7 +47,6 @@ Shader "Custom/Standard"
 	{
 		Tags { "RenderType"="Opaque" "PerformanceChecks"="False" }
 		LOD 300
-	
 
 		// ------------------------------------------------------------------
 		//  Base forward pass (directional light, emission, lightmaps, ...)
@@ -347,8 +346,6 @@ Shader "Custom/Standard"
 			ENDCG
 		}
 	}
-
-
 	FallBack "VertexLit"
-	//CustomEditor "StandardShaderGUI"
+	CustomEditor "StandardShaderGUI"
 }

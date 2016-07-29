@@ -22,7 +22,7 @@ namespace Assets.Map
                 }
         }
 
-        public static List<Tile> Search( Tile start, Tile goal, Map map )
+        public static List<Tile> Search( Tile start, Tile goal, Map map, int bound = int.MaxValue )
         {
             HashSet<GridNode> closedSet = new HashSet<GridNode>();
             ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();

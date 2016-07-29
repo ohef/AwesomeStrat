@@ -77,9 +77,18 @@ public class PlayerState
                 _MapCursor.MoveCursor( direction );
 
             var tile = _MapCursor.CurrentTile;
-            if ( tile != null && tile.UnitOccupying != null && Input.GetButtonDown( "Jump" ) )
+            if ( tile != null )
             {
-                return new PlayerSelectingForAttacks( _Map, _MapCursor, tile.UnitOccupying);
+                if ( tile.UnitOccupying != null )
+                {
+                    _Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
+                    if ( Input.GetButtonDown( "Jump" ) )
+                    {
+                        return new PlayerSelectingForAttacks( _Map, _MapCursor, tile.UnitOccupying );
+                    }
+                }
+                else
+                    _Map.StopRenderingOverlays();
             }
 
             return currentState;
@@ -109,7 +118,6 @@ public class PlayerState
 
             if ( Input.GetButtonDown( "Jump" ) )
             {
-                _Map.StopRenderingOverlays();
                 return playerSelectingUnit;
             }
 
