@@ -53,7 +53,7 @@ public class GameMap : MonoBehaviour
             gameTile.SnapToPosition();
         }
 
-        IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 2, AttackRange = 1, Defense = 2, HP = 20, Movement = 6, Position = new Vector2Int( 0, 0 ) } };
+        IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
         foreach ( var unit in units )
         {
             m_MapInternal[ unit.Position ].UnitOccupying = unit;
@@ -114,6 +114,20 @@ public class GameMap : MonoBehaviour
         };
     }
 
+    public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range)
+    {
+        Func<int, int> clampX = i => m_MapInternal.ClampX( i );
+        Func<int, int> clampY = i => m_MapInternal.ClampY( i );
+
+        for ( int i = clampX( startingPos.x - range ) ; i <= clampX( startingPos.x + range ) ; i++ )
+            for ( int j = clampY( startingPos.y - range ) ; j <= clampY( startingPos.y + range ) ; j++ )
+            {
+                Vector2Int toReturn = new Vector2Int( i, j );
+                if ( ( startingPos - toReturn ).AbsoluteNormal() <= range )
+                    yield return toReturn;
+            }
+    }
+
     // Function that renders where a unit can move
     public void RenderUnitMovement( Unit unit, float alpha = 1.0f )
     {
@@ -123,27 +137,15 @@ public class GameMap : MonoBehaviour
         {
             HashSet<Vector2Int> movementTiles = new HashSet<Vector2Int>();
 
-            Func<int, int> clampX = i => m_MapInternal.ClampX( i );
-            Func<int, int> clampY = i => m_MapInternal.ClampY( i );
-
-            for ( int i = clampX( unit.Position.x - unit.Movement ) ; i <= clampX( unit.Position.x + unit.Movement ) ; i++ )
-                for ( int j = clampY( unit.Position.y - unit.Movement ) ; j <= clampY( unit.Position.y + unit.Movement ) ; j++ )
+            foreach ( var position in GetTilesWithinAbsoluteRange( unit.Position, unit.Movement ) ) 
+            {
+                List<Tile> result = MapSearcher.Search( MapInternal[ unit.Position ], MapInternal[ position ], MapInternal, unit.Movement );
+                if ( result != null )
                 {
-                    if ( ( unit.Position - new Vector2Int( i, j ) ).AbsoluteNormal() <= unit.Movement )
-                    {
-                        List<Tile> result = MapSearcher.Search( MapInternal[ unit.Position ], MapInternal[ i, j ], MapInternal );
-
-                        int totalCost = 0;
-                        foreach ( var tile in result )
-                            totalCost += tile.CostOfTraversal;
-
-                        if ( totalCost <= unit.Movement )
-                        {
-                            AddTrianglesForPosition( i, j, MovementSet );
-                            movementTiles.Add( new Vector2Int( i, j ) );
-                        }
-                    }
+                    AddTrianglesForPosition( position.x, position.y, MovementSet );
+                    movementTiles.Add( position );
                 }
+            }
 
             foreach ( var attackTile in GetAttackTiles( movementTiles, unit.AttackRange ) )
             {
@@ -198,6 +200,18 @@ public class GameMap : MonoBehaviour
                 }
             }
         }
+        return attackTiles.ToList();
+    }
+
+    private List<Vector2Int> GetAttackTilesSetImpl( HashSet<Vector2Int> movementTiles, int attackRange)
+    {
+        HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
+        foreach ( var position in movementTiles )
+        {
+            var attackFromPos = GetTilesWithinAbsoluteRange( position, attackRange );
+            attackTiles.UnionWith( attackFromPos );
+        }
+        attackTiles.ExceptWith( movementTiles );
         return attackTiles.ToList();
     }
 

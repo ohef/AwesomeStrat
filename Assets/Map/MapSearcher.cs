@@ -51,6 +51,9 @@ namespace Assets.Map
                     if ( closedSet.Contains( neighbour ) )
                         continue;
                     int tempPCost = currentNode.pCost + neighbour.Tile.CostOfTraversal;
+                    if ( tempPCost > bound )
+                        continue;
+
                     if ( !frontier.Contains( neighbour ) )
                         frontier.Push( neighbour );
                     else if ( tempPCost >= neighbour.pCost )
@@ -63,7 +66,7 @@ namespace Assets.Map
                 }
             }
 
-            return ReconstructPath( frontier.Pop(), frontier.Pop() );
+            return null;
         }
 
         public static List<Tile> ReconstructPath( GridNode finalNode, GridNode startNode )
