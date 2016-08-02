@@ -65,15 +65,15 @@ public class MapEditorGame : MonoBehaviour
             var map = hit.transform.gameObject.tag == "Map" ? hit.transform.GetComponent<GameMap>() : null;
             if ( map != null )
             {
-                Vector2Int mapPoint = map.MapInternal.ClampWithinMap( new Vector2Int( ( int )hit.point.x, ( int )hit.point.z ) );
+                Vector2Int mapPoint = map.ClampWithinMap( new Vector2Int( ( int )hit.point.x, ( int )hit.point.z ) );
                 cursorLabel.transform.position = Input.mousePosition + Vector3.forward * 10;
-                cursorLabel.GetComponent<Text>().text = string.Format( "Map Position: {0}\n MovementCost: {1}", mapPoint, map.MapInternal[ mapPoint ].CostOfTraversal );
+                cursorLabel.GetComponent<Text>().text = string.Format( "Map Position: {0}\n MovementCost: {1}", mapPoint, map[ mapPoint ].CostOfTraversal );
                 switch ( mapCursorState )
                 {
                     case MapCursorState.PlacingTile:
                         hit.point = new Vector3( Mathf.Floor( hit.point.x ), hit.point.y, Mathf.Floor( hit.point.z ) );
                         HandleClick( mapPoint );
-                        cursorLook.transform.position = map.MapInternal.ClampWithinMapViaXZPlane( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
+                        cursorLook.transform.position = map.ClampWithinMapViaXZPlane( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
                         break;
                     default:
                         break;
@@ -121,7 +121,7 @@ public class MapEditorGame : MonoBehaviour
     {
         foreach ( var pos in selectionCanvas )
         {
-            Map.MapInternal[ pos ].CostOfTraversal = ( int )MovementSlider.value;
+            Map[ pos ].CostOfTraversal = ( int )MovementSlider.value;
         }
     }
 }

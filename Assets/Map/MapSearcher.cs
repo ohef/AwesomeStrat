@@ -13,22 +13,22 @@ namespace Assets.Map
 
     public class MapSearcher
     {
-        public static void CopyIntoGridNodeMap( Map map, GridNode[,] gridNodeMap, int sizex, int sizey )
+        public static void CopyIntoGridNodeMap( GameTile[,] map, GridNode[,] gridNodeMap )
         {
-            for ( int i = 0 ; i < sizex ; i++ )
-                for ( int j = 0 ; j < sizey ; j++ )
+            for ( int i = 0 ; i < map.GetLength(0) ; i++ )
+                for ( int j = 0 ; j < map.GetLength(1) ; j++ )
                 {
                     gridNodeMap[ i, j ] = new GridNode( map[ i, j ] );
                 }
         }
 
-        public static List<Tile> Search( Tile start, Tile goal, Map map, int bound = int.MaxValue )
+        public static List<GameTile> Search( GameTile start, GameTile goal, GameTile[,] map, int bound = int.MaxValue )
         {
             HashSet<GridNode> closedSet = new HashSet<GridNode>();
             ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();
 
-            GridNode[,] gridNodeMap = new GridNode[ map.MapSize.x, map.MapSize.y ];
-            CopyIntoGridNodeMap( map, gridNodeMap, map.MapSize.x, map.MapSize.y );
+            GridNode[,] gridNodeMap = new GridNode[ map.GetLength( 0 ), map.GetLength( 1 ) ];
+            CopyIntoGridNodeMap( map, gridNodeMap );
 
             GridNode startNode = gridNodeMap[ start.Position.x, start.Position.y ];
             GridNode goalNode = gridNodeMap[ goal.Position.x, goal.Position.y ];
@@ -69,9 +69,9 @@ namespace Assets.Map
             return null;
         }
 
-        public static List<Tile> ReconstructPath( GridNode finalNode, GridNode startNode )
+        public static List<GameTile> ReconstructPath( GridNode finalNode, GridNode startNode )
         {
-            var path = new List<Tile>();
+            var path = new List<GameTile>();
             GridNode temp = finalNode;
             while ( true )
             {
@@ -139,7 +139,7 @@ namespace Assets.Map
 
         public Vector2Int Location { get { return Tile.Position; } }
 
-        public Tile Tile
+        public GameTile Tile
         {
             get
             {
@@ -150,9 +150,9 @@ namespace Assets.Map
         public int pCost = 0;
         public int hCost = 0;
 
-        private Tile m_Tile;
+        private GameTile m_Tile;
 
-        public GridNode( Tile tile )
+        public GridNode( GameTile tile )
         {
             this.m_Tile = tile;
         }

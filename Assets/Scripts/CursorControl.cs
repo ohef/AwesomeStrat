@@ -6,7 +6,8 @@ using Assets.Map;
 using System;
 
 [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
-public class CursorControl : MonoBehaviour {
+public class CursorControl : MonoBehaviour
+{
 
     private enum CursorState
     {
@@ -14,19 +15,11 @@ public class CursorControl : MonoBehaviour {
         Stationary
     }
 
+    public GameMap Map;
+    public GameTile CurrentTile;
+
     private CursorState state = CursorState.Stationary;
-    private MapCursor internalCursor;
 
-    public Tile CurrentTile {
-        get
-        {
-            if ( state != CursorState.Moving )
-                return internalCursor.currentTile;
-            return null;
-        }
-    }
-
-    public GameMap map;
     public Camera cursorCamera;
 
     public delegate void CursorMovedHandler( Vector3 oldPosition, Vector3 newPositon );
@@ -40,7 +33,7 @@ public class CursorControl : MonoBehaviour {
             var oldlocalPosition = transform.localPosition;
             transform.localPosition = value;
             if ( CursorMoved != null )
-                CursorMoved( oldlocalPosition, transform.localPosition);
+                CursorMoved( oldlocalPosition, transform.localPosition );
         }
     }
 
@@ -53,7 +46,7 @@ public class CursorControl : MonoBehaviour {
     void Start()
     {
         cursorCamera.transform.LookAt( this.transform );
-        internalCursor = new MapCursor( map.MapInternal );
+        CurrentTile = Map[ 0, 0 ];
     }
     #endregion
 
@@ -63,8 +56,13 @@ public class CursorControl : MonoBehaviour {
             switch ( state )
             {
                 case CursorState.Stationary:
-                    state = CursorState.Moving;
-                    StartCoroutine( MotionTweenMap( internalCursor.MoveCursor( internalCursor.currentLocation + direction ), 0.15f ) );
+                    Vector2Int to = CurrentTile.Position + direction;
+                    if ( Map.OutOfBounds( to ) == false )
+                    {
+                        state = CursorState.Moving;
+                        CurrentTile = Map[ to ];
+                        StartCoroutine( MotionTweenMap( to, 0.15f ) );
+                    }
                     break;
                 case CursorState.Moving:
                     break;
@@ -77,7 +75,7 @@ public class CursorControl : MonoBehaviour {
         Vector3 updatedPosition = new Vector3( to.x, oldPosition.y, to.y );
 
         float rate = 1.0f / seconds;
-        for ( float i = 0 ; i < 1.0f ; i+= Time.deltaTime * rate )
+        for ( float i = 0 ; i < 1.0f ; i += Time.deltaTime * rate )
         {
             CursorPosition = new Vector3(
             Mathf.Lerp( oldPosition.x, updatedPosition.x, i ),

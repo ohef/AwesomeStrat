@@ -9,8 +9,9 @@ using System;
 [ExecuteInEditMode]
 public class GameTile : MonoBehaviour
 {
-
-    public Tile tileData;
+    public Vector2Int Position;
+    public Unit UnitOccupying;
+    public int CostOfTraversal;
 
     public void OnDrawGizmos()
     {
@@ -19,6 +20,6 @@ public class GameTile : MonoBehaviour
 
     public void SnapToPosition()
     {
-        transform.position = tileData.Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
+        transform.position = Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
     }
 }

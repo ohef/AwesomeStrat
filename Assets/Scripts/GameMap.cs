@@ -8,13 +8,11 @@ using System.Linq;
 using System.IO;
 using YamlDotNet.Serialization;
 using System.Text;
+using System.Collections;
 
 [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
-[ExecuteInEditMode]
 public class GameMap : MonoBehaviour
 {
-    private Map m_MapInternal;
-    public Map MapInternal { get { return m_MapInternal; } }
     public int Width;
     public int Height;
 
@@ -30,9 +28,10 @@ public class GameMap : MonoBehaviour
 
     void Awake()
     {
-        m_MapInternal = new Map( Width, Height, TilePrefab.tileData );
+        //TODO Instantialize Map
+        InitializeMap();
 
-        this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
+        this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( Width, Height);
         m_MapMesh.subMeshCount = 4;
 
         this.GetComponent<MeshRenderer>().materials = new Material[]
@@ -44,43 +43,26 @@ public class GameMap : MonoBehaviour
             };
 
         var collider = this.GetComponent<BoxCollider>();
-        collider.size = new Vector3( m_MapInternal.MapSize.x, 0, m_MapInternal.MapSize.y );
+        collider.size = new Vector3( Width, Height );
         collider.center = collider.size * 0.5f;
-
-        foreach ( Tile tile in m_MapInternal )
-        {
-            var gameTile = Instantiate( TilePrefab );
-            gameTile.tileData = tile;
-            gameTile.name = tile.Position.ToString();
-            gameTile.transform.SetParent( this.transform );
-            gameTile.SnapToPosition();
-        }
 
         IEnumerable<Unit> units = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
         foreach ( var unit in units )
         {
-            m_MapInternal[ unit.Position ].UnitOccupying = unit;
+            this[ unit.Position ].UnitOccupying = unit;
         }
     }
 
-    //public void LoadUnits()
-    //{
-    //    var serializer = new Serializer();
-    //    var builder = new StringBuilder();
-    //    var stringWriter = new StringWriter(builder);
-    //    var unit = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
-    //    serializer.Serialize( stringWriter, unit);
-    //    Debug.Log( builder );
-    //}
-
     public void OnDrawGizmos()
     {
-        if ( m_MapInternal != null )
-            foreach ( Tile tile in m_MapInternal )
+        if ( m_TileMap != null )
+        {
+            foreach ( GameTile tile in this.m_TileMap )
             {
                 if ( tile.UnitOccupying != null )
                     Gizmos.DrawCube( tile.UnitOccupying.Position.ToVector3( Vector2IntExtensions.Axis.Y ) + new Vector3( 0.5f, 0.0f, 0.5f ), Vector3.one * 0.5f );
             }
+        }
     }
 
     // Use this for initialization
@@ -93,11 +75,9 @@ public class GameMap : MonoBehaviour
 
     #region Member Functions
 
-    private void InstantiateGameTiles() { }
-
     private void AddTrianglesForPosition( int i, int j, List<int> triangleList )
     {
-        int height = m_MapInternal.MapSize.y;
+        int height = Height;
         int indiceFormat = j + i * ( height + 1 );
 
         //Top Tri
@@ -113,7 +93,7 @@ public class GameMap : MonoBehaviour
 
     private int[] TrianglesForPosition( int i, int j )
     {
-        int height = m_MapInternal.MapSize.y;
+        int height = Height;
         int indiceFormat = j + i * ( height + 1 );
 
         return new int[] {
@@ -129,8 +109,8 @@ public class GameMap : MonoBehaviour
 
     public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range)
     {
-        Func<int, int> clampX = i => m_MapInternal.ClampX( i );
-        Func<int, int> clampY = i => m_MapInternal.ClampY( i );
+        Func<int, int> clampX = i => ClampX( i );
+        Func<int, int> clampY = i => ClampY( i );
 
         for ( int i = clampX( startingPos.x - range ) ; i <= clampX( startingPos.x + range ) ; i++ )
             for ( int j = clampY( startingPos.y - range ) ; j <= clampY( startingPos.y + range ) ; j++ )
@@ -152,7 +132,7 @@ public class GameMap : MonoBehaviour
 
             foreach ( var position in GetTilesWithinAbsoluteRange( unit.Position, unit.Movement ) ) 
             {
-                List<Tile> result = MapSearcher.Search( MapInternal[ unit.Position ], MapInternal[ position ], MapInternal, unit.Movement );
+                List<GameTile> result = MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement );
                 if ( result != null )
                 {
                     AddTrianglesForPosition( position.x, position.y, MovementSet );
@@ -207,7 +187,7 @@ public class GameMap : MonoBehaviour
             {
                 for ( int i = 0 ; i < attackRange ; i++ )
                 {
-                    Vector2Int neighbour = m_MapInternal.ClampWithinMap( tile + direction * attackRange );
+                    Vector2Int neighbour = ClampWithinMap( tile + direction * attackRange );
                     if ( movementTiles.Contains( neighbour ) == false )
                         attackTiles.Add( neighbour );
                 }
@@ -309,6 +289,94 @@ public class GameMap : MonoBehaviour
         mesh.triangles = triangles;
 
         return mesh;
+    }
+    #endregion
+
+    #region ImportedMapFunctions
+    public GameTile[,] m_TileMap;
+
+    public void InitializeMap()
+    {
+        m_TileMap = new GameTile[ Width, Height ];
+        for ( int i = 0 ; i < Width ; i++ )
+            for ( int j = 0 ; j < Height ; j++ )
+            {
+                var gameTile = Instantiate( TilePrefab );
+                gameTile.Position.x = i;
+                gameTile.Position.y = j;
+                this[ gameTile.Position ] = gameTile;
+                gameTile.transform.SetParent( this.transform );
+                gameTile.SnapToPosition();
+                gameTile.name = gameTile.Position.ToString();
+            }
+    }
+
+    public GameTile this[ int x, int y ]
+    {
+        get { return m_TileMap[ x, y ]; }
+        set { m_TileMap[ x, y ] = value; }
+    }
+
+    //TODO: Error Handle plz
+    public GameTile this[ Vector2Int v ]
+    {
+        get { return m_TileMap[ v.x, v.y ]; }
+        set { m_TileMap[ v.x, v.y ] = value; }
+    }
+
+    private bool CanMoveInto( GameTile tile )
+    {
+        return tile.UnitOccupying == null;
+    }
+
+    private void SwapUnit( GameTile a, GameTile b )
+    {
+        if ( CanMoveInto( b ) == true )
+        {
+            b.UnitOccupying = a.UnitOccupying;
+            a.UnitOccupying = null;
+        }
+    }
+
+    private static bool IsOverBounded( int i, int lowerBound, int upperBound )
+    {
+        return i < lowerBound || i > upperBound;
+    }
+
+    private static T ClampNumber<T>( T i, T lowerBound, T upperBound ) where T : IComparable<T>
+    {
+        i = i.CompareTo( lowerBound ) < 0 ? lowerBound : i;
+        i = i.CompareTo( upperBound ) > 0 ? upperBound : i;
+        return i;
+    }
+
+    public int ClampX( int i )
+    {
+        return ClampNumber( i, 0, Width - 1 );
+    }
+
+    public int ClampY( int i )
+    {
+        return ClampNumber( i, 0, Height - 1 );
+    }
+
+    public Vector2Int ClampWithinMap( Vector2Int toClamp )
+    {
+        toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
+        toClamp.y = ClampNumber( toClamp.y, 0, Height - 1 );
+        return toClamp;
+    }
+
+    public Vector3 ClampWithinMapViaXZPlane( Vector3 toClamp )
+    {
+        toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
+        toClamp.z = ClampNumber( toClamp.z, 0, Height - 1 );
+        return toClamp;
+    }
+
+    public bool OutOfBounds( Vector2Int v )
+    {
+        return IsOverBounded( v.x, 0, Width - 1 ) || IsOverBounded( v.y, 0, Height - 1 );
     }
     #endregion
 }
