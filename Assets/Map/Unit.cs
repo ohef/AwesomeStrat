@@ -6,14 +6,13 @@ using Assets.General.DataStructures;
 
 namespace Assets.Map
 {
-    [Serializable]
     public class Unit
     {
-        public int HP;
-        public int Defense;
-        public int Attack;
-        public int Movement;
-        public Vector2Int Position;
-        public int AttackRange;
+        public int HP { get; set; }
+        public int Defense { get; set; }
+        public int Attack { get; set; }
+        public int Movement { get; set; }
+        public Vector2Int Position { get; set; }
+        public int AttackRange { get; set; }
     }
 }

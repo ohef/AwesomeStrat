@@ -8,7 +8,6 @@ using UnityEngine;
 
 namespace Assets.Map
 {
-    [Serializable]
     public class Tile 
     {
         public Vector2Int Position;

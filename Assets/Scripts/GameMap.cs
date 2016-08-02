@@ -5,6 +5,9 @@ using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using Assets.Map;
 using System.Linq;
+using System.IO;
+using YamlDotNet.Serialization;
+using System.Text;
 
 [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
 [ExecuteInEditMode]
@@ -12,7 +15,8 @@ public class GameMap : MonoBehaviour
 {
     private Map m_MapInternal;
     public Map MapInternal { get { return m_MapInternal; } }
-    public Vector2Int MapSize;
+    public int Width;
+    public int Height;
 
     private Mesh m_MapMesh;
     public GameTile TilePrefab;
@@ -26,7 +30,7 @@ public class GameMap : MonoBehaviour
 
     void Awake()
     {
-        m_MapInternal = new Map( MapSize.x, MapSize.y, TilePrefab.tileData );
+        m_MapInternal = new Map( Width, Height, TilePrefab.tileData );
 
         this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( m_MapInternal.MapSize.x, m_MapInternal.MapSize.y );
         m_MapMesh.subMeshCount = 4;
@@ -39,10 +43,11 @@ public class GameMap : MonoBehaviour
                 SelectionMat,
             };
 
-
         var collider = this.GetComponent<BoxCollider>();
         collider.size = new Vector3( m_MapInternal.MapSize.x, 0, m_MapInternal.MapSize.y );
         collider.center = collider.size * 0.5f;
+
+        LoadUnits();
 
         foreach ( Tile tile in m_MapInternal )
         {
@@ -58,6 +63,16 @@ public class GameMap : MonoBehaviour
         {
             m_MapInternal[ unit.Position ].UnitOccupying = unit;
         }
+    }
+
+    public void LoadUnits()
+    {
+        var serializer = new Serializer();
+        var builder = new StringBuilder();
+        var stringWriter = new StringWriter(builder);
+        var unit = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
+        serializer.Serialize( stringWriter, unit);
+        Debug.Log( builder );
     }
 
     public void OnDrawGizmos()

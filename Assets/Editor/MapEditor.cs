@@ -33,10 +33,10 @@ public class MapEditor : EditorWindow
 
         if ( map != null )
         {
-            for ( int i = 0 ; i < map.MapSize.x ; i++ )
+            for ( int i = 0 ; i < map.Width; i++ )
             {
                 EditorGUILayout.BeginHorizontal();
-                for ( int j = 0 ; j < map.MapSize.y ; j++ )
+                for ( int j = 0 ; j < map.Height; j++ )
                 {
                     GUILayout.Button( string.Format( "({0},{1})", i, j ) );
                 }
