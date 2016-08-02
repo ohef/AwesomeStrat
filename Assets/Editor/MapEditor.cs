@@ -11,7 +11,9 @@ public class MapEditor : EditorWindow
     public int height= 0;
     public GameTile defaultTile;
 
-    [MenuItem("Window/MyWindow")]
+    public static Unit unitPrefHolder = new Unit();
+
+    [MenuItem("Window/MapEditor")]
     public static void ShowWindow()
     {
         EditorWindow.GetWindow( typeof( MapEditor ) );
@@ -20,29 +22,24 @@ public class MapEditor : EditorWindow
     void OnGUI()
     {
         EditorGUILayout.BeginVertical();
-        EditorGUILayout.LabelField( "It's a map maker, whaddaya want me to do" );
-
-        EditorGUILayout.LabelField( "Width: " );
-        width = EditorGUILayout.IntField( width );
-
-        EditorGUILayout.LabelField( "Height: " );
-        height = EditorGUILayout.IntField( height );
-
         defaultTile = EditorGUILayout.ObjectField( defaultTile, typeof( GameTile ), true ) as GameTile;
         map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
-
-        if ( map != null )
-        {
-            for ( int i = 0 ; i < map.Width; i++ )
-            {
-                EditorGUILayout.BeginHorizontal();
-                for ( int j = 0 ; j < map.Height; j++ )
-                {
-                    GUILayout.Button( string.Format( "({0},{1})", i, j ) );
-                }
-                EditorGUILayout.EndHorizontal();
-            }
-        }
+        AddUnitInstantiator();
         EditorGUILayout.EndVertical();
+    }
+
+    void AddUnitInstantiator()
+    {
+        unitPrefHolder.HP = EditorGUILayout.IntField( unitPrefHolder.HP );
+        unitPrefHolder.Attack = EditorGUILayout.IntField( unitPrefHolder.Attack );
+        unitPrefHolder.AttackRange = EditorGUILayout.IntField( unitPrefHolder.AttackRange );
+        unitPrefHolder.Defense = EditorGUILayout.IntField( unitPrefHolder.Defense );
+        unitPrefHolder.Movement = EditorGUILayout.IntField( unitPrefHolder.Movement );
+
+        int X = 0;
+        int Y = 0;
+        X = EditorGUILayout.IntField( X );
+        Y = EditorGUILayout.IntField( Y );
+        unitPrefHolder.Position = new Assets.General.DataStructures.Vector2Int( X, Y );
     }
 }

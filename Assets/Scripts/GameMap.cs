@@ -47,8 +47,6 @@ public class GameMap : MonoBehaviour
         collider.size = new Vector3( m_MapInternal.MapSize.x, 0, m_MapInternal.MapSize.y );
         collider.center = collider.size * 0.5f;
 
-        LoadUnits();
-
         foreach ( Tile tile in m_MapInternal )
         {
             var gameTile = Instantiate( TilePrefab );
@@ -65,15 +63,15 @@ public class GameMap : MonoBehaviour
         }
     }
 
-    public void LoadUnits()
-    {
-        var serializer = new Serializer();
-        var builder = new StringBuilder();
-        var stringWriter = new StringWriter(builder);
-        var unit = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
-        serializer.Serialize( stringWriter, unit);
-        Debug.Log( builder );
-    }
+    //public void LoadUnits()
+    //{
+    //    var serializer = new Serializer();
+    //    var builder = new StringBuilder();
+    //    var stringWriter = new StringWriter(builder);
+    //    var unit = new Unit[] { new Unit { Attack = 1, AttackRange = 1, Defense = 2, HP = 20, Movement = 5, Position = new Vector2Int( 0, 0 ) } };
+    //    serializer.Serialize( stringWriter, unit);
+    //    Debug.Log( builder );
+    //}
 
     public void OnDrawGizmos()
     {
