@@ -178,18 +178,6 @@ public class GameMap : MonoBehaviour
         return attackTiles;
     }
 
-    private List<Vector2Int> GetAttackTilesSetImpl( HashSet<Vector2Int> movementTiles, int attackRange)
-    {
-        HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
-        foreach ( var position in movementTiles )
-        {
-            var attackFromPos = GetTilesWithinAbsoluteRange( position, attackRange );
-            attackTiles.UnionWith( attackFromPos );
-        }
-        attackTiles.ExceptWith( movementTiles );
-        return attackTiles.ToList();
-    }
-
     private Mesh CreateGridMesh( int width, int height )
     {
         Vector2[] vertices = new Vector2[ ( width + 1 ) * ( height + 1 ) ];
