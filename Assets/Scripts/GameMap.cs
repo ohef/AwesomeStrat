@@ -106,18 +106,21 @@ public class GameMap : MonoBehaviour
             }
     }
 
+    public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
+    {
+        return GetTilesWithinAbsoluteRange( unit.Position, unit.Movement )
+            .Where( position => MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement ) != null );
+    }
+
     // Function that renders where a unit can move
     public void RenderUnitMovement( Unit unit, float alpha = 1.0f )
     {
-        HashSet<Vector2Int> validMovementTiles = new HashSet<Vector2Int>( 
-            GetTilesWithinAbsoluteRange( unit.Position, unit.Movement )
-            .Where( position => MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement ) != null ) );
+        List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList() ;
 
         m_MapMesh.SetTriangles( 
             validMovementTiles.SelectMany<Vector2Int, int>( TrianglesForPosition ).ToList(), 1 );
-
         m_MapMesh.SetTriangles(
-            GetAttackTiles( validMovementTiles, unit.AttackRange )
+            GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
             .SelectMany<Vector2Int, int>( TrianglesForPosition )
             .ToList(), 2 );
 
@@ -150,7 +153,14 @@ public class GameMap : MonoBehaviour
         m_MapMesh.SetTriangles( new int[] { }, 3 );
     }
 
-    private List<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
+    private HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
+    {
+        var temp = GetFringeAttackTiles( movementTiles, attackRange );
+        temp.IntersectWith( movementTiles );
+        return temp;
+    }
+
+    private HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
     {
         HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
         foreach ( Vector2Int tile in movementTiles )
@@ -165,7 +175,7 @@ public class GameMap : MonoBehaviour
                 }
             }
         }
-        return attackTiles.ToList();
+        return attackTiles;
     }
 
     private List<Vector2Int> GetAttackTilesSetImpl( HashSet<Vector2Int> movementTiles, int attackRange)
