@@ -18,6 +18,7 @@ public class GameMap : MonoBehaviour
 
     private Mesh m_MapMesh;
     public GameTile TilePrefab;
+    public GameTile[,] m_TileMap;
 
     public Material NormalMat;
     public Material MovementMat;
@@ -65,46 +66,30 @@ public class GameMap : MonoBehaviour
         }
     }
 
-    // Use this for initialization
     void Start()
     {
     }
 
-    // Update is called once per frame
     #endregion
 
     #region Member Functions
 
-    private void AddTrianglesForPosition( int i, int j, List<int> triangleList )
+    private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
     {
-        int height = Height;
-        int indiceFormat = j + i * ( height + 1 );
-
-        //Top Tri
-        triangleList.Add( indiceFormat );
-        triangleList.Add( indiceFormat + 1 );
-        triangleList.Add( indiceFormat + 1 + height + 1 );
-
-        //Bottom Tri
-        triangleList.Add( indiceFormat );
-        triangleList.Add( indiceFormat + 1 + height + 1 );
-        triangleList.Add( indiceFormat + height + 1 );
+        return TrianglesForPosition( pos.x, pos.y );
     }
 
-    private int[] TrianglesForPosition( int i, int j )
+    private IEnumerable<int> TrianglesForPosition( int i, int j )
     {
-        int height = Height;
-        int indiceFormat = j + i * ( height + 1 );
+        int indiceFormat = j + i * ( Height + 1 );
 
-        return new int[] {
-        indiceFormat,
-        indiceFormat + 1 ,
-        indiceFormat + 1 + height + 1 ,
+        yield return indiceFormat;
+        yield return indiceFormat + 1 ;
+        yield return indiceFormat + 1 + Height + 1 ;
 
-        indiceFormat ,
-        indiceFormat + 1 + height + 1 ,
-        indiceFormat + height + 1 ,
-        };
+        yield return indiceFormat ;
+        yield return indiceFormat + 1 + Height + 1 ;
+        yield return indiceFormat + Height + 1 ;
     }
 
     public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range)
@@ -124,40 +109,27 @@ public class GameMap : MonoBehaviour
     // Function that renders where a unit can move
     public void RenderUnitMovement( Unit unit, float alpha = 1.0f )
     {
-        List<int> MovementSet = new List<int>();
-        List<int> AttackSet = new List<int>();
+        HashSet<Vector2Int> validMovementTiles = new HashSet<Vector2Int>( 
+            GetTilesWithinAbsoluteRange( unit.Position, unit.Movement )
+            .Where( position => MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement ) != null ) );
 
-        {
-            HashSet<Vector2Int> movementTiles = new HashSet<Vector2Int>();
+        m_MapMesh.SetTriangles( 
+            validMovementTiles.SelectMany<Vector2Int, int>( TrianglesForPosition ).ToList(), 1 );
 
-            foreach ( var position in GetTilesWithinAbsoluteRange( unit.Position, unit.Movement ) ) 
-            {
-                List<GameTile> result = MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement );
-                if ( result != null )
-                {
-                    AddTrianglesForPosition( position.x, position.y, MovementSet );
-                    movementTiles.Add( position );
-                }
-            }
+        m_MapMesh.SetTriangles(
+            GetAttackTiles( validMovementTiles, unit.AttackRange )
+            .SelectMany<Vector2Int, int>( TrianglesForPosition )
+            .ToList(), 2 );
 
-            foreach ( var attackTile in GetAttackTiles( movementTiles, unit.AttackRange ) )
-            {
-                AddTrianglesForPosition( attackTile.x, attackTile.y, AttackSet );
-            }
-        }
-
-        m_MapMesh.SetTriangles( MovementSet, 1 );
-        m_MapMesh.SetTriangles( AttackSet, 2 );
-
-        Func<Material, Color> switchColor = mat =>
+        Func<Material, Color> switchAlpha = mat =>
         {
             var temp = mat.GetColor( "_Color" );
             temp.a = alpha;
             return temp;
         };
 
-        AttackRangeMat.SetColor( "_Color", switchColor( AttackRangeMat ) );
-        MovementMat.SetColor( "_Color", switchColor( MovementMat ) );
+        AttackRangeMat.SetColor( "_Color", switchAlpha( AttackRangeMat ) );
+        MovementMat.SetColor( "_Color", switchAlpha( MovementMat ) );
     }
 
     public void RenderSelection( IEnumerable<Vector2Int> tiles )
@@ -293,7 +265,6 @@ public class GameMap : MonoBehaviour
     #endregion
 
     #region ImportedMapFunctions
-    public GameTile[,] m_TileMap;
 
     public void InitializeMap()
     {
@@ -317,7 +288,6 @@ public class GameMap : MonoBehaviour
         set { m_TileMap[ x, y ] = value; }
     }
 
-    //TODO: Error Handle plz
     public GameTile this[ Vector2Int v ]
     {
         get { return m_TileMap[ v.x, v.y ]; }
