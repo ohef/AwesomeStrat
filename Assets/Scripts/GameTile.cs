@@ -6,20 +6,17 @@ using Assets.General.UnityExtensions;
 using UnityEngine.EventSystems;
 using System;
 
-[ExecuteInEditMode]
-public class GameTile : MonoBehaviour
+namespace Assets.Map
 {
-    public Vector2Int Position;
-    public Unit UnitOccupying;
-    public int CostOfTraversal;
-
-    public void OnDrawGizmos()
+    public class GameTile : MonoBehaviour
     {
-        Gizmos.DrawSphere( this.transform.position, 0.11f );
-    }
+        public Vector2Int Position;
+        public Unit UnitOccupying;
+        public int CostOfTraversal;
 
-    public void SnapToPosition()
-    {
-        transform.position = Position.ToVector3( Vector2IntExtensions.Axis.Y, 0.0f ) - 0.5f * ( Vector3.left + Vector3.back );
+        public void OnDrawGizmos()
+        {
+            Gizmos.DrawSphere( this.transform.position, 0.11f );
+        }
     }
 }

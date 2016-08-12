@@ -4,138 +4,174 @@ using System;
 using Assets.General.DataStructures;
 using Assets.Map;
 
-public class BattleSystem : MonoBehaviour
+namespace Assets.Map
 {
-    private enum BattleTurn
+    public class BattleSystem : MonoBehaviour
     {
-        Player,
-        Enemy
-    };
-
-    public GameMap map;
-    private PlayerState _PlayerState;
-    private EnemyState _EnemyState;
-    private BattleTurn _Turn;
-
-    void Awake()
-    {
-        _PlayerState = new PlayerState( map );
-    }
-
-    // Use this for initialization
-    void Start()
-    {
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        switch(_Turn)
+        private enum BattleTurn
         {
-            case BattleTurn.Player:
-                _PlayerState.Update();
-                break;
-            case BattleTurn.Enemy:
-                _EnemyState.Update();
-                break;
-                
-        }
-    }
-}
+            Player,
+            Enemy
+        };
 
-public class EnemyState
-{
-    public void Update() { }
-}
+        public GameMap Map;
+        public GameObject UnitMenu;
+        private BattleState _PlayerState;
+        private EnemyState _EnemyState;
+        private BattleTurn _Turn;
 
-public class PlayerState
-{
-
-    #region Interfaces
-    protected interface IPlayerState
-    {
-        IPlayerState Update( IPlayerState state );
-    }
-    #endregion
-
-    #region Classes
-    protected class PlayerSelectingUnit : IPlayerState
-    {
-        private CursorControl _MapCursor;
-        private GameMap _Map;
-
-        public PlayerSelectingUnit( GameMap map, CursorControl cursor )
+        void Awake()
         {
-            _MapCursor = cursor;
-            this._Map = map;
+            BattleState.Map = Map;
+            BattleState.CursorControl = Map.GetComponentInChildren<CursorControl>();
+            _PlayerState = BattleState.playerSelectingUnit = new PlayerSelectingUnit();
         }
 
-        public IPlayerState Update( IPlayerState currentState )
+        // Use this for initialization
+        void Start()
+        {
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            switch ( _Turn )
+            {
+                case BattleTurn.Player:
+                    _PlayerState.Update( _PlayerState );
+                    break;
+                case BattleTurn.Enemy:
+                    _EnemyState.Update();
+                    break;
+
+            }
+        }
+
+        public void HandleMessage( string selection )
+        {
+            _PlayerState.HandleMessage( selection );
+        }
+    }
+
+    public class EnemyState
+    {
+        public void Update() { }
+    }
+
+    public interface IPlayerState
+    {
+        void Update( IPlayerState state );
+        void HandleMessage( string message );
+    }
+
+    public abstract class BattleState : IPlayerState
+    {
+        public const string MoveMessage = "Move";
+        public const string WaitMessage = "Wait";
+
+        public static IPlayerState CurrentState;
+        public static GameMap Map;
+        public static PlayerSelectingUnit playerSelectingUnit;
+        public static CursorControl CursorControl;
+
+        public BattleState() { }
+
+        public abstract void HandleMessage( string message );
+
+        public abstract void Update( IPlayerState state );
+    }
+
+    public class PlayerSelectingUnit : BattleState
+    {
+        public override void Update( IPlayerState currentState )
         {
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
             if ( direction.x != 0 || direction.y != 0 )
-                _MapCursor.MoveCursor( direction );
+                CursorControl.MoveCursor( direction );
 
-            var tile = _MapCursor.CurrentTile;
+            var tile = CursorControl.CurrentTile;
             if ( tile != null )
             {
                 if ( tile.UnitOccupying != null )
                 {
-                    _Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
+                    Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
                     if ( Input.GetButtonDown( "Jump" ) )
                     {
-                        return new PlayerSelectingForAttacks( _Map, _MapCursor, tile.UnitOccupying );
+                        CurrentState = new PlayerMenuSelection( this, tile.UnitOccupying );
                     }
                 }
                 else
-                    _Map.StopRenderingOverlays();
+                    Map.StopRenderingOverlays();
             }
+        }
 
-            return currentState;
+        public override void HandleMessage( string message )
+        {
         }
     }
 
-    protected class PlayerSelectingForAttacks : IPlayerState
+    public class PlayerSelectingForAttacks : BattleState
     {
         private Unit _SelectedUnit;
-        private GameMap _Map;
-        private CursorControl _MapCursor;
 
-        public PlayerSelectingForAttacks( GameMap map, CursorControl cursor, Unit selectedUnit )
+        public PlayerSelectingForAttacks(  Unit selectedUnit )
         {
-            _Map = map;
             _SelectedUnit = selectedUnit;
-            _MapCursor = cursor;
         }
 
-        IPlayerState IPlayerState.Update( IPlayerState state )
+        public override void Update( IPlayerState state )
         {
-            _Map.RenderUnitMovement( _SelectedUnit );
+            Map.RenderUnitMovement( _SelectedUnit );
 
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
             if ( direction.x != 0 || direction.y != 0 )
-                _MapCursor.MoveCursor( direction );
+                CursorControl.MoveCursor( direction );
 
             if ( Input.GetButtonDown( "Jump" ) )
             {
-                return playerSelectingUnit;
+                CurrentState = playerSelectingUnit;
             }
+        }
 
-            return state;
+        public override void HandleMessage( string message )
+        {
         }
     }
-    #endregion
 
-    protected IPlayerState _State;
-    private static PlayerSelectingUnit playerSelectingUnit = null;
-    private static PlayerSelectingForAttacks playerSelectingForAttacks = null;
-    public PlayerState( GameMap map )
+    public class PlayerMenuSelection : BattleState
     {
-        _State = playerSelectingUnit = new PlayerSelectingUnit( map, map.GetComponentInChildren<CursorControl>() );
-    }
+        public IPlayerState PreviousState;
+        public Unit SelectedUnit;
 
-    public void Update()
-    {
-        _State = _State.Update( _State );
+        public PlayerMenuSelection( IPlayerState currentState, Unit unit)
+        {
+            PreviousState = currentState;
+            SelectedUnit = unit;
+        }
+
+        public override void Update( IPlayerState state )
+        {
+            if ( Input.GetButton( "Cancel" ) )
+            {
+                CurrentState =  PreviousState;
+            }
+        }
+
+        public override void HandleMessage( string message )
+        {
+            Debug.Log( string.Format( "This is from: {0}, The Message: {1}", this, message ) );
+            switch ( message )
+            {
+                case WaitMessage:
+                    CurrentState = PreviousState;
+                    break;
+                case MoveMessage:
+                    CurrentState = new PlayerSelectingForAttacks(  SelectedUnit );
+                    break;
+                default:
+                    CurrentState = this;
+                    break;
+            }
+        }
     }
 }

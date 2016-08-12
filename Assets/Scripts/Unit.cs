@@ -7,14 +7,18 @@ using UnityEngine;
 
 namespace Assets.Map
 {
-    //public class Unit : MonoBehaviour
-    public class Unit
+    public class Unit : MonoBehaviour
     {
-        public int HP { get; set; }
-        public int Defense { get; set; }
-        public int Attack { get; set; }
-        public int Movement { get; set; }
-        public Vector2Int Position { get; set; }
-        public int AttackRange { get; set; }
+        public int HP;
+        public int Defense;
+        public int Attack;
+        public int Movement;
+        public Vector2Int Position;
+        public int AttackRange;
+
+        void OnDrawGizmos()
+        {
+            Gizmos.DrawCube( this.transform.position, Vector3.one * 0.5f );
+        }
     }
 }
