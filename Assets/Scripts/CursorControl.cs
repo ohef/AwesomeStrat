@@ -10,17 +10,10 @@ namespace Assets.Map
     [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
     public class CursorControl : MonoBehaviour
     {
-
-        private enum CursorState
-        {
-            Moving,
-            Stationary
-        }
-
         public GameMap Map;
         public GameTile CurrentTile;
 
-        private CursorState state = CursorState.Stationary;
+        public bool Moving = false;
 
         public Camera cursorCamera;
 
@@ -52,22 +45,19 @@ namespace Assets.Map
         }
         #endregion
 
-        public void MoveCursor( Vector2Int direction )
+        public void ShiftCursor( Vector2Int direction )
         {
-            if ( direction.x != 0 || direction.y != 0 )
-                switch ( state )
+            MoveCursor( CurrentTile.Position + direction );
+        }
+
+        public void MoveCursor( Vector2Int to )
+        {
+            if ( Moving == false )
+                if ( Map.OutOfBounds( to ) == false )
                 {
-                    case CursorState.Stationary:
-                        Vector2Int to = CurrentTile.Position + direction;
-                        if ( Map.OutOfBounds( to ) == false )
-                        {
-                            state = CursorState.Moving;
-                            CurrentTile = Map[ to ];
-                            StartCoroutine( MotionTweenMap( to, 0.15f ) );
-                        }
-                        break;
-                    case CursorState.Moving:
-                        break;
+                    Moving = true;
+                    CurrentTile = Map[ to ];
+                    StartCoroutine( MotionTweenMap( to, 0.15f ) );
                 }
         }
 
@@ -88,7 +78,7 @@ namespace Assets.Map
 
             CursorPosition = updatedPosition;
 
-            state = CursorState.Stationary;
+            Moving = false;
             yield return null;
         }
     }

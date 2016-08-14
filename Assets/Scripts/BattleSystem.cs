@@ -23,7 +23,7 @@ namespace Assets.Map
         {
             BattleState.Map = Map;
             BattleState.CursorControl = Map.GetComponentInChildren<CursorControl>();
-            BattleState.CurrentState = BattleState.playerSelectingUnit = new PlayerSelectingUnit();
+            BattleState.CurrentState = new PlayerSelectingUnit();
             BattleState.MenuAnimator = UnitMenu.GetComponent<Animator>();
         }
 
@@ -71,26 +71,25 @@ namespace Assets.Map
         public const string MoveMessage = "Move";
         public const string WaitMessage = "Wait";
 
-        private static IPlayerState _CurrentState = new PlayerSelectingUnit();
-        private static Stack<IPlayerState> _CurrentStateStack = new Stack<IPlayerState>();
+        private static Stack<IPlayerState> _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
         public static IPlayerState CurrentState {
-            get { return _CurrentState; }
+            get { return _CurrentStateStack.Peek(); }
             set
             {
-                //_CurrentStateStack.Peek().Exit( value );
-                _CurrentState.Exit( value );
-                value.Enter( _CurrentState );
-                _CurrentState = value;
+                _CurrentStateStack.Peek().Exit( value );
+                value.Enter( _CurrentStateStack.Peek() );
+                _CurrentStateStack.Push( value );
             }
         }
 
         public static void RollBackToPreviousState()
         {
-
+            IPlayerState poppedState = _CurrentStateStack.Pop();
+            poppedState.Exit( CurrentState );
+            CurrentState.Enter( poppedState );
         }
 
         public static GameMap Map;
-        public static PlayerSelectingUnit playerSelectingUnit;
         public static CursorControl CursorControl;
         public static Animator MenuAnimator;
 
@@ -105,13 +104,33 @@ namespace Assets.Map
         public abstract void Exit( IPlayerState state );
     }
 
+    //State that does nothing
+    public class NullState : IPlayerState
+    {
+        public void Enter( IPlayerState state )
+        {
+        }
+
+        public void Exit( IPlayerState state )
+        {
+        }
+
+        public void HandleMessage( string message )
+        {
+        }
+
+        public void Update( IPlayerState state )
+        {
+        }
+    }
+
     public class PlayerSelectingUnit : BattleState
     {
         public override void Update( IPlayerState currentState )
         {
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
             if ( direction.x != 0 || direction.y != 0 )
-                CursorControl.MoveCursor( direction );
+                CursorControl.ShiftCursor( direction );
 
             var tile = CursorControl.CurrentTile;
             if ( tile != null )
@@ -121,7 +140,7 @@ namespace Assets.Map
                     Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
                     if ( Input.GetButtonDown( "Jump" ) )
                     {
-                        CurrentState = new PlayerMenuSelection( this, tile.UnitOccupying );
+                        CurrentState = new PlayerMenuSelection( tile.UnitOccupying );
                     }
                 }
                 else
@@ -153,11 +172,11 @@ namespace Assets.Map
 
             var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
             if ( direction.x != 0 || direction.y != 0 )
-                CursorControl.MoveCursor( direction );
+                CursorControl.ShiftCursor( direction );
 
             if ( Input.GetButtonDown( "Cancel" ) )
             {
-                CurrentState = playerSelectingUnit;
+                RollBackToPreviousState();
             }
         }
 
@@ -165,33 +184,28 @@ namespace Assets.Map
         {
         }
 
-        public override void Enter( IPlayerState state )
-        {
-            MenuAnimator.SetBool( "Hidden", true );
-        }
+        public override void Enter( IPlayerState state ) { }
 
         public override void Exit( IPlayerState state )
         {
-            MenuAnimator.SetBool( "Hidden", false );
+            CursorControl.MoveCursor( _SelectedUnit.Position );
         }
     }
 
     public class PlayerMenuSelection : BattleState
     {
-        public IPlayerState PreviousState;
         public Unit SelectedUnit;
 
-        public PlayerMenuSelection( IPlayerState currentState, Unit unit)
+        public PlayerMenuSelection( Unit unit)
         {
-            PreviousState = currentState;
             SelectedUnit = unit;
         }
 
         public override void Update( IPlayerState state )
         {
-            if ( Input.GetButton( "Cancel" ) )
+            if ( Input.GetButtonDown( "Cancel" ) )
             {
-                CurrentState =  PreviousState;
+                RollBackToPreviousState();
             }
         }
 
@@ -201,13 +215,12 @@ namespace Assets.Map
             switch ( message )
             {
                 case WaitMessage:
-                    CurrentState = PreviousState;
+                    RollBackToPreviousState();
                     break;
                 case MoveMessage:
                     CurrentState = new PlayerSelectingForAttacks( SelectedUnit );
                     break;
                 default:
-                    CurrentState = this;
                     break;
             }
         }
