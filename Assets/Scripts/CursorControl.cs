@@ -13,8 +13,6 @@ namespace Assets.Map
         public GameMap Map;
         public GameTile CurrentTile;
 
-        public bool Moving = false;
-
         public Camera cursorCamera;
 
         public delegate void CursorMovedHandler( Vector3 oldPosition, Vector3 newPositon );
@@ -52,13 +50,11 @@ namespace Assets.Map
 
         public void MoveCursor( Vector2Int to )
         {
-            if ( Moving == false )
-                if ( Map.OutOfBounds( to ) == false )
-                {
-                    Moving = true;
-                    CurrentTile = Map[ to ];
-                    StartCoroutine( MotionTweenMap( to, 0.15f ) );
-                }
+            if ( Map.OutOfBounds( to ) == false )
+            {
+                CurrentTile = Map[ to ];
+                StartCoroutine( MotionTweenMap( to, 0.15f ) );
+            }
         }
 
         IEnumerator MotionTweenMap( Vector2Int to, float seconds )
@@ -78,7 +74,6 @@ namespace Assets.Map
 
             CursorPosition = updatedPosition;
 
-            Moving = false;
             yield return null;
         }
     }

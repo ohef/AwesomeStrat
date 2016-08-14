@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System;
 using Assets.General.DataStructures;
-using Assets.Map;
 
 namespace Assets.Map
 {
@@ -124,13 +123,46 @@ namespace Assets.Map
         }
     }
 
+    public class Debouncer 
+    {
+        private float timeSince;
+        private float delay;
+
+        public Action DelayedFunction;
+
+        public Debouncer( Action function, float delay )
+        {
+            this.delay = delay;
+            this.DelayedFunction = function;
+        }
+
+        public void Execute()
+        {
+            if ( timeSince < 0.0f )
+            {
+                DelayedFunction();
+                timeSince = 0.15f;
+            }
+            else
+                timeSince -= Time.deltaTime; 
+        }
+    }
+
     public class PlayerSelectingUnit : BattleState
     {
+        public Debouncer ShiftCursor = new Debouncer(
+            delegate 
+            {
+                var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
+                if ( direction.x != 0 || direction.y != 0 )
+                {
+                    CursorControl.ShiftCursor( direction );
+                }
+            }, 0.12f );
+
         public override void Update( IPlayerState currentState )
         {
-            var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
-            if ( direction.x != 0 || direction.y != 0 )
-                CursorControl.ShiftCursor( direction );
+            ShiftCursor.Execute();
 
             var tile = CursorControl.CurrentTile;
             if ( tile != null )
@@ -148,16 +180,14 @@ namespace Assets.Map
             }
         }
 
-        public override void HandleMessage( string message )
-        {
-        }
+        public override void HandleMessage( string message ) { }
 
         public override void Enter( IPlayerState state ) { } 
 
         public override void Exit( IPlayerState state ) { }
     }
 
-    public class PlayerSelectingForAttacks : BattleState
+    public class PlayerSelectingForAttacks : PlayerSelectingUnit
     {
         private Unit _SelectedUnit;
 
@@ -170,19 +200,13 @@ namespace Assets.Map
         {
             Map.RenderUnitMovement( _SelectedUnit );
 
-            var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
-            if ( direction.x != 0 || direction.y != 0 )
-                CursorControl.ShiftCursor( direction );
+            ShiftCursor.Execute();
 
             if ( Input.GetButtonDown( "Cancel" ) )
-            {
                 RollBackToPreviousState();
-            }
         }
 
-        public override void HandleMessage( string message )
-        {
-        }
+        public override void HandleMessage( string message ) { }
 
         public override void Enter( IPlayerState state ) { }
 
