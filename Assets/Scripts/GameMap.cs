@@ -28,7 +28,6 @@ namespace Assets.Map
 
         void Awake()
         {
-            //TODO Instantialize Map
             InitializeMap();
 
             this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( Width, Height );
@@ -43,7 +42,7 @@ namespace Assets.Map
                 };
 
             var collider = this.GetComponent<BoxCollider>();
-            collider.size = new Vector3( Width, Height );
+            collider.size = new Vector3( Width, 0, Height );
             collider.center = collider.size * 0.5f;
 
             InstantiateDefaultUnit( new Vector2Int( 0, 0 ) );

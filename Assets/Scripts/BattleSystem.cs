@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using Assets.General.DataStructures;
+using UnityEngine.EventSystems;
 
 namespace Assets.Map
 {
@@ -14,16 +15,16 @@ namespace Assets.Map
         };
 
         public GameMap Map;
-        public GameObject UnitMenu;
+        public Animator MenuAnimator;
+        public CursorControl Cursor;
+        public GameObject FirstSelectedMenuButton;
         private EnemyState _EnemyState;
         private BattleTurn _Turn;
 
         void Awake()
         {
-            BattleState.Map = Map;
-            BattleState.CursorControl = Map.GetComponentInChildren<CursorControl>();
             BattleState.CurrentState = new PlayerSelectingUnit();
-            BattleState.MenuAnimator = UnitMenu.GetComponent<Animator>();
+            BattleState.currentBattleSystem = this;
         }
 
         // Use this for initialization
@@ -88,11 +89,11 @@ namespace Assets.Map
             CurrentState.Enter( poppedState );
         }
 
-        public static GameMap Map;
-        public static CursorControl CursorControl;
-        public static Animator MenuAnimator;
+        public static BattleSystem currentBattleSystem;
 
-        public BattleState() { }
+        //public static GameMap Map;
+        //public static CursorControl CursorControl;
+        //public static Animator MenuAnimator;
 
         public abstract void HandleMessage( string message );
 
@@ -150,13 +151,13 @@ namespace Assets.Map
 
     public class PlayerSelectingUnit : BattleState
     {
-        public Debouncer ShiftCursor = new Debouncer(
+        public static Debouncer ShiftCursor = new Debouncer(
             delegate 
             {
                 var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
                 if ( direction.x != 0 || direction.y != 0 )
                 {
-                    CursorControl.ShiftCursor( direction );
+                    currentBattleSystem.Cursor.ShiftCursor( direction );
                 }
             }, 0.12f );
 
@@ -164,19 +165,19 @@ namespace Assets.Map
         {
             ShiftCursor.Execute();
 
-            var tile = CursorControl.CurrentTile;
+            var tile = currentBattleSystem.Cursor.CurrentTile;
             if ( tile != null )
             {
                 if ( tile.UnitOccupying != null )
                 {
-                    Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
+                    currentBattleSystem.Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
                     if ( Input.GetButtonDown( "Jump" ) )
                     {
                         CurrentState = new PlayerMenuSelection( tile.UnitOccupying );
                     }
                 }
                 else
-                    Map.StopRenderingOverlays();
+                    currentBattleSystem.Map.StopRenderingOverlays();
             }
         }
 
@@ -198,7 +199,7 @@ namespace Assets.Map
 
         public override void Update( IPlayerState state )
         {
-            Map.RenderUnitMovement( _SelectedUnit );
+            currentBattleSystem.Map.RenderUnitMovement( _SelectedUnit );
 
             ShiftCursor.Execute();
 
@@ -212,7 +213,7 @@ namespace Assets.Map
 
         public override void Exit( IPlayerState state )
         {
-            CursorControl.MoveCursor( _SelectedUnit.Position );
+            currentBattleSystem.Cursor.MoveCursor( _SelectedUnit.Position );
         }
     }
 
@@ -244,19 +245,18 @@ namespace Assets.Map
                 case MoveMessage:
                     CurrentState = new PlayerSelectingForAttacks( SelectedUnit );
                     break;
-                default:
-                    break;
             }
         }
 
         public override void Enter( IPlayerState state )
         {
-            MenuAnimator.SetBool( "Hidden", false );
+            currentBattleSystem.MenuAnimator.SetBool( "Hidden", false );
+            EventSystem.current.SetSelectedGameObject( currentBattleSystem.FirstSelectedMenuButton );
         }
 
         public override void Exit( IPlayerState state )
         {
-            MenuAnimator.SetBool( "Hidden", true );
+            currentBattleSystem.MenuAnimator.SetBool( "Hidden", true );
         }
     }
 }
