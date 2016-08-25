@@ -43,7 +43,6 @@ namespace Assets.Map
                 case BattleTurn.Enemy:
                     _EnemyState.Update();
                     break;
-
             }
         }
 
@@ -64,6 +63,31 @@ namespace Assets.Map
         void HandleMessage( string message );
         void Enter( IPlayerState state );
         void Exit( IPlayerState state );
+    }
+
+    public class Debouncer 
+    {
+        private float timeSince;
+        private float delay;
+
+        public Action DelayedFunction;
+
+        public Debouncer( Action function, float delay )
+        {
+            this.delay = delay;
+            this.DelayedFunction = function;
+        }
+
+        public void Execute()
+        {
+            if ( timeSince < 0.0f )
+            {
+                DelayedFunction();
+                timeSince = delay;
+            }
+            else
+                timeSince -= Time.deltaTime; 
+        }
     }
 
     public abstract class BattleState : IPlayerState
@@ -104,7 +128,6 @@ namespace Assets.Map
         public abstract void Exit( IPlayerState state );
     }
 
-    //State that does nothing
     public class NullState : IPlayerState
     {
         public void Enter( IPlayerState state )
@@ -124,31 +147,6 @@ namespace Assets.Map
         }
     }
 
-    public class Debouncer 
-    {
-        private float timeSince;
-        private float delay;
-
-        public Action DelayedFunction;
-
-        public Debouncer( Action function, float delay )
-        {
-            this.delay = delay;
-            this.DelayedFunction = function;
-        }
-
-        public void Execute()
-        {
-            if ( timeSince < 0.0f )
-            {
-                DelayedFunction();
-                timeSince = 0.15f;
-            }
-            else
-                timeSince -= Time.deltaTime; 
-        }
-    }
-
     public class PlayerSelectingUnit : BattleState
     {
         public static Debouncer ShiftCursor = new Debouncer(
@@ -159,11 +157,18 @@ namespace Assets.Map
                 {
                     currentBattleSystem.Cursor.ShiftCursor( direction );
                 }
-            }, 0.12f );
+            }, 0.1f );
 
         public override void Update( IPlayerState currentState )
         {
-            ShiftCursor.Execute();
+            //ShiftCursor.Execute();
+
+            //var direction = new Vector2Int( Input.GetButtonDown( "Horizontal" ) ? 1 : 0, Input.GetButtonDown( "Vertical" ) ? 1 : 0 );
+            if ( Input.GetButtonDown( "Left" ) || Input.GetButtonDown( "Right" ) || Input.GetButtonDown( "Up" ) || Input.GetButtonDown( "Down" ) )
+                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int(
+                ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 ),
+                ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 )
+                ) );
 
             var tile = currentBattleSystem.Cursor.CurrentTile;
             if ( tile != null )

@@ -148,18 +148,16 @@ namespace Assets.Map
         private HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
         {
             HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
+
             foreach ( Vector2Int tile in movementTiles )
-            {
                 foreach ( Vector2Int direction in new Vector2Int[] { Vector2Int.Up, Vector2Int.Down, Vector2Int.Left, Vector2Int.Right } )
-                {
-                    for ( int i = 0 ; i < attackRange ; i++ )
+                    foreach ( int coef in Enumerable.Range( 1, attackRange ) )
                     {
-                        Vector2Int neighbour = ClampWithinMap( tile + direction * attackRange );
+                        Vector2Int neighbour = ClampWithinMap( tile + direction * coef );
                         if ( movementTiles.Contains( neighbour ) == false )
                             attackTiles.Add( neighbour );
                     }
-                }
-            }
+
             return attackTiles;
         }
 
@@ -248,7 +246,6 @@ namespace Assets.Map
         #endregion
 
         #region ImportedMapFunctions
-
         public void InitializeMap()
         {
             m_TileMap = new GameTile[ Width, Height ];
