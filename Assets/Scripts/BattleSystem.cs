@@ -65,31 +65,6 @@ namespace Assets.Map
         void Exit( IPlayerState state );
     }
 
-    public class Debouncer 
-    {
-        private float timeSince;
-        private float delay;
-
-        public Action DelayedFunction;
-
-        public Debouncer( Action function, float delay )
-        {
-            this.delay = delay;
-            this.DelayedFunction = function;
-        }
-
-        public void Execute()
-        {
-            if ( timeSince < 0.0f )
-            {
-                DelayedFunction();
-                timeSince = delay;
-            }
-            else
-                timeSince -= Time.deltaTime; 
-        }
-    }
-
     public abstract class BattleState : IPlayerState
     {
         public const string MoveMessage = "Move";
@@ -149,26 +124,17 @@ namespace Assets.Map
 
     public class PlayerSelectingUnit : BattleState
     {
-        public static Debouncer ShiftCursor = new Debouncer(
-            delegate 
-            {
-                var direction = new Vector2Int( ( int )Input.GetAxisRaw( "Horizontal" ), ( int )Input.GetAxisRaw( "Vertical" ) );
-                if ( direction.x != 0 || direction.y != 0 )
-                {
-                    currentBattleSystem.Cursor.ShiftCursor( direction );
-                }
-            }, 0.1f );
-
         public override void Update( IPlayerState currentState )
         {
             //ShiftCursor.Execute();
 
             //var direction = new Vector2Int( Input.GetButtonDown( "Horizontal" ) ? 1 : 0, Input.GetButtonDown( "Vertical" ) ? 1 : 0 );
-            if ( Input.GetButtonDown( "Left" ) || Input.GetButtonDown( "Right" ) || Input.GetButtonDown( "Up" ) || Input.GetButtonDown( "Down" ) )
-                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int(
-                ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 ),
-                ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 )
-                ) );
+
+            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
+            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
+
+            if ( vertical != 0 || horizontal != 0 )
+                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int( horizontal, vertical ) );
 
             var tile = currentBattleSystem.Cursor.CurrentTile;
             if ( tile != null )
