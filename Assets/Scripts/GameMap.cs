@@ -243,6 +243,13 @@ namespace Assets.Map
 
             return mesh;
         }
+
+        private void MoveAcrossTiles( IEnumerable<GameTile> tiles )
+        {
+            foreach ( GameTile tile in tiles )
+            {
+            }
+        }
         #endregion
 
         #region ImportedMapFunctions

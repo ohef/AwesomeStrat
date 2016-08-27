@@ -101,6 +101,14 @@ namespace Assets.Map
         public abstract void Enter( IPlayerState state );
 
         public abstract void Exit( IPlayerState state );
+
+        protected static void UpdateCursor()
+        {
+            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
+            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
+            if ( vertical != 0 || horizontal != 0 )
+                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int( horizontal, vertical ) );
+        }
     }
 
     public class NullState : IPlayerState
@@ -126,16 +134,7 @@ namespace Assets.Map
     {
         public override void Update( IPlayerState currentState )
         {
-            //ShiftCursor.Execute();
-
-            //var direction = new Vector2Int( Input.GetButtonDown( "Horizontal" ) ? 1 : 0, Input.GetButtonDown( "Vertical" ) ? 1 : 0 );
-
-            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
-            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
-
-            if ( vertical != 0 || horizontal != 0 )
-                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int( horizontal, vertical ) );
-
+            UpdateCursor();
             var tile = currentBattleSystem.Cursor.CurrentTile;
             if ( tile != null )
             {
@@ -159,11 +158,11 @@ namespace Assets.Map
         public override void Exit( IPlayerState state ) { }
     }
 
-    public class PlayerSelectingForAttacks : PlayerSelectingUnit
+    public class PlayerUnitAction : PlayerSelectingUnit, ISubmitHandler
     {
         private Unit _SelectedUnit;
 
-        public PlayerSelectingForAttacks( Unit selectedUnit )
+        public PlayerUnitAction( Unit selectedUnit )
         {
             _SelectedUnit = selectedUnit;
         }
@@ -171,8 +170,7 @@ namespace Assets.Map
         public override void Update( IPlayerState state )
         {
             currentBattleSystem.Map.RenderUnitMovement( _SelectedUnit );
-
-            ShiftCursor.Execute();
+            UpdateCursor();
 
             if ( Input.GetButtonDown( "Cancel" ) )
                 RollBackToPreviousState();
@@ -185,6 +183,10 @@ namespace Assets.Map
         public override void Exit( IPlayerState state )
         {
             currentBattleSystem.Cursor.MoveCursor( _SelectedUnit.Position );
+        }
+
+        public void OnSubmit( BaseEventData eventData )
+        {
         }
     }
 
@@ -214,7 +216,7 @@ namespace Assets.Map
                     RollBackToPreviousState();
                     break;
                 case MoveMessage:
-                    CurrentState = new PlayerSelectingForAttacks( SelectedUnit );
+                    CurrentState = new PlayerUnitAction( SelectedUnit );
                     break;
             }
         }

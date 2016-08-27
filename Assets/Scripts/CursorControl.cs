@@ -2,7 +2,7 @@
 using System.Collections;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
-using Assets.Map;
+using Assets.General;
 using System;
 
 namespace Assets.Map
@@ -53,28 +53,14 @@ namespace Assets.Map
             if ( Map.OutOfBounds( to ) == false )
             {
                 CurrentTile = Map[ to ];
-                StartCoroutine( MotionTweenMap( to, 0.15f ) );
+                StartCoroutine( CustomAnimation.MotionTweenLinear( CursorPosition, to.ToVector3(), SetPosition, 0.15f ) );
             }
         }
 
-        IEnumerator MotionTweenMap( Vector2Int to, float seconds )
+        void SetPosition( Vector3 toSetTo )
         {
-            Vector3 oldPosition = CursorPosition;
-            Vector3 updatedPosition = new Vector3( to.x, oldPosition.y, to.y );
-
-            float rate = 1.0f / seconds;
-            for ( float i = 0 ; i < 1.0f ; i += Time.deltaTime * rate )
-            {
-                CursorPosition = new Vector3(
-                Mathf.Lerp( oldPosition.x, updatedPosition.x, i ),
-                oldPosition.y,
-                Mathf.Lerp( oldPosition.z, updatedPosition.z, i ) );
-                yield return null;
-            }
-
-            CursorPosition = updatedPosition;
-
-            yield return null;
+            CursorPosition = toSetTo;
         }
+
     }
 }
