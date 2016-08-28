@@ -53,14 +53,14 @@ namespace Assets.Map
             if ( Map.OutOfBounds( to ) == false )
             {
                 CurrentTile = Map[ to ];
-                StartCoroutine( CustomAnimation.MotionTweenLinear( CursorPosition, to.ToVector3(), SetPosition, 0.15f ) );
+                //StartCoroutine( CustomAnimation.MotionTweenLinear( CursorPosition, to.ToVector3(), SetThisPosition, 0.15f ) );
+                StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.15f ) );
             }
         }
 
-        void SetPosition( Vector3 toSetTo )
+        void SetThisPosition( Vector3 toSetTo )
         {
             CursorPosition = toSetTo;
         }
-
     }
 }

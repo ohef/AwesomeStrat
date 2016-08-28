@@ -158,22 +158,44 @@ namespace Assets.Map
         public override void Exit( IPlayerState state ) { }
     }
 
-    public class PlayerUnitAction : PlayerSelectingUnit, ISubmitHandler
+    public class PlayerUnitAction : PlayerSelectingUnit
     {
         private Unit _SelectedUnit;
+        private HashSet<Vector2Int> movementTiles;
 
         public PlayerUnitAction( Unit selectedUnit )
         {
             _SelectedUnit = selectedUnit;
+            movementTiles = new HashSet<Vector2Int>( currentBattleSystem.Map.GetValidMovementPositions( _SelectedUnit ) );
+            movementTiles.Remove( _SelectedUnit.Position );
         }
 
         public override void Update( IPlayerState state )
         {
+            //TODO: Wayyyyyyyy too deep on member accessors, find a better way.
             currentBattleSystem.Map.RenderUnitMovement( _SelectedUnit );
             UpdateCursor();
 
             if ( Input.GetButtonDown( "Cancel" ) )
                 RollBackToPreviousState();
+
+            if ( Input.GetButtonDown( "Submit" ) && !currentBattleSystem.Cursor.CurrentTile.Position.Equals( _SelectedUnit.Position ) && movementTiles.Contains( currentBattleSystem.Cursor.CurrentTile.Position ) )
+            {
+                currentBattleSystem.StartCoroutine(
+                    GameMap.AnimateMovingAlongPath(
+                        MapSearcher.Search(
+                            currentBattleSystem.Map[ _SelectedUnit.Position ], 
+                            currentBattleSystem.Cursor.CurrentTile,
+                            currentBattleSystem.Map.m_TileMap,
+                            _SelectedUnit.Movement ),
+                        _SelectedUnit.transform ) 
+                        );
+
+                currentBattleSystem.Map.SwapUnit( currentBattleSystem.Map[ _SelectedUnit.Position ], currentBattleSystem.Cursor.CurrentTile );
+
+                RollBackToPreviousState();
+                RollBackToPreviousState();
+            }
         }
 
         public override void HandleMessage( string message ) { }
@@ -183,10 +205,6 @@ namespace Assets.Map
         public override void Exit( IPlayerState state )
         {
             currentBattleSystem.Cursor.MoveCursor( _SelectedUnit.Position );
-        }
-
-        public void OnSubmit( BaseEventData eventData )
-        {
         }
     }
 

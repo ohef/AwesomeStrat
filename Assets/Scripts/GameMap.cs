@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using System.Linq;
+using Assets.General;
+using System.Collections;
 
 namespace Assets.Map
 {
@@ -244,10 +246,11 @@ namespace Assets.Map
             return mesh;
         }
 
-        private void MoveAcrossTiles( IEnumerable<GameTile> tiles )
+        public static IEnumerator AnimateMovingAlongPath( IEnumerable<GameTile> tiles, Transform transform )
         {
-            foreach ( GameTile tile in tiles )
+            foreach ( var tileTransform in tiles.Select( tile => tile.transform ).Reverse() )
             {
+                yield return CustomAnimation.MotionTweenLinear( transform, tileTransform.localPosition, 0.15f );
             }
         }
         #endregion
@@ -286,12 +289,13 @@ namespace Assets.Map
             return tile.UnitOccupying == null;
         }
 
-        private void SwapUnit( GameTile a, GameTile b )
+        public void SwapUnit( GameTile a, GameTile b )
         {
             if ( CanMoveInto( b ) == true )
             {
                 b.UnitOccupying = a.UnitOccupying;
                 a.UnitOccupying = null;
+                b.UnitOccupying.Position = b.Position;
             }
         }
 
