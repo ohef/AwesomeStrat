@@ -127,7 +127,7 @@ namespace Assets.Map
         }
     }
 
-    public class GridNode : HeapItem, IComparable<GridNode>
+    public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
     {
         public int Cost;
         public int fCost
@@ -171,6 +171,16 @@ namespace Assets.Map
         {
             Vector2Int distance = ( b.Location - a.Location );
             return Math.Abs( distance.x ) + Math.Abs( distance.y );
+        }
+
+        public bool Equals( GridNode x, GridNode y )
+        {
+            return x.Location.x == y.Location.x && x.Location.y == y.Location.y;
+        }
+
+        public int GetHashCode( GridNode obj )
+        {
+            return obj.Location.x + obj.Location.y * 1000;
         }
     }
 }

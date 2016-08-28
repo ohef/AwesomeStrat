@@ -6,30 +6,28 @@ using System.Text;
 
 namespace Assets.General.DataStructures
 {
-    public abstract class HeapItem
+    public class ModifiableBinaryHeap<T> : BinaryHeap<T>, IContains<T> where T : IComparable<T>
     {
-        protected delegate void ValueChangedHandler();
-        protected event ValueChangedHandler ValueChanged;
+        private Dictionary<T, int> BookKeeper;
 
-        public int HeapIndex { get; set; }
-    }
+        public ModifiableBinaryHeap( bool isMinHeap = true ) : base( isMinHeap )
+        {
+            BookKeeper = new Dictionary<T, int>();
+        }
 
-    public class ModifiableBinaryHeap<T> : BinaryHeap<T>, IContains<T> where T : HeapItem, IComparable<T>
-    {
         public void ValueChanged( T item )
         {
-            if ( item.HeapIndex > 0 || item.HeapIndex < m_Storage.Count )
+            if ( BookKeeper[ item ] > 0 || BookKeeper[ item ] < m_Storage.Count )
             {
-                item.HeapIndex = BubbleUp( GetParentIndex( item.HeapIndex ), item.HeapIndex );
-                item.HeapIndex = BubbleDown( item.HeapIndex );
+                BookKeeper[ item ] = BubbleUp( GetParentIndex( BookKeeper[ item ] ), BookKeeper[ item ] );
+                BookKeeper[ item ] = BubbleDown( BookKeeper[ item ] );
             }
         }
 
         protected override void Swap( int aIndex, int bIndex )
         {
-            int saved = m_Storage[ aIndex ].HeapIndex;
-            m_Storage[ aIndex ].HeapIndex = bIndex;
-            m_Storage[ bIndex ].HeapIndex = saved;
+            BookKeeper[ m_Storage[ aIndex ] ] = bIndex;
+            BookKeeper[ m_Storage[ bIndex ] ] = aIndex;
             base.Swap( aIndex, bIndex );
         }
 
@@ -38,14 +36,24 @@ namespace Assets.General.DataStructures
             m_Storage.Add( elem );
             int child = m_Storage.Count - 1;
             int parent = GetParentIndex( child );
-            elem.HeapIndex = BubbleUp( parent, child );
+            BookKeeper[ elem ] = BubbleUp( parent, child );
+        }
+
+        public override T Pop()
+        {
+            if ( m_Storage.Count == 0 )
+                return default( T );
+            T toRet = m_Storage[ 0 ];
+            Swap( 0, m_Storage.Count - 1 );
+            m_Storage.RemoveAt( m_Storage.Count - 1 );
+            BubbleDown( 0 );
+            BookKeeper.Remove( toRet );
+            return toRet;
         }
 
         public bool Contains( T item )
         {
-            if ( item.HeapIndex > 0 || item.HeapIndex < m_Storage.Count )
-                return m_Storage[ item.HeapIndex ].CompareTo( item ) == 0;
-            return false;
+            return BookKeeper.ContainsKey( item );
         }
     }
 }
