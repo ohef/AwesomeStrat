@@ -15,9 +15,6 @@ namespace Assets.Map
 
         public Camera cursorCamera;
 
-        public delegate void CursorMovedHandler( Vector3 oldPosition, Vector3 newPositon );
-        public event CursorMovedHandler CursorMoved;
-
         private Vector3 CursorPosition
         {
             get { return transform.localPosition; }
@@ -25,21 +22,17 @@ namespace Assets.Map
             {
                 var oldlocalPosition = transform.localPosition;
                 transform.localPosition = value;
-                if ( CursorMoved != null )
-                    CursorMoved( oldlocalPosition, transform.localPosition );
             }
         }
 
         #region UnityMonoBehaviourFunctions
 
-        void Awake()
-        {
-        }
+        void Awake() { }
 
         void Start()
         {
             cursorCamera.transform.LookAt( this.transform );
-            CurrentTile = Map[ 0, 0 ];
+            CurrentTile = Map[ Map.Width / 2, Map.Height / 2 ];
         }
         #endregion
 
@@ -56,11 +49,6 @@ namespace Assets.Map
                 //StartCoroutine( CustomAnimation.MotionTweenLinear( CursorPosition, to.ToVector3(), SetThisPosition, 0.15f ) );
                 StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.15f ) );
             }
-        }
-
-        void SetThisPosition( Vector3 toSetTo )
-        {
-            CursorPosition = toSetTo;
         }
     }
 }

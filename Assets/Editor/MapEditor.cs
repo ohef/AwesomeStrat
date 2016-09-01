@@ -40,6 +40,6 @@ public class MapEditor : EditorWindow
         int Y = 0;
         X = EditorGUILayout.IntField( X );
         Y = EditorGUILayout.IntField( Y );
-        unitPrefHolder.Position = new Assets.General.DataStructures.Vector2Int( X, Y );
+        //unitPrefHolder.Position = new Assets.General.DataStructures.Vector2Int( X, Y );
     }
 }
