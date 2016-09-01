@@ -15,7 +15,6 @@ namespace Assets.Map
         public int Width;
         public int Height;
 
-        private Mesh m_MapMesh;
         public Unit DefaultUnit;
         public GameTile TilePrefab;
         public GameTile[,] m_TileMap;
@@ -25,6 +24,9 @@ namespace Assets.Map
         public Material MovementMat;
         public Material AttackRangeMat;
         public Material SelectionMat;
+
+        private Mesh m_MapMesh;
+        private Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
 
         #region Monobehaviour Functions
 
@@ -47,26 +49,25 @@ namespace Assets.Map
             collider.size = new Vector3( Width, 0, Height );
             collider.center = collider.size * 0.5f;
 
-            InstantiateDefaultUnit( new Vector2Int( 0, 0 ) );
+            InstantiateDefaultUnit( new Vector2Int( 0, 0 ) ) ;
         }
 
-        private Unit InstantiateDefaultUnit( Vector2Int v )
+        private Unit InstantiateDefaultUnit( Vector2Int placement )
         {
             var unit = Instantiate( DefaultUnit );
-            this[ unit.Position = v ].UnitOccupying = unit;
+            this[ placement ].UnitOccupying = unit;
             unit.transform.SetParent( ObjectOffset );
-            unit.transform.localPosition = v.ToVector3();
+            unit.transform.localPosition = placement.ToVector3();
+            this[ unit as Unit ] = this[ placement ];
             return unit;
         }
 
         void Start()
         {
         }
-
         #endregion
 
         #region Member Functions
-
         private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
         {
             return TrianglesForPosition( pos.x, pos.y );
@@ -101,8 +102,8 @@ namespace Assets.Map
 
         public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
         {
-            return GetTilesWithinAbsoluteRange( unit.Position, unit.Movement )
-                .Where( position => MapSearcher.Search( this[ unit.Position ], this[ position ], this.m_TileMap, unit.Movement ) != null );
+            return GetTilesWithinAbsoluteRange( this[ unit ].Position, unit.Movement )
+                .Where( position => MapSearcher.Search( this[ this[ unit ].Position ], this[ position ], this.m_TileMap, unit.Movement ) != null );
         }
 
         // Function that renders where a unit can move
@@ -284,6 +285,12 @@ namespace Assets.Map
             set { m_TileMap[ v.x, v.y ] = value; }
         }
 
+        public GameTile this[Unit unit]
+        {
+            get { return UnitPositions[ unit ]; }
+            set { UnitPositions[ unit ] = value; }
+        }
+
         private bool CanMoveInto( GameTile tile )
         {
             return tile.UnitOccupying == null;
@@ -295,7 +302,7 @@ namespace Assets.Map
             {
                 b.UnitOccupying = a.UnitOccupying;
                 a.UnitOccupying = null;
-                b.UnitOccupying.Position = b.Position;
+                this[ b.UnitOccupying ] = b;
             }
         }
 

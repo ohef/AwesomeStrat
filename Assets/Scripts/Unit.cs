@@ -13,7 +13,6 @@ namespace Assets.Map
         public int Defense;
         public int Attack;
         public int Movement;
-        public Vector2Int Position;
         public int AttackRange;
 
         void OnDrawGizmos()
