@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System;
 using Assets.General.DataStructures;
 using UnityEngine.EventSystems;
+using System.Linq;
 
 namespace Assets.Map
 {
     public class BattleSystem : MonoBehaviour
     {
+        private List<BattleState> PlayerTurns;
         private enum BattleTurn
         {
             Player,
@@ -90,9 +92,10 @@ namespace Assets.Map
 
         public static BattleSystem currentBattleSystem;
 
-        //public static GameMap Map;
-        //public static CursorControl CursorControl;
-        //public static Animator MenuAnimator;
+        public BattleState()
+        {
+            _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
+        }
 
         public abstract void HandleMessage( string message );
 
@@ -102,12 +105,15 @@ namespace Assets.Map
 
         public abstract void Exit( IPlayerState state );
 
-        protected static void UpdateCursor()
+        protected static Vector2Int UpdateCursor()
         {
             int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
             int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
+            var inputVector = new Vector2Int( horizontal, vertical );
             if ( vertical != 0 || horizontal != 0 )
-                currentBattleSystem.Cursor.ShiftCursor( new Vector2Int( horizontal, vertical ) );
+                return currentBattleSystem.Cursor.ShiftCursor( inputVector );
+
+            return Vector2Int.Zero;
         }
     }
 
@@ -136,12 +142,12 @@ namespace Assets.Map
         {
             UpdateCursor();
             var tile = currentBattleSystem.Cursor.CurrentTile;
-            if ( tile != null && tile.UnitOccupying != null )
+            if ( tile != null && tile.IsUnitPresent == true )
             {
-                currentBattleSystem.Map.RenderUnitMovement( tile.UnitOccupying, 0.5f );
+                currentBattleSystem.Map.RenderUnitMovement( tile.Unit, 0.5f );
                 if ( Input.GetButtonDown( "Jump" ) )
                 {
-                    CurrentState = new PlayerMenuSelection( tile.UnitOccupying );
+                    CurrentState = new PlayerMenuSelection( tile.Unit );
                 }
             }
             else
@@ -180,15 +186,17 @@ namespace Assets.Map
                 && !currentBattleSystem.Cursor.CurrentTile.Equals( currentBattleSystem.Map[ _SelectedUnit ] )
                 && movementTiles.Contains( currentBattleSystem.Cursor.CurrentTile.Position ) )
             {
+                List<GameTile> optimalPath = MapSearcher.Search(
+                    currentBattleSystem.Map[ _SelectedUnit ],
+                    currentBattleSystem.Cursor.CurrentTile,
+                    currentBattleSystem.Map.m_TileMap,
+                    _SelectedUnit.Movement );
+
                 currentBattleSystem.StartCoroutine(
-                    GameMap.AnimateMovingAlongPath(
-                        MapSearcher.Search(
-                            currentBattleSystem.Map[ _SelectedUnit ], 
-                            currentBattleSystem.Cursor.CurrentTile,
-                            currentBattleSystem.Map.m_TileMap,
-                            _SelectedUnit.Movement ),
-                        _SelectedUnit.transform ) 
-                        );
+                    General.CustomAnimation.InterpolateBetweenPoints(
+                        _SelectedUnit.transform,
+                        optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
+                        0.11f ) );
 
                 currentBattleSystem.Map.SwapUnit( currentBattleSystem.Map[ _SelectedUnit ], currentBattleSystem.Cursor.CurrentTile );
 

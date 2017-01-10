@@ -10,7 +10,7 @@ using System.Collections;
 namespace Assets.Map
 {
     [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
-    public class GameMap : MonoBehaviour
+    public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
         public int Width;
         public int Height;
@@ -27,9 +27,9 @@ namespace Assets.Map
 
         private Mesh m_MapMesh;
         private Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
+        public IEnumerable<Unit> Units { get { return UnitPositions.Keys; } }
 
         #region Monobehaviour Functions
-
         void Awake()
         {
             InitializeMap();
@@ -55,7 +55,7 @@ namespace Assets.Map
         private Unit InstantiateDefaultUnit( Vector2Int placement )
         {
             var unit = Instantiate( DefaultUnit );
-            this[ placement ].UnitOccupying = unit;
+            this[ placement ].Unit = unit;
             unit.transform.SetParent( ObjectOffset );
             unit.transform.localPosition = placement.ToVector3();
             this[ unit as Unit ] = this[ placement ];
@@ -86,13 +86,22 @@ namespace Assets.Map
             yield return indiceFormat + Height + 1;
         }
 
+        public IEnumerable<int> Range( int start, int end, int step = 1 )
+        {
+            for ( int i = start ; i <= end ; i += step )
+            {
+                yield return i;
+            }
+        }
+
         public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
         {
-            Func<int, int> clampX = i => ClampX( i );
-            Func<int, int> clampY = i => ClampY( i );
+            IEnumerable<int> rangeInterval = Range( -range, range );
+            IEnumerable<int> xInterval = rangeInterval.Select( i => startingPos.x + i ).Where( i => !IsOverBound( i, 0, Width - 1 ) );
+            IEnumerable<int> yInterval = rangeInterval.Select( i => startingPos.y + i ).Where( i => !IsOverBound( i, 0, Height - 1 ) );
 
-            for ( int i = clampX( startingPos.x - range ) ; i <= clampX( startingPos.x + range ) ; i++ )
-                for ( int j = clampY( startingPos.y - range ) ; j <= clampY( startingPos.y + range ) ; j++ )
+            foreach ( var i in xInterval )
+                foreach ( var j in yInterval )
                 {
                     Vector2Int toReturn = new Vector2Int( i, j );
                     if ( ( startingPos - toReturn ).AbsoluteNormal() <= range )
@@ -156,8 +165,8 @@ namespace Assets.Map
                 foreach ( Vector2Int direction in new Vector2Int[] { Vector2Int.Up, Vector2Int.Down, Vector2Int.Left, Vector2Int.Right } )
                     foreach ( int coef in Enumerable.Range( 1, attackRange ) )
                     {
-                        Vector2Int neighbour = ClampWithinMap( tile + direction * coef );
-                        if ( movementTiles.Contains( neighbour ) == false )
+                        Vector2Int neighbour =  tile + direction * coef ;
+                        if ( IsOutOfBounds( neighbour ) == false && movementTiles.Contains( neighbour ) == false )
                             attackTiles.Add( neighbour );
                     }
 
@@ -246,14 +255,6 @@ namespace Assets.Map
 
             return mesh;
         }
-
-        public static IEnumerator AnimateMovingAlongPath( IEnumerable<GameTile> tiles, Transform transform )
-        {
-            foreach ( var tileTransform in tiles.Select( tile => tile.transform ).Reverse() )
-            {
-                yield return CustomAnimation.MotionTweenLinear( transform, tileTransform.localPosition, 0.15f );
-            }
-        }
         #endregion
 
         #region ImportedMapFunctions
@@ -285,7 +286,7 @@ namespace Assets.Map
             set { m_TileMap[ v.x, v.y ] = value; }
         }
 
-        public GameTile this[Unit unit]
+        public GameTile this[ Unit unit ]
         {
             get { return UnitPositions[ unit ]; }
             set { UnitPositions[ unit ] = value; }
@@ -293,20 +294,20 @@ namespace Assets.Map
 
         private bool CanMoveInto( GameTile tile )
         {
-            return tile.UnitOccupying == null;
+            return tile.Unit == null;
         }
 
         public void SwapUnit( GameTile a, GameTile b )
         {
             if ( CanMoveInto( b ) == true )
             {
-                b.UnitOccupying = a.UnitOccupying;
-                a.UnitOccupying = null;
-                this[ b.UnitOccupying ] = b;
+                b.Unit = a.Unit;
+                a.Unit = null;
+                this[ b.Unit ] = b;
             }
         }
 
-        private static bool IsOverBounded( int i, int lowerBound, int upperBound )
+        private static bool IsOverBound( int i, int lowerBound, int upperBound )
         {
             return i < lowerBound || i > upperBound;
         }
@@ -318,16 +319,6 @@ namespace Assets.Map
             return i;
         }
 
-        public int ClampX( int i )
-        {
-            return ClampNumber( i, 0, Width - 1 );
-        }
-
-        public int ClampY( int i )
-        {
-            return ClampNumber( i, 0, Height - 1 );
-        }
-
         public Vector2Int ClampWithinMap( Vector2Int toClamp )
         {
             toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
@@ -335,16 +326,26 @@ namespace Assets.Map
             return toClamp;
         }
 
-        public Vector3 ClampWithinMapViaXZPlane( Vector3 toClamp )
+        public Vector3 ClampWithinMap( Vector3 toClamp )
         {
             toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
             toClamp.z = ClampNumber( toClamp.z, 0, Height - 1 );
             return toClamp;
         }
 
-        public bool OutOfBounds( Vector2Int v )
+        public bool IsOutOfBounds( Vector2Int v )
         {
-            return IsOverBounded( v.x, 0, Width - 1 ) || IsOverBounded( v.y, 0, Height - 1 );
+            return IsOverBound( v.x, 0, Width - 1 ) || IsOverBound( v.y, 0, Height - 1 );
+        }
+
+        public IEnumerator<GameTile> GetEnumerator()
+        {
+            return m_TileMap.Cast<GameTile>().GetEnumerator() ;
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return m_TileMap.GetEnumerator();
         }
         #endregion
     } 

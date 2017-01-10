@@ -15,8 +15,8 @@ namespace Assets.Map
     {
         public static void CopyIntoGridNodeMap( GameTile[,] map, GridNode[,] gridNodeMap )
         {
-            for ( int i = 0 ; i < map.GetLength(0) ; i++ )
-                for ( int j = 0 ; j < map.GetLength(1) ; j++ )
+            for ( int i = 0 ; i < map.GetLength( 0 ) ; i++ )
+                for ( int j = 0 ; j < map.GetLength( 1 ) ; j++ )
                 {
                     gridNodeMap[ i, j ] = new GridNode( map[ i, j ] );
                 }

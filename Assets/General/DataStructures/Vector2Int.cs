@@ -68,5 +68,8 @@ namespace Assets.General.DataStructures
 
         private static Vector2Int _Right = new Vector2Int( 1, 0 );
         public static Vector2Int Right { get { return _Right; } }
+
+        private static Vector2Int _Zero = new Vector2Int( 1, 0 );
+        public static Vector2Int Zero { get { return _Zero; } }
     }
 }

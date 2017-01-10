@@ -21,27 +21,31 @@ namespace Assets.General
                     Mathf.Lerp( from.localPosition.z, to.z, i ) );
                 yield return null;
             }
-
-            //from.transform.localPosition = to;
-            //yield return null;
         }
 
-        public static IEnumerator MotionTweenLinear( Vector3 from, Vector3 to, Action<Vector3> setter, float seconds )
+        /// <summary>
+        /// Moves a transform between a set of points at a linear speed
+        /// </summary>
+        /// <param name="toInterp">The transform of the given object to move</param>
+        /// <param name="nodesToPass">List of nodes to pass the transform through</param>
+        /// <param name="seconds">The time taken to get through each pair of points</param>
+        public static IEnumerator InterpolateBetweenPoints( Transform toInterp, IList<Vector3> nodesToPass, float seconds )
         {
-            float rate = 1.0f / seconds;
-            for ( float i = 0 ; i < 1.0f ; i += Time.deltaTime * rate )
+            if ( nodesToPass.Count > 1 )
             {
-                setter(
-                    new Vector3(
-                    Mathf.Lerp( from.x, to.x, i ),
-                    Mathf.Lerp( from.y, to.y, i ),
-                    Mathf.Lerp( from.z, to.z, i ) )
-                );
-                yield return null;
+                float rate = 1.0f / seconds;
+                for ( float i = 0 ; i <= nodesToPass.Count - 1 ; i += Time.deltaTime * rate )
+                {
+                    int currentNode = ( int )Math.Truncate( i );
+                    float t = i - currentNode;
+                    Vector3 a = nodesToPass[ currentNode ];
+                    Vector3 b = nodesToPass[ currentNode + 1 ];
+                    toInterp.localPosition = Vector3.Lerp( a, b, t );
+                    yield return null;
+                }
+                toInterp.localPosition = nodesToPass.Last();
+                //yield return null;
             }
-            setter( to );
-
-            yield return null;
         }
     }
 }

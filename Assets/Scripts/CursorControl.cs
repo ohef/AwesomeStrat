@@ -3,7 +3,7 @@ using System.Collections;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using Assets.General;
-using System;
+using System.Linq;
 
 namespace Assets.Map
 {
@@ -15,16 +15,6 @@ namespace Assets.Map
 
         public Camera cursorCamera;
 
-        private Vector3 CursorPosition
-        {
-            get { return transform.localPosition; }
-            set
-            {
-                var oldlocalPosition = transform.localPosition;
-                transform.localPosition = value;
-            }
-        }
-
         #region UnityMonoBehaviourFunctions
 
         void Awake() { }
@@ -32,23 +22,27 @@ namespace Assets.Map
         void Start()
         {
             cursorCamera.transform.LookAt( this.transform );
-            CurrentTile = Map[ Map.Width / 2, Map.Height / 2 ];
+            CurrentTile = Map.First( tile => tile.Unit != null );
         }
         #endregion
 
-        public void ShiftCursor( Vector2Int direction )
+        public Vector2Int ShiftCursor( Vector2Int direction )
         {
-            MoveCursor( CurrentTile.Position + direction );
+            Vector2Int updatedPosition = CurrentTile.Position + direction;
+            if ( MoveCursor( updatedPosition ) )
+                return updatedPosition;
+            else return CurrentTile.Position;
         }
 
-        public void MoveCursor( Vector2Int to )
+        public bool MoveCursor( Vector2Int to )
         {
-            if ( Map.OutOfBounds( to ) == false )
+            if ( Map.IsOutOfBounds( to ) == false )
             {
                 CurrentTile = Map[ to ];
-                //StartCoroutine( CustomAnimation.MotionTweenLinear( CursorPosition, to.ToVector3(), SetThisPosition, 0.15f ) );
                 StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.15f ) );
+                return true;
             }
+            else return false;
         }
     }
 }

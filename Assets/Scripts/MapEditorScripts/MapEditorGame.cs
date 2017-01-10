@@ -73,7 +73,7 @@ public class MapEditorGame : MonoBehaviour
                     case MapCursorState.PlacingTile:
                         hit.point = new Vector3( Mathf.Floor( hit.point.x ), hit.point.y, Mathf.Floor( hit.point.z ) );
                         HandleClick( mapPoint );
-                        cursorLook.transform.position = map.ClampWithinMapViaXZPlane( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
+                        cursorLook.transform.position = map.ClampWithinMap( hit.point ) + new Vector3( 0.5f, 0, 0.5f );
                         break;
                     default:
                         break;
