@@ -133,20 +133,24 @@ namespace Assets.Map
 
     public class PlayerSelectingUnit : BattleState
     {
+        public static Action StopRendering;
         public override void Update( IPlayerState currentState )
         {
             UpdateCursor();
             var tile = sys.Cursor.CurrentTile;
             if ( tile != null && tile.IsUnitPresent == true )
             {
-                sys.Map.RenderUnitMovement( tile.Unit, 0.5f );
+                StopRendering = sys.Map.ShowUnitMovement( tile.Unit );
+
                 if ( Input.GetButtonDown( "Jump" ) )
                 {
                     CurrentState = new PlayerMenuSelection( tile.Unit );
                 }
             }
             else
-                sys.Map.StopRenderingOverlays();
+            {
+                StopRendering();
+            }
         }
 
         public override void HandleMessage( string message ) { }
@@ -171,7 +175,7 @@ namespace Assets.Map
         public override void Update( IPlayerState state )
         {
             //TODO: Wayyyyyyyy too deep on member accessors, find a better way.
-            sys.Map.RenderUnitMovement( _SelectedUnit );
+            //sys.Map.ShowUnitMovement( _SelectedUnit );
             UpdateCursor();
 
             if ( Input.GetButtonDown( "Cancel" ) )
@@ -197,6 +201,7 @@ namespace Assets.Map
 
                 RollBackToPreviousState();
                 RollBackToPreviousState();
+                StopRendering();
             }
         }
 
@@ -214,7 +219,7 @@ namespace Assets.Map
     {
         public Unit SelectedUnit;
 
-        public PlayerMenuSelection( Unit unit)
+        public PlayerMenuSelection( Unit unit )
         {
             SelectedUnit = unit;
         }

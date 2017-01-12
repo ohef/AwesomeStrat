@@ -23,6 +23,7 @@ namespace Assets.Map
         public Material NormalMat;
         public Material MovementMat;
         public Material AttackRangeMat;
+        public Material DefaultMat;
         public Material SelectionMat;
 
         private Mesh m_MapMesh;
@@ -116,27 +117,42 @@ namespace Assets.Map
         }
 
         // Function that renders where a unit can move
-        public void RenderUnitMovement( Unit unit, float alpha = 1.0f )
+        public Action ShowUnitMovement( Unit unit )
+        {
+            return RenderUnitMovement( unit, AttackRangeMat, MovementMat, DefaultMat );
+        }
+
+        //public void RenderUnitMovement( Unit unit, Material attackm, Material movem )
+        //{
+        //    List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
+
+        //    foreach ( var tile in validMovementTiles )
+        //        this[ tile ].GetComponent<Renderer>().material = attackm;
+
+        //    foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
+        //        this[ tile ].GetComponent<Renderer>().material = movem;
+        //}
+
+        public Action RenderUnitMovement( Unit unit, Material attackm, Material movem, Material defaultm )
         {
             List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
 
-            foreach ( var tile in validMovementTiles )
-                this[ tile ].GetComponent<Renderer>().material = MovementMat;
+            Action<Material, Material> setMaterials = ( m1, m2 ) =>
+            {
+                foreach ( var tile in validMovementTiles )
+                    this[ tile ].GetComponent<Renderer>().material = m1;
 
-            foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
-                this[ tile ].GetComponent<Renderer>().material = AttackRangeMat;
+                foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
+                    this[ tile ].GetComponent<Renderer>().material = m2;
+            };
+            setMaterials( attackm, movem );
+
+            return () => setMaterials( defaultm, defaultm );
         }
 
         public void RenderSelection( IEnumerable<Vector2Int> tiles )
         {
             m_MapMesh.SetTriangles( tiles.SelectMany( tile => TrianglesForPosition( tile.x, tile.y ) ).ToList(), 3 );
-        }
-
-        public void StopRenderingOverlays()
-        {
-            //m_MapMesh.SetTriangles( new int[] { }, 1 );
-            //m_MapMesh.SetTriangles( new int[] { }, 2 );
-            //m_MapMesh.SetTriangles( new int[] { }, 3 );
         }
 
         private HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
