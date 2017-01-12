@@ -21,6 +21,7 @@ namespace Assets.General
                     Mathf.Lerp( from.localPosition.z, to.z, i ) );
                 yield return null;
             }
+            from.localPosition = to;
         }
 
         /// <summary>

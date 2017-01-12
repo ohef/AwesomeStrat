@@ -34,20 +34,20 @@ namespace Assets.Map
         {
             InitializeMap();
 
-            this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( Width, Height );
-            m_MapMesh.subMeshCount = 4;
+            //this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( Width, Height );
+            //m_MapMesh.subMeshCount = 4;
 
-            this.GetComponent<MeshRenderer>().materials = new Material[]
-                {
-                NormalMat,
-                MovementMat,
-                AttackRangeMat,
-                SelectionMat,
-                };
+            //this.GetComponent<MeshRenderer>().materials = new Material[]
+            //    {
+            //    NormalMat,
+            //    MovementMat,
+            //    AttackRangeMat,
+            //    SelectionMat,
+            //    };
 
-            var collider = this.GetComponent<BoxCollider>();
-            collider.size = new Vector3( Width, 0, Height );
-            collider.center = collider.size * 0.5f;
+            //var collider = this.GetComponent<BoxCollider>();
+            //collider.size = new Vector3( Width, 0, Height );
+            //collider.center = collider.size * 0.5f;
 
             InstantiateDefaultUnit( new Vector2Int( 0, 0 ) ) ;
         }
@@ -120,22 +120,11 @@ namespace Assets.Map
         {
             List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
 
-            m_MapMesh.SetTriangles(
-                validMovementTiles.SelectMany<Vector2Int, int>( TrianglesForPosition ).ToList(), 1 );
-            m_MapMesh.SetTriangles(
-                GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
-                .SelectMany<Vector2Int, int>( TrianglesForPosition )
-                .ToList(), 2 );
+            foreach ( var tile in validMovementTiles )
+                this[ tile ].GetComponent<Renderer>().material = MovementMat;
 
-            Func<Material, Color> switchAlpha = mat =>
-            {
-                var temp = mat.GetColor( "_Color" );
-                temp.a = alpha;
-                return temp;
-            };
-
-            AttackRangeMat.SetColor( "_Color", switchAlpha( AttackRangeMat ) );
-            MovementMat.SetColor( "_Color", switchAlpha( MovementMat ) );
+            foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
+                this[ tile ].GetComponent<Renderer>().material = AttackRangeMat;
         }
 
         public void RenderSelection( IEnumerable<Vector2Int> tiles )
@@ -145,9 +134,9 @@ namespace Assets.Map
 
         public void StopRenderingOverlays()
         {
-            m_MapMesh.SetTriangles( new int[] { }, 1 );
-            m_MapMesh.SetTriangles( new int[] { }, 2 );
-            m_MapMesh.SetTriangles( new int[] { }, 3 );
+            //m_MapMesh.SetTriangles( new int[] { }, 1 );
+            //m_MapMesh.SetTriangles( new int[] { }, 2 );
+            //m_MapMesh.SetTriangles( new int[] { }, 3 );
         }
 
         private HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )

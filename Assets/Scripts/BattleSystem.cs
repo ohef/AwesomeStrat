@@ -26,7 +26,7 @@ namespace Assets.Map
         void Awake()
         {
             BattleState.CurrentState = new PlayerSelectingUnit();
-            BattleState.currentBattleSystem = this;
+            BattleState.sys = this;
         }
 
         // Use this for initialization
@@ -83,6 +83,8 @@ namespace Assets.Map
             }
         }
 
+        public static BattleSystem sys;
+
         public static void RollBackToPreviousState()
         {
             IPlayerState poppedState = _CurrentStateStack.Pop();
@@ -90,11 +92,15 @@ namespace Assets.Map
             CurrentState.Enter( poppedState );
         }
 
-        public static BattleSystem currentBattleSystem;
-
-        public BattleState()
+        protected static Vector2Int UpdateCursor()
         {
-            _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
+            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
+            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
+            var inputVector = new Vector2Int( horizontal, vertical );
+            if ( vertical != 0 || horizontal != 0 )
+                return sys.Cursor.ShiftCursor( inputVector );
+
+            return Vector2Int.Zero;
         }
 
         public abstract void HandleMessage( string message );
@@ -104,17 +110,6 @@ namespace Assets.Map
         public abstract void Enter( IPlayerState state );
 
         public abstract void Exit( IPlayerState state );
-
-        protected static Vector2Int UpdateCursor()
-        {
-            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
-            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
-            var inputVector = new Vector2Int( horizontal, vertical );
-            if ( vertical != 0 || horizontal != 0 )
-                return currentBattleSystem.Cursor.ShiftCursor( inputVector );
-
-            return Vector2Int.Zero;
-        }
     }
 
     public class NullState : IPlayerState
@@ -141,17 +136,17 @@ namespace Assets.Map
         public override void Update( IPlayerState currentState )
         {
             UpdateCursor();
-            var tile = currentBattleSystem.Cursor.CurrentTile;
+            var tile = sys.Cursor.CurrentTile;
             if ( tile != null && tile.IsUnitPresent == true )
             {
-                currentBattleSystem.Map.RenderUnitMovement( tile.Unit, 0.5f );
+                sys.Map.RenderUnitMovement( tile.Unit, 0.5f );
                 if ( Input.GetButtonDown( "Jump" ) )
                 {
                     CurrentState = new PlayerMenuSelection( tile.Unit );
                 }
             }
             else
-                currentBattleSystem.Map.StopRenderingOverlays();
+                sys.Map.StopRenderingOverlays();
         }
 
         public override void HandleMessage( string message ) { }
@@ -169,36 +164,36 @@ namespace Assets.Map
         public PlayerUnitAction( Unit selectedUnit )
         {
             _SelectedUnit = selectedUnit;
-            movementTiles = new HashSet<Vector2Int>( currentBattleSystem.Map.GetValidMovementPositions( _SelectedUnit ) );
-            movementTiles.Remove( currentBattleSystem.Map[ _SelectedUnit ].Position );
+            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( _SelectedUnit ) );
+            movementTiles.Remove( sys.Map[ _SelectedUnit ].Position );
         }
 
         public override void Update( IPlayerState state )
         {
             //TODO: Wayyyyyyyy too deep on member accessors, find a better way.
-            currentBattleSystem.Map.RenderUnitMovement( _SelectedUnit );
+            sys.Map.RenderUnitMovement( _SelectedUnit );
             UpdateCursor();
 
             if ( Input.GetButtonDown( "Cancel" ) )
                 RollBackToPreviousState();
 
             if ( Input.GetButtonDown( "Submit" ) 
-                && !currentBattleSystem.Cursor.CurrentTile.Equals( currentBattleSystem.Map[ _SelectedUnit ] )
-                && movementTiles.Contains( currentBattleSystem.Cursor.CurrentTile.Position ) )
+                && !sys.Cursor.CurrentTile.Equals( sys.Map[ _SelectedUnit ] )
+                && movementTiles.Contains( sys.Cursor.CurrentTile.Position ) )
             {
                 List<GameTile> optimalPath = MapSearcher.Search(
-                    currentBattleSystem.Map[ _SelectedUnit ],
-                    currentBattleSystem.Cursor.CurrentTile,
-                    currentBattleSystem.Map.m_TileMap,
+                    sys.Map[ _SelectedUnit ],
+                    sys.Cursor.CurrentTile,
+                    sys.Map.m_TileMap,
                     _SelectedUnit.Movement );
 
-                currentBattleSystem.StartCoroutine(
+                sys.StartCoroutine(
                     General.CustomAnimation.InterpolateBetweenPoints(
                         _SelectedUnit.transform,
                         optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
                         0.11f ) );
 
-                currentBattleSystem.Map.SwapUnit( currentBattleSystem.Map[ _SelectedUnit ], currentBattleSystem.Cursor.CurrentTile );
+                sys.Map.SwapUnit( sys.Map[ _SelectedUnit ], sys.Cursor.CurrentTile );
 
                 RollBackToPreviousState();
                 RollBackToPreviousState();
@@ -211,7 +206,7 @@ namespace Assets.Map
 
         public override void Exit( IPlayerState state )
         {
-            currentBattleSystem.Cursor.MoveCursor( currentBattleSystem.Map[ _SelectedUnit ].Position );
+            sys.Cursor.MoveCursor( sys.Map[ _SelectedUnit ].Position );
         }
     }
 
@@ -248,13 +243,13 @@ namespace Assets.Map
 
         public override void Enter( IPlayerState state )
         {
-            currentBattleSystem.MenuAnimator.SetBool( "Hidden", false );
-            EventSystem.current.SetSelectedGameObject( currentBattleSystem.FirstSelectedMenuButton );
+            sys.MenuAnimator.SetBool( "Hidden", false );
+            EventSystem.current.SetSelectedGameObject( sys.FirstSelectedMenuButton );
         }
 
         public override void Exit( IPlayerState state )
         {
-            currentBattleSystem.MenuAnimator.SetBool( "Hidden", true );
+            sys.MenuAnimator.SetBool( "Hidden", true );
         }
     }
 }
