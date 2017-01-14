@@ -119,21 +119,10 @@ namespace Assets.Map
         // Function that renders where a unit can move
         public Action ShowUnitMovement( Unit unit )
         {
-            return RenderUnitMovement( unit, AttackRangeMat, MovementMat, DefaultMat );
+            return RenderUnitMovement( unit, MovementMat, AttackRangeMat, DefaultMat );
         }
 
-        //public void RenderUnitMovement( Unit unit, Material attackm, Material movem )
-        //{
-        //    List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
-
-        //    foreach ( var tile in validMovementTiles )
-        //        this[ tile ].GetComponent<Renderer>().material = attackm;
-
-        //    foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
-        //        this[ tile ].GetComponent<Renderer>().material = movem;
-        //}
-
-        public Action RenderUnitMovement( Unit unit, Material attackm, Material movem, Material defaultm )
+        public Action RenderUnitMovement( Unit unit, Material movem, Material attackm, Material defaultm )
         {
             List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
 
@@ -145,7 +134,8 @@ namespace Assets.Map
                 foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
                     this[ tile ].GetComponent<Renderer>().material = m2;
             };
-            setMaterials( attackm, movem );
+
+            setMaterials( movem, attackm );
 
             return () => setMaterials( defaultm, defaultm );
         }
