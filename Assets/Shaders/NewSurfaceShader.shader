@@ -4,7 +4,7 @@
 		_MainTex ("Albedo (RGB)", 2D) = "white" {}
 		_Glossiness ("Smoothness", Range(0,1)) = 0.5
 		_Metallic ("Metallic", Range(0,1)) = 0.0
-		_GradientScale ("Gradient Scale", Range(0.0,1.0)) = 1.0 
+		_GradientScale ("Gradient Scale", Range(0.0,10.0)) = 1.0 
 	}
 	SubShader {
 		Tags { "RenderType" = "TransparentCutout" }
@@ -34,7 +34,7 @@
 			fixed texAlph = tex2D(_MainTex, IN.uv_MainTex).a;
 			float ip = 0;
 			float offset = modf(_Time.y / 4.0, ip);
-			//float t = abs(sin((abs(_SinTime.z) - uv.y) * 3.14 * 2));
+			//float offset = ( _CosTime.w ) * 0.25;
 			float t = abs(sin((uv.y + offset) * 3.14 * 2 * _GradientScale));
 			clip(texAlph - 0.5);
 			fixed3 c = lerp(tex2D(_MainTex, IN.uv_MainTex), _Color, t);

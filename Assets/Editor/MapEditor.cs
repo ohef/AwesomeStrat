@@ -6,40 +6,33 @@ using Assets.Map;
 [ExecuteInEditMode]
 public class MapEditor : EditorWindow
 {
-    public GameMap map = null;
-    public int width= 0;
-    public int height= 0;
-    public GameTile defaultTile;
-
-    public static Unit unitPrefHolder = new Unit();
+    public static GameMap map = null;
+    public int Width = 0;
+    public int Height = 0;
 
     [MenuItem("Window/MapEditor")]
-    public static void ShowWindow()
+    public static void Init()
     {
-        EditorWindow.GetWindow( typeof( MapEditor ) );
+        map = GameObject.FindObjectOfType<GameMap>();
+        EditorWindow.GetWindow<MapEditor>();
     }
 
     void OnGUI()
     {
         EditorGUILayout.BeginVertical();
-        defaultTile = EditorGUILayout.ObjectField( defaultTile, typeof( GameTile ), true ) as GameTile;
-        map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
-        AddUnitInstantiator();
+
+        EditorGUILayout.ObjectField( map, typeof( GameMap ), true );
+
+        EditorGUILayout.BeginHorizontal();
+        Width = EditorGUILayout.IntField( "Width", Width );
+        Height = EditorGUILayout.IntField( "Height", Height );
+        EditorGUILayout.EndHorizontal();
+
+        if ( GUILayout.Button( "Create Map" ) )
+        {
+            map.ReInitializeMap( Width, Height );
+        } 
+
         EditorGUILayout.EndVertical();
-    }
-
-    void AddUnitInstantiator()
-    {
-        unitPrefHolder.HP = EditorGUILayout.IntField( unitPrefHolder.HP );
-        unitPrefHolder.Attack = EditorGUILayout.IntField( unitPrefHolder.Attack );
-        unitPrefHolder.AttackRange = EditorGUILayout.IntField( unitPrefHolder.AttackRange );
-        unitPrefHolder.Defense = EditorGUILayout.IntField( unitPrefHolder.Defense );
-        unitPrefHolder.Movement = EditorGUILayout.IntField( unitPrefHolder.Movement );
-
-        int X = 0;
-        int Y = 0;
-        X = EditorGUILayout.IntField( X );
-        Y = EditorGUILayout.IntField( Y );
-        //unitPrefHolder.Position = new Assets.General.DataStructures.Vector2Int( X, Y );
     }
 }

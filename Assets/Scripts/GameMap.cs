@@ -33,23 +33,6 @@ namespace Assets.Map
         #region Monobehaviour Functions
         void Awake()
         {
-            InitializeMap();
-
-            //this.GetComponent<MeshFilter>().mesh = m_MapMesh = CreateGridMesh( Width, Height );
-            //m_MapMesh.subMeshCount = 4;
-
-            //this.GetComponent<MeshRenderer>().materials = new Material[]
-            //    {
-            //    NormalMat,
-            //    MovementMat,
-            //    AttackRangeMat,
-            //    SelectionMat,
-            //    };
-
-            //var collider = this.GetComponent<BoxCollider>();
-            //collider.size = new Vector3( Width, 0, Height );
-            //collider.center = collider.size * 0.5f;
-
             InstantiateDefaultUnit( new Vector2Int( 0, 0 ) ) ;
         }
 
@@ -63,9 +46,7 @@ namespace Assets.Map
             return unit;
         }
 
-        void Start()
-        {
-        }
+        //void Start() { }
         #endregion
 
         #region Member Functions
@@ -116,7 +97,6 @@ namespace Assets.Map
                 .Where( position => MapSearcher.Search( this[ this[ unit ].Position ], this[ position ], this.m_TileMap, unit.Movement ) != null );
         }
 
-        // Function that renders where a unit can move
         public Action ShowUnitMovement( Unit unit )
         {
             return RenderUnitMovement( unit, MovementMat, AttackRangeMat, DefaultMat );
@@ -253,11 +233,13 @@ namespace Assets.Map
         #endregion
 
         #region ImportedMapFunctions
-        public void InitializeMap()
+        public void InitializeMap( int width, int height )
         {
-            m_TileMap = new GameTile[ Width, Height ];
-            for ( int i = 0 ; i < Width ; i++ )
-                for ( int j = 0 ; j < Height ; j++ )
+            Width = width;
+            Height = height;
+            m_TileMap = new GameTile[ width, height ];
+            for ( int i = 0 ; i < width ; i++ )
+                for ( int j = 0 ; j < height ; j++ )
                 {
                     var gameTile = Instantiate( TilePrefab );
                     gameTile.Position.x = i;
@@ -267,6 +249,21 @@ namespace Assets.Map
                     gameTile.transform.localPosition = gameTile.Position.ToVector3();
                     gameTile.name = gameTile.Position.ToString();
                 }
+        }
+
+        public void ReInitializeMap( int width, int height )
+        {
+            if ( m_TileMap != null )
+            {
+                for ( int i = 0 ; i < Width ; i++ )
+                {
+                    for ( int j = 0 ; j < Height ; j++ )
+                    {
+                        GameObject.DestroyImmediate( m_TileMap[ i, j ].gameObject, true );
+                    }
+                }
+            }
+            InitializeMap( width, height );
         }
 
         public GameTile this[ int x, int y ]
