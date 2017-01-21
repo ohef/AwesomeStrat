@@ -21,7 +21,7 @@ public class MapEditor : EditorWindow
     {
         EditorGUILayout.BeginVertical();
 
-        EditorGUILayout.ObjectField( map, typeof( GameMap ), true );
+        map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
 
         EditorGUILayout.BeginHorizontal();
         Width = EditorGUILayout.IntField( "Width", Width );

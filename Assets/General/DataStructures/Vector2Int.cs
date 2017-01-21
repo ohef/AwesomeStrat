@@ -5,10 +5,11 @@ using System.Text;
 
 namespace Assets.General.DataStructures
 {
+    [System.Serializable]
     public struct Vector2Int : IEquatable<Vector2Int>, IEqualityComparer<Vector2Int>
     {
-        public int x { get; set; }
-        public int y { get; set; }
+        public int x;
+        public int y;
 
         public Vector2Int( int x, int y )
         {

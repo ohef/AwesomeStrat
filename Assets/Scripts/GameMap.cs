@@ -28,12 +28,16 @@ namespace Assets.Map
 
         private Mesh m_MapMesh;
         private Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
-        public IEnumerable<Unit> Units { get { return UnitPositions.Keys; } }
 
         #region Monobehaviour Functions
         void Awake()
         {
-            InstantiateDefaultUnit( new Vector2Int( 0, 0 ) ) ;
+            m_TileMap = new GameTile[ Width, Height ];
+            foreach ( GameTile tile in GameObject.FindObjectsOfType<GameTile>() )
+            {
+                this[ tile.Position ] = tile;
+            }
+            InstantiateDefaultUnit( new Vector2Int( 0, 0 ) );
         }
 
         private Unit InstantiateDefaultUnit( Vector2Int placement )
@@ -117,6 +121,7 @@ namespace Assets.Map
 
             setMaterials( movem, attackm );
 
+            //The caller now is given a function that it can use to undo what was done by this function
             return () => setMaterials( defaultm, defaultm );
         }
 
@@ -259,7 +264,9 @@ namespace Assets.Map
                 {
                     for ( int j = 0 ; j < Height ; j++ )
                     {
-                        GameObject.DestroyImmediate( m_TileMap[ i, j ].gameObject, true );
+                        GameTile tile = m_TileMap[ i, j ];
+                        if ( tile != null )
+                            GameObject.DestroyImmediate( m_TileMap[ i, j ].gameObject );
                     }
                 }
             }
