@@ -7,12 +7,13 @@ using UnityEngine;
 
 namespace Assets.Map
 {
+    [System.Serializable]
     public class Unit : MonoBehaviour
     {
         public int HP;
         public int Defense;
         public int Attack;
-        public int Movement;
+        public int MovementRange;
         public int AttackRange;
 
         void OnDrawGizmos()

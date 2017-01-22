@@ -11,9 +11,7 @@ namespace Assets.Map
     public class GameTile : MonoBehaviour
     {
         public Vector2Int Position;
-        public Unit Unit;
         public int CostOfTraversal;
-        public bool IsUnitPresent { get { return Unit != null; } }
 
         public void OnDrawGizmos()
         {

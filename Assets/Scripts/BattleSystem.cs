@@ -137,14 +137,15 @@ namespace Assets.Map
         public override void Update( IPlayerState currentState )
         {
             UpdateCursor();
-            var tile = sys.Cursor.CurrentTile;
-            if ( tile != null && tile.IsUnitPresent == true )
+            GameTile tile = sys.Cursor.CurrentTile;
+            Unit unitAtTile;
+            if ( sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile ) )
             {
-                StopRendering = sys.Map.ShowUnitMovement( tile.Unit );
+                StopRendering = sys.Map.ShowUnitMovement( unitAtTile, tile );
 
                 if ( Input.GetButtonDown( "Jump" ) )
                 {
-                    CurrentState = new PlayerMenuSelection( tile.Unit );
+                    CurrentState = new PlayerMenuSelection( unitAtTile );
                 }
             }
             else
@@ -162,14 +163,16 @@ namespace Assets.Map
 
     public class PlayerUnitAction : PlayerSelectingUnit
     {
-        private Unit _SelectedUnit;
+        private Unit SelectedUnit;
         private HashSet<Vector2Int> movementTiles;
+        private GameTile unitTile;
 
         public PlayerUnitAction( Unit selectedUnit )
         {
-            _SelectedUnit = selectedUnit;
-            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( _SelectedUnit ) );
-            movementTiles.Remove( sys.Map[ _SelectedUnit ].Position );
+            SelectedUnit = selectedUnit;
+            unitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
+            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, unitTile ) );
+            movementTiles.Remove( unitTile.Position );
         }
 
         public override void Update( IPlayerState state )
@@ -181,23 +184,24 @@ namespace Assets.Map
             if ( Input.GetButtonDown( "Cancel" ) )
                 RollBackToPreviousState();
 
-            if ( Input.GetButtonDown( "Submit" ) 
-                && !sys.Cursor.CurrentTile.Equals( sys.Map[ _SelectedUnit ] )
+            
+            if ( Input.GetButtonDown( "Submit" )
+                && !sys.Cursor.CurrentTile.Equals( unitTile )
                 && movementTiles.Contains( sys.Cursor.CurrentTile.Position ) )
             {
                 List<GameTile> optimalPath = MapSearcher.Search(
-                    sys.Map[ _SelectedUnit ],
+                    unitTile,
                     sys.Cursor.CurrentTile,
                     sys.Map.m_TileMap,
-                    _SelectedUnit.Movement );
+                    SelectedUnit.MovementRange );
 
                 sys.StartCoroutine(
                     General.CustomAnimation.InterpolateBetweenPoints(
-                        _SelectedUnit.transform,
+                        SelectedUnit.transform,
                         optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
                         0.11f ) );
 
-                sys.Map.SwapUnit( sys.Map[ _SelectedUnit ], sys.Cursor.CurrentTile );
+                sys.Map.SwapUnit( unitTile, sys.Cursor.CurrentTile );
 
                 RollBackToPreviousState();
                 RollBackToPreviousState();
@@ -211,7 +215,7 @@ namespace Assets.Map
 
         public override void Exit( IPlayerState state )
         {
-            sys.Cursor.MoveCursor( sys.Map[ _SelectedUnit ].Position );
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
     }
 

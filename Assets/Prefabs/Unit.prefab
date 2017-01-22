@@ -78,7 +78,7 @@ MonoBehaviour:
   HP: 20
   Defense: 10
   Attack: 10
-  Movement: 4
+  MovementRange: 5
   AttackRange: 2
 --- !u!1001 &100100000
 Prefab:

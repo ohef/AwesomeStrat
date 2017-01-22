@@ -22,7 +22,8 @@ namespace Assets.Map
         void Start()
         {
             cursorCamera.transform.LookAt( this.transform );
-            CurrentTile = Map.First( tile => tile.Unit != null );
+            Unit firstunit = default( Unit );
+            CurrentTile = Map.First( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
         }
         #endregion
 

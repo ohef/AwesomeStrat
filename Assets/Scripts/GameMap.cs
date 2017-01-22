@@ -27,7 +27,9 @@ namespace Assets.Map
         public Material SelectionMat;
 
         private Mesh m_MapMesh;
-        private Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
+        //public Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
+        //public Dictionary<GameTile, Unit> PositionsOfUnits = new Dictionary<GameTile, Unit>();
+        public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
 
         #region Monobehaviour Functions
         void Awake()
@@ -43,14 +45,13 @@ namespace Assets.Map
         private Unit InstantiateDefaultUnit( Vector2Int placement )
         {
             var unit = Instantiate( DefaultUnit );
-            this[ placement ].Unit = unit;
+            //this[ placement ].Unit = unit;
             unit.transform.SetParent( ObjectOffset );
             unit.transform.localPosition = placement.ToVector3();
-            this[ unit as Unit ] = this[ placement ];
+            //this[ unit as Unit ] = this[ placement ];
+            UnitGametileMap.Add( unit as Unit, this[ placement ] );
             return unit;
         }
-
-        //void Start() { }
         #endregion
 
         #region Member Functions
@@ -95,20 +96,20 @@ namespace Assets.Map
                 }
         }
 
-        public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
+        public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
         {
-            return GetTilesWithinAbsoluteRange( this[ unit ].Position, unit.Movement )
-                .Where( position => MapSearcher.Search( this[ this[ unit ].Position ], this[ position ], this.m_TileMap, unit.Movement ) != null );
+            return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
+                .Where( position => MapSearcher.Search( unitsTile, this[ position ], this.m_TileMap, unit.MovementRange ) != null );
         }
 
-        public Action ShowUnitMovement( Unit unit )
+        public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
         {
-            return RenderUnitMovement( unit, MovementMat, AttackRangeMat, DefaultMat );
+            return RenderUnitMovement( unit, tileOfUnit, MovementMat, AttackRangeMat, DefaultMat );
         }
 
-        public Action RenderUnitMovement( Unit unit, Material movem, Material attackm, Material defaultm )
+        public Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
         {
-            List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit ).ToList();
+            List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, tileOfUnit ).ToList();
 
             Action<Material, Material> setMaterials = ( m1, m2 ) =>
             {
@@ -285,24 +286,33 @@ namespace Assets.Map
             set { m_TileMap[ v.x, v.y ] = value; }
         }
 
-        public GameTile this[ Unit unit ]
-        {
-            get { return UnitPositions[ unit ]; }
-            set { UnitPositions[ unit ] = value; }
-        }
+        //public GameTile UnitIsAt( Unit u )
+        //{
+        //    return null;
+        //}
+
+        //public Unit UnitAtTile( GameTile g )
+        //{
+        //    return null;
+        //}
+
+        //public GameTile this[ Unit unit ]
+        //{
+        //    get { return UnitPositions[ unit ]; }
+        //    set { UnitPositions[ unit ] = value; }
+        //}
 
         private bool CanMoveInto( GameTile tile )
         {
-            return tile.Unit == null;
+            Unit u;
+            return !UnitGametileMap.TryGetValue( tile, out u );
         }
 
         public void SwapUnit( GameTile a, GameTile b )
         {
             if ( CanMoveInto( b ) == true )
             {
-                b.Unit = a.Unit;
-                a.Unit = null;
-                this[ b.Unit ] = b;
+                UnitGametileMap.Add( UnitGametileMap[ a ], b );
             }
         }
 
