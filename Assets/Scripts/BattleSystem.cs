@@ -164,15 +164,15 @@ namespace Assets.Map
     public class PlayerUnitAction : PlayerSelectingUnit
     {
         private Unit SelectedUnit;
+        private GameTile UnitTile;
         private HashSet<Vector2Int> movementTiles;
-        private GameTile unitTile;
 
         public PlayerUnitAction( Unit selectedUnit )
         {
             SelectedUnit = selectedUnit;
-            unitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
-            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, unitTile ) );
-            movementTiles.Remove( unitTile.Position );
+            UnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
+            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
+            movementTiles.Remove( UnitTile.Position );
         }
 
         public override void Update( IPlayerState state )
@@ -186,11 +186,11 @@ namespace Assets.Map
 
             
             if ( Input.GetButtonDown( "Submit" )
-                && !sys.Cursor.CurrentTile.Equals( unitTile )
+                && !sys.Cursor.CurrentTile.Equals( UnitTile )
                 && movementTiles.Contains( sys.Cursor.CurrentTile.Position ) )
             {
                 List<GameTile> optimalPath = MapSearcher.Search(
-                    unitTile,
+                    UnitTile,
                     sys.Cursor.CurrentTile,
                     sys.Map.m_TileMap,
                     SelectedUnit.MovementRange );
@@ -201,7 +201,7 @@ namespace Assets.Map
                         optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
                         0.11f ) );
 
-                sys.Map.SwapUnit( unitTile, sys.Cursor.CurrentTile );
+                sys.Map.SwapUnit( UnitTile, sys.Cursor.CurrentTile );
 
                 RollBackToPreviousState();
                 RollBackToPreviousState();
@@ -215,7 +215,7 @@ namespace Assets.Map
 
         public override void Exit( IPlayerState state )
         {
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+            //sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
     }
 

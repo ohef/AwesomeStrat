@@ -27,8 +27,6 @@ namespace Assets.Map
         public Material SelectionMat;
 
         private Mesh m_MapMesh;
-        //public Dictionary<Unit, GameTile> UnitPositions = new Dictionary<Unit, GameTile>();
-        //public Dictionary<GameTile, Unit> PositionsOfUnits = new Dictionary<GameTile, Unit>();
         public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
 
         #region Monobehaviour Functions
@@ -45,10 +43,8 @@ namespace Assets.Map
         private Unit InstantiateDefaultUnit( Vector2Int placement )
         {
             var unit = Instantiate( DefaultUnit );
-            //this[ placement ].Unit = unit;
             unit.transform.SetParent( ObjectOffset );
             unit.transform.localPosition = placement.ToVector3();
-            //this[ unit as Unit ] = this[ placement ];
             UnitGametileMap.Add( unit as Unit, this[ placement ] );
             return unit;
         }

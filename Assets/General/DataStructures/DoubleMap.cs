@@ -7,6 +7,8 @@ using System.Collections.Generic;
 /// </summary>
 /// <typeparam name="A"></typeparam>
 /// <typeparam name="B"></typeparam>
+
+[System.Serializable]
 public class DoubleDictionary<A, B> 
 {
     private Dictionary<A, B> AtoB;
