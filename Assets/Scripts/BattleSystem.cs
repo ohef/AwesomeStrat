@@ -192,7 +192,7 @@ namespace Assets.Map
                 List<GameTile> optimalPath = MapSearcher.Search(
                     UnitTile,
                     sys.Cursor.CurrentTile,
-                    sys.Map.m_TileMap,
+                    sys.Map.GameTiles,
                     SelectedUnit.MovementRange );
 
                 sys.StartCoroutine(

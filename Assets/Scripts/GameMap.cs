@@ -9,6 +9,21 @@ using System.Collections;
 
 namespace Assets.Map
 {
+    [System.Serializable]
+    public class GameTileMultiArray
+    {
+        private GameTile[] array;
+        public GameTileMultiArray( int i, int j )
+        {
+            array = new GameTile[ i * j ];
+        }
+
+        public GameTile this[int i, int j]
+        {
+            get { return array[ i * j ]; }
+            set { array[ i * j ] = value; }
+        }
+    }
     [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
     public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
@@ -17,7 +32,11 @@ namespace Assets.Map
 
         public Unit DefaultUnit;
         public GameTile TilePrefab;
-        public GameTile[,] m_TileMap;
+
+        [SerializeField]
+        public GameTile[,] GameTiles;
+        //public GameTileMultiArray GameTiles;
+
         public Transform ObjectOffset;
 
         public Material NormalMat;
@@ -32,7 +51,7 @@ namespace Assets.Map
         #region Monobehaviour Functions
         void Awake()
         {
-            m_TileMap = new GameTile[ Width, Height ];
+            GameTiles = new GameTile[ Width, Height ];
             foreach ( GameTile tile in GameObject.FindObjectsOfType<GameTile>() )
             {
                 this[ tile.Position ] = tile;
@@ -95,7 +114,7 @@ namespace Assets.Map
         public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
         {
             return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
-                .Where( position => MapSearcher.Search( unitsTile, this[ position ], this.m_TileMap, unit.MovementRange ) != null );
+                .Where( position => MapSearcher.Search( unitsTile, this[ position ], this.GameTiles, unit.MovementRange ) != null );
         }
 
         public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
@@ -208,7 +227,7 @@ namespace Assets.Map
             {
                 int i = 0;
                 int j = 0;
-                foreach ( Vector2Int pos in positions )
+                for ( int k = 0 ; k < positions.Count ; k++ )
                 {
                     //Assuming Clockwise orientation
                     //Triangle 1
@@ -239,7 +258,7 @@ namespace Assets.Map
         {
             Width = width;
             Height = height;
-            m_TileMap = new GameTile[ width, height ];
+            GameTiles = new GameTile[ width, height ];
             for ( int i = 0 ; i < width ; i++ )
                 for ( int j = 0 ; j < height ; j++ )
                 {
@@ -255,15 +274,15 @@ namespace Assets.Map
 
         public void ReInitializeMap( int width, int height )
         {
-            if ( m_TileMap != null )
+            if ( GameTiles != null )
             {
                 for ( int i = 0 ; i < Width ; i++ )
                 {
                     for ( int j = 0 ; j < Height ; j++ )
                     {
-                        GameTile tile = m_TileMap[ i, j ];
+                        GameTile tile = GameTiles[ i, j ];
                         if ( tile != null )
-                            GameObject.DestroyImmediate( m_TileMap[ i, j ].gameObject );
+                            GameObject.DestroyImmediate( GameTiles[ i, j ].gameObject );
                     }
                 }
             }
@@ -272,14 +291,14 @@ namespace Assets.Map
 
         public GameTile this[ int x, int y ]
         {
-            get { return m_TileMap[ x, y ]; }
-            set { m_TileMap[ x, y ] = value; }
+            get { return GameTiles[ x, y ]; }
+            set { GameTiles[ x, y ] = value; }
         }
 
         public GameTile this[ Vector2Int v ]
         {
-            get { return m_TileMap[ v.x, v.y ]; }
-            set { m_TileMap[ v.x, v.y ] = value; }
+            get { return GameTiles[ v.x, v.y ]; }
+            set { GameTiles[ v.x, v.y ] = value; }
         }
 
         //public GameTile UnitIsAt( Unit u )
@@ -345,12 +364,12 @@ namespace Assets.Map
 
         public IEnumerator<GameTile> GetEnumerator()
         {
-            return m_TileMap.Cast<GameTile>().GetEnumerator() ;
+            return GameTiles.Cast<GameTile>().GetEnumerator() ;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return m_TileMap.GetEnumerator();
+            return GameTiles.GetEnumerator();
         }
         #endregion
     } 
