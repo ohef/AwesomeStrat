@@ -13,22 +13,28 @@ namespace Assets.Map
 
     public class MapSearcher
     {
-        public static void CopyIntoGridNodeMap( GameTile[,] map, GridNode[,] gridNodeMap )
+        public static void CalculateNodeMap( GameMap map, GridNode[,] gridNodeMap )
         {
-            for ( int i = 0 ; i < map.GetLength( 0 ) ; i++ )
-                for ( int j = 0 ; j < map.GetLength( 1 ) ; j++ )
+            for ( int i = 0 ; i < map.Width; i++ )
+                for ( int j = 0 ; j < map.Height; j++ )
                 {
                     gridNodeMap[ i, j ] = new GridNode( map[ i, j ] );
+
+                    if ( map.Occupied( map[ i, j ] ) )
+                        //So we set the cost to be half of a max int because it WRAPS AROUND to negative when added to pCost. 
+                        //It's probably better to have a unit or impassable terrain logic somewhere else and leave the searcher simple;
+                        //Lest we populate a general class.
+                        gridNodeMap[ i, j ].Cost = 9999;
                 }
         }
 
-        public static List<GameTile> Search( GameTile start, GameTile goal, GameTile[,] map, int bound = int.MaxValue )
+        public static List<GameTile> Search( GameTile start, GameTile goal, GameMap map, int bound = int.MaxValue )
         {
             HashSet<GridNode> closedSet = new HashSet<GridNode>();
             ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();
 
-            GridNode[,] gridNodeMap = new GridNode[ map.GetLength( 0 ), map.GetLength( 1 ) ];
-            CopyIntoGridNodeMap( map, gridNodeMap );
+            GridNode[,] gridNodeMap = new GridNode[ map.Width, map.Height ];
+            CalculateNodeMap( map, gridNodeMap );
 
             GridNode startNode = gridNodeMap[ start.Position.x, start.Position.y ];
             GridNode goalNode = gridNodeMap[ goal.Position.x, goal.Position.y ];
@@ -42,7 +48,7 @@ namespace Assets.Map
             {
                 var currentNode = frontier.Pop();
                 if ( currentNode == goalNode )
-                    return ReconstructPath( currentNode, startNode );
+                    return ReconstructPath( currentNode, startNode, map );
 
                 closedSet.Add( currentNode );
 
@@ -50,7 +56,7 @@ namespace Assets.Map
                 {
                     if ( closedSet.Contains( neighbour ) )
                         continue;
-                    int tempPCost = currentNode.pCost + neighbour.Tile.CostOfTraversal;
+                    int tempPCost = currentNode.pCost + neighbour.Cost;
                     if ( tempPCost > bound )
                         continue;
 
@@ -69,7 +75,7 @@ namespace Assets.Map
             return null;
         }
 
-        public static List<GameTile> ReconstructPath( GridNode finalNode, GridNode startNode )
+        public static List<GameTile> ReconstructPath( GridNode finalNode, GridNode startNode, GameMap map )
         {
             var path = new List<GameTile>();
             GridNode temp = finalNode;
@@ -77,11 +83,11 @@ namespace Assets.Map
             {
                 if ( temp == startNode )
                     break;
-                path.Add( temp.Tile );
+                path.Add( map[ temp.Location ] );
                 temp = temp.Parent;
             }
 
-            path.Add( temp.Tile );
+            path.Add( map[ temp.Location ] );
             return path;
         }
 
@@ -137,24 +143,15 @@ namespace Assets.Map
 
         public GridNode Parent;
 
-        public Vector2Int Location { get { return Tile.Position; } }
-
-        public GameTile Tile
-        {
-            get
-            {
-                return m_Tile;
-            }
-        }
+        public Vector2Int Location;
 
         public int pCost = 0;
         public int hCost = 0;
 
-        private GameTile m_Tile;
-
         public GridNode( GameTile tile )
         {
-            this.m_Tile = tile;
+            Location = tile.Position;
+            Cost = tile.CostOfTraversal;
         }
 
         public int CompareTo( GridNode other )
