@@ -10,23 +10,17 @@ using System.Collections;
 namespace Assets.Map
 {
     [System.Serializable]
-    public class GameTileMultiArray
+    public class UnitPlacement : ScriptableObject
     {
-        private GameTile[] array;
-        public GameTileMultiArray( int i, int j )
-        {
-            array = new GameTile[ i * j ];
-        }
-
-        public GameTile this[int i, int j]
-        {
-            get { return array[ i * j ]; }
-            set { array[ i * j ] = value; }
-        }
+        public Unit[] Units;
+        public int Width;
+        public int Height;
     }
+
     [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
     public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
+        public static GameTile ImpassibleTile;
         public int Width;
         public int Height;
 
@@ -35,7 +29,6 @@ namespace Assets.Map
 
         [SerializeField]
         public GameTile[,] GameTiles;
-        //public GameTileMultiArray GameTiles;
 
         public Transform ObjectOffset;
 
@@ -46,6 +39,7 @@ namespace Assets.Map
         public Material SelectionMat;
 
         private Mesh m_MapMesh;
+        public UnitPlacement unitInit;
         public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
 
         #region Monobehaviour Functions
@@ -56,17 +50,23 @@ namespace Assets.Map
             {
                 this[ tile.Position ] = tile;
             }
-            InstantiateDefaultUnit( new Vector2Int( 0, 0 ) );
+
+            //Actual transforms tell you were they are in the array, might be bad but oh well
+            foreach ( Unit unit in GameObject.FindObjectsOfType<Unit>() )
+            {
+                var unitPosition = unit.transform.position;
+                UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
+            }
         }
 
-        private Unit InstantiateDefaultUnit( Vector2Int placement )
-        {
-            var unit = Instantiate( DefaultUnit );
-            unit.transform.SetParent( ObjectOffset );
-            unit.transform.localPosition = placement.ToVector3();
-            UnitGametileMap.Add( unit as Unit, this[ placement ] );
-            return unit;
-        }
+        //private Unit PlaceUnit( Unit unit, Vector2Int placement )
+        //{
+        //    //var unit = Instantiate( DefaultUnit );
+        //    unit.transform.SetParent( ObjectOffset );
+        //    unit.transform.localPosition = placement.ToVector3();
+        //    UnitGametileMap.Add( unit as Unit, this[ placement ] );
+        //    return unit;
+        //}
         #endregion
 
         #region Member Functions
@@ -114,7 +114,7 @@ namespace Assets.Map
         public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
         {
             return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
-                .Where( position => MapSearcher.Search( unitsTile, this[ position ], this.GameTiles, unit.MovementRange ) != null );
+                .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
         }
 
         public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
@@ -301,31 +301,15 @@ namespace Assets.Map
             set { GameTiles[ v.x, v.y ] = value; }
         }
 
-        //public GameTile UnitIsAt( Unit u )
-        //{
-        //    return null;
-        //}
-
-        //public Unit UnitAtTile( GameTile g )
-        //{
-        //    return null;
-        //}
-
-        //public GameTile this[ Unit unit ]
-        //{
-        //    get { return UnitPositions[ unit ]; }
-        //    set { UnitPositions[ unit ] = value; }
-        //}
-
-        private bool CanMoveInto( GameTile tile )
+        public bool Occupied( GameTile tile )
         {
             Unit u;
-            return !UnitGametileMap.TryGetValue( tile, out u );
+            return UnitGametileMap.TryGetValue( tile, out u );
         }
 
         public void SwapUnit( GameTile a, GameTile b )
         {
-            if ( CanMoveInto( b ) == true )
+            if ( Occupied( b ) == false )
             {
                 UnitGametileMap.Add( UnitGametileMap[ a ], b );
             }
