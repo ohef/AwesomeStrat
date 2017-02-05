@@ -58,15 +58,6 @@ namespace Assets.Map
                 UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
             }
         }
-
-        //private Unit PlaceUnit( Unit unit, Vector2Int placement )
-        //{
-        //    //var unit = Instantiate( DefaultUnit );
-        //    unit.transform.SetParent( ObjectOffset );
-        //    unit.transform.localPosition = placement.ToVector3();
-        //    UnitGametileMap.Add( unit as Unit, this[ placement ] );
-        //    return unit;
-        //}
         #endregion
 
         #region Member Functions
@@ -88,6 +79,14 @@ namespace Assets.Map
             yield return indiceFormat + Height + 1;
         }
 
+        /// <summary>
+        /// Basic Utility Function that should probably not be here. Works like the python range function
+        /// for simple iteration over a list of ints
+        /// </summary>
+        /// <param name="start"></param>
+        /// <param name="end"></param>
+        /// <param name="step"></param>
+        /// <returns></returns>
         public IEnumerable<int> Range( int start, int end, int step = 1 )
         {
             for ( int i = start ; i <= end ; i += step )
@@ -96,7 +95,7 @@ namespace Assets.Map
             }
         }
 
-        public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
+        private IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
         {
             IEnumerable<int> rangeInterval = Range( -range, range );
             IEnumerable<int> xInterval = rangeInterval.Select( i => startingPos.x + i ).Where( i => !IsOverBound( i, 0, Width - 1 ) );
@@ -122,7 +121,7 @@ namespace Assets.Map
             return RenderUnitMovement( unit, tileOfUnit, MovementMat, AttackRangeMat, DefaultMat );
         }
 
-        public Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
+        private Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
         {
             List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, tileOfUnit ).ToList();
 
@@ -253,7 +252,6 @@ namespace Assets.Map
         }
         #endregion
 
-        #region ImportedMapFunctions
         public void InitializeMap( int width, int height )
         {
             Width = width;
@@ -355,6 +353,5 @@ namespace Assets.Map
         {
             return GameTiles.GetEnumerator();
         }
-        #endregion
     } 
 }

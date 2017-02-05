@@ -1,8 +1,8 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using System;
+using UnityEngine.UI;
 using Assets.General.DataStructures;
-using UnityEngine.EventSystems;
 using System.Linq;
 
 namespace Assets.Map
@@ -46,11 +46,6 @@ namespace Assets.Map
                     _EnemyState.Update();
                     break;
             }
-        }
-
-        public void HandleMessage( string selection )
-        {
-            BattleState.CurrentState.HandleMessage( selection );
         }
     }
 
@@ -184,7 +179,7 @@ namespace Assets.Map
             if ( Input.GetButtonDown( "Cancel" ) )
                 RollBackToPreviousState();
 
-            
+
             if ( Input.GetButtonDown( "Submit" )
                 && !sys.Cursor.CurrentTile.Equals( UnitTile )
                 && movementTiles.Contains( sys.Cursor.CurrentTile.Position ) )
@@ -226,6 +221,20 @@ namespace Assets.Map
         public PlayerMenuSelection( Unit unit )
         {
             SelectedUnit = unit;
+
+            GameObject menu = GameObject.Find( "Menu" );
+
+            GameObject ob = new GameObject();
+            ob.AddComponent<RectTransform>();
+            ob.AddComponent<Button>();
+            ob.transform.position = new Vector3( 0f, 0f, 1f );
+            ob.transform.SetParent( menu.transform );
+            ob.GetComponent<Button>().onClick.AddListener( StartMoving );
+        }
+
+        private void StartMoving()
+        {
+            CurrentState = new PlayerUnitAction( SelectedUnit );
         }
 
         public override void Update( IPlayerState state )
@@ -252,13 +261,10 @@ namespace Assets.Map
 
         public override void Enter( IPlayerState state )
         {
-            sys.MenuAnimator.SetBool( "Hidden", false );
-            EventSystem.current.SetSelectedGameObject( sys.FirstSelectedMenuButton );
         }
 
         public override void Exit( IPlayerState state )
         {
-            sys.MenuAnimator.SetBool( "Hidden", true );
         }
     }
 }
