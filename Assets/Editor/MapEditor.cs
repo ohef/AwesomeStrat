@@ -14,11 +14,17 @@ public class MapEditor : EditorWindow
     public int Width = 0;
     public int Height = 0;
 
+    private static GameObject CameraToFocus;
+    private static GameObject CursorFocusedOn;
+
     [MenuItem("Window/MapEditor")]
     public static void Init()
     {
         map = GameObject.FindObjectOfType<GameMap>();
         EditorWindow.GetWindow<MapEditor>();
+
+        CameraToFocus = GameObject.Find( "Main Camera" );
+        CursorFocusedOn = GameObject.Find( "Cursor" );
     }
 
     void OnGUI()
@@ -36,7 +42,12 @@ public class MapEditor : EditorWindow
         {
             map.ReInitializeMap( Width, Height );
             EditorSceneManager.MarkAllScenesDirty();
-        } 
+        }
+
+        if ( GUILayout.Button( "Center Camera on Cursor" ) )
+        {
+            CameraToFocus.transform.LookAt( CursorFocusedOn.transform );
+        }
 
         EditorGUILayout.EndVertical();
     }
@@ -73,6 +84,23 @@ public class MapEditorScene : Editor
 
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.onSceneGUIDelegate += OnSceneGUI;
+    }
+
+    private static void OnSceneGUI( SceneView scene )
+    {
+        Handles.BeginGUI();
+        toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
+        Handles.EndGUI();
+
+        if ( toolSelectionIndex == 1 ) //Place Unit
+        {
+            DrawUnitSelectorGUI( scene.position );
+            HandlePlaceUnitAction( scene );
+        }
+        else if ( toolSelectionIndex == 2 )
+        {
+            HandleRemoveUnitAction( scene );
+        }
     }
 
     private static void HandlePlaceUnitAction( SceneView scene )
@@ -113,23 +141,6 @@ public class MapEditorScene : Editor
         }
 
         HandleUtility.AddDefaultControl( controlId );
-    }
-
-    private static void OnSceneGUI( SceneView scene )
-    {
-        Handles.BeginGUI();
-        toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
-        Handles.EndGUI();
-
-        if ( toolSelectionIndex == 1 ) //Place Unit
-        {
-            DrawUnitSelectorGUI( scene.position );
-            HandlePlaceUnitAction( scene );
-        }
-        else if ( toolSelectionIndex == 2 )
-        {
-            HandleRemoveUnitAction( scene );
-        }
     }
 
     private static void HandleRemoveUnitAction( SceneView scene )
