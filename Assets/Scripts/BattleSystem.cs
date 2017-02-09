@@ -4,6 +4,7 @@ using System;
 using UnityEngine.UI;
 using Assets.General.DataStructures;
 using System.Linq;
+using UnityEngine.EventSystems;
 
 namespace Assets.Map
 {
@@ -17,9 +18,9 @@ namespace Assets.Map
         };
 
         public GameMap Map;
-        public Animator MenuAnimator;
         public CursorControl Cursor;
-        public GameObject FirstSelectedMenuButton;
+        public Button MenuButton;
+        public Canvas TempGFXCanvas;
         private EnemyState _EnemyState;
         private BattleTurn _Turn;
 
@@ -30,9 +31,7 @@ namespace Assets.Map
         }
 
         // Use this for initialization
-        void Start()
-        {
-        }
+        void Start() { }
 
         // Update is called once per frame
         void Update()
@@ -57,7 +56,6 @@ namespace Assets.Map
     public interface IPlayerState
     {
         void Update( IPlayerState state );
-        void HandleMessage( string message );
         void Enter( IPlayerState state );
         void Exit( IPlayerState state );
     }
@@ -80,7 +78,7 @@ namespace Assets.Map
 
         public static BattleSystem sys;
 
-        public static void RollBackToPreviousState()
+        public static void GoToPreviousState()
         {
             IPlayerState poppedState = _CurrentStateStack.Pop();
             poppedState.Exit( CurrentState );
@@ -97,8 +95,6 @@ namespace Assets.Map
 
             return Vector2Int.Zero;
         }
-
-        public abstract void HandleMessage( string message );
 
         public abstract void Update( IPlayerState state );
 
@@ -117,10 +113,6 @@ namespace Assets.Map
         {
         }
 
-        public void HandleMessage( string message )
-        {
-        }
-
         public void Update( IPlayerState state )
         {
         }
@@ -132,24 +124,30 @@ namespace Assets.Map
         public override void Update( IPlayerState currentState )
         {
             UpdateCursor();
+
             GameTile tile = sys.Cursor.CurrentTile;
             Unit unitAtTile;
-            if ( sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile ) )
+
+            sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile );
+            sys.Map.ShowUnitMovement( unitAtTile );
+
+            if ( unitAtTile != null )
             {
-                StopRendering = sys.Map.ShowUnitMovement( unitAtTile, tile );
+                GameObject infoData = GameObject.Find( "InfoData" );
+                Action<string, int> setLabel = ( label, val ) =>
+                infoData.transform.Find( label ).GetComponent<Text>().text = val.ToString();
+
+                setLabel( "HP", unitAtTile.HP );
+                setLabel( "Move", unitAtTile.MovementRange );
+                setLabel( "Attack", unitAtTile.Attack );
+                setLabel( "Defense", unitAtTile.Defense );
 
                 if ( Input.GetButtonDown( "Jump" ) )
                 {
                     CurrentState = new PlayerMenuSelection( unitAtTile );
                 }
             }
-            else
-            {
-                StopRendering();
-            }
         }
-
-        public override void HandleMessage( string message ) { }
 
         public override void Enter( IPlayerState state ) { } 
 
@@ -172,64 +170,86 @@ namespace Assets.Map
 
         public override void Update( IPlayerState state )
         {
-            //TODO: Wayyyyyyyy too deep on member accessors, find a better way.
-            //sys.Map.ShowUnitMovement( _SelectedUnit );
             UpdateCursor();
 
             if ( Input.GetButtonDown( "Cancel" ) )
-                RollBackToPreviousState();
+                GoToPreviousState();
 
-
-            if ( Input.GetButtonDown( "Submit" )
-                && !sys.Cursor.CurrentTile.Equals( UnitTile )
-                && movementTiles.Contains( sys.Cursor.CurrentTile.Position ) )
             {
-                List<GameTile> optimalPath = MapSearcher.Search(
-                    UnitTile,
-                    sys.Cursor.CurrentTile,
-                    sys.Map,
-                    SelectedUnit.MovementRange );
+                bool canMoveHere = movementTiles.Contains( sys.Cursor.CurrentTile.Position );
 
-                sys.StartCoroutine(
-                    General.CustomAnimation.InterpolateBetweenPoints(
-                        SelectedUnit.transform,
-                        optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
-                        0.11f ) );
+                if ( Input.GetButtonDown( "Submit" ) )
+                {
+                    if ( canMoveHere )
+                    {
+                        ExecuteMove();
+                    }
+                    else
+                    {
+                        Unit unitUnderCursor;
+                        sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
-                sys.Map.SwapUnit( UnitTile, sys.Cursor.CurrentTile );
+                        if ( unitUnderCursor != null )
+                            ExecuteAttack( SelectedUnit, unitUnderCursor );
+                    }
 
-                RollBackToPreviousState();
-                RollBackToPreviousState();
-                StopRendering();
+                    GoToPreviousState();
+                    GoToPreviousState();
+                }
             }
         }
 
-        public override void HandleMessage( string message ) { }
+        private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
+        {
+            unitUnderCursor.HP -= CalculateDamage( selectedUnit, unitUnderCursor );
+        }
+
+        private int CalculateDamage( Unit selectedUnit, Unit unitUnderCursor )
+        {
+            return selectedUnit.Attack - unitUnderCursor.Defense;
+        }
+
+        private void ExecuteMove()
+        {
+            List<GameTile> optimalPath = MapSearcher.Search(
+                UnitTile,
+                sys.Cursor.CurrentTile,
+                sys.Map,
+                SelectedUnit.MovementRange );
+
+            sys.StartCoroutine(
+                General.CustomAnimation.InterpolateBetweenPoints(
+                    SelectedUnit.transform,
+                    optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
+                    0.11f ) );
+
+            sys.Map.SwapUnit( UnitTile, sys.Cursor.CurrentTile );
+        }
 
         public override void Enter( IPlayerState state ) { }
 
         public override void Exit( IPlayerState state )
         {
-            //sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
     }
 
     public class PlayerMenuSelection : BattleState
     {
         public Unit SelectedUnit;
+        public Button MoveButton;
+        public GameObject Menu;
 
         public PlayerMenuSelection( Unit unit )
         {
             SelectedUnit = unit;
 
             GameObject menu = GameObject.Find( "Menu" );
-
-            GameObject ob = new GameObject();
-            ob.AddComponent<RectTransform>();
-            ob.AddComponent<Button>();
-            ob.transform.position = new Vector3( 0f, 0f, 1f );
-            ob.transform.SetParent( menu.transform );
-            ob.GetComponent<Button>().onClick.AddListener( StartMoving );
+            MoveButton  = GameObject.Instantiate( sys.MenuButton );
+            MoveButton.transform.SetParent( menu.transform );
+            MoveButton.GetComponentInChildren<Text>().text = "Move";
+            MoveButton.GetComponent<Button>().onClick.AddListener( StartMoving );
+            EventSystem.current.SetSelectedGameObject( MoveButton.gameObject );
         }
 
         private void StartMoving()
@@ -241,21 +261,7 @@ namespace Assets.Map
         {
             if ( Input.GetButtonDown( "Cancel" ) )
             {
-                RollBackToPreviousState();
-            }
-        }
-
-        public override void HandleMessage( string message )
-        {
-            Debug.Log( string.Format( "This is from: {0}, The Message: {1}", this, message ) );
-            switch ( message )
-            {
-                case WaitMessage:
-                    RollBackToPreviousState();
-                    break;
-                case MoveMessage:
-                    CurrentState = new PlayerUnitAction( SelectedUnit );
-                    break;
+                GoToPreviousState();
             }
         }
 
@@ -265,6 +271,10 @@ namespace Assets.Map
 
         public override void Exit( IPlayerState state )
         {
+            Input.ResetInputAxes();
+
+            if ( MoveButton.IsDestroyed() == false )
+                GameObject.Destroy( MoveButton.gameObject );
         }
     }
 }

@@ -47,12 +47,12 @@ public class DoubleDictionary<A, B>
         get { return BtoA[ b ]; }
     }
 
-    public bool TryGetValue(A a, out B b)
+    public bool TryGetValue( A a, out B b )
     {
         return AtoB.TryGetValue( a, out b );
     }
 
-    public bool TryGetValue(B b, out A a)
+    public bool TryGetValue( B b, out A a )
     {
         return BtoA.TryGetValue( b, out a );
     }

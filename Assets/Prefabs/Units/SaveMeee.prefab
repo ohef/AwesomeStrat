@@ -75,11 +75,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f9049bc9d1bdc8346ae6c90e2c927bea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  HP: 20
-  Defense: 10
+  HP: 30
+  Defense: 15
   Attack: 10
-  MovementRange: 5
-  AttackRange: 2
+  MovementRange: 3
+  AttackRange: 1
 --- !u!1001 &100100000
 Prefab:
   m_ObjectHideFlags: 1

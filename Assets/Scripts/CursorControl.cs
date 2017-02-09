@@ -23,10 +23,17 @@ namespace Assets.Map
         {
             cursorCamera.transform.LookAt( this.transform );
             Unit firstunit = default( Unit );
-            CurrentTile = Map.First( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
+            CurrentTile = Map.FirstOrDefault( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
+            MoveCursor( CurrentTile.Position );
         }
         #endregion
 
+        /// <summary>
+        /// Shifts the cursor according to directional vector, returns the updated position if successful
+        /// else, returns the unmodified position.
+        /// </summary>
+        /// <param name="direction"></param>
+        /// <returns></returns>
         public Vector2Int ShiftCursor( Vector2Int direction )
         {
             Vector2Int updatedPosition = CurrentTile.Position + direction;
@@ -35,6 +42,12 @@ namespace Assets.Map
             else return CurrentTile.Position;
         }
 
+        /// <summary>
+        /// Moves the cursor to a position on the map, if successful, returns true; else false. 
+        /// e.g. hit's the edge of the map
+        /// </summary>
+        /// <param name="to"></param>
+        /// <returns></returns>
         public bool MoveCursor( Vector2Int to )
         {
             if ( Map.IsOutOfBounds( to ) == false )
