@@ -54,7 +54,7 @@ namespace Assets.Map
             //Actual transforms tell you were they are in the array, might be bad but oh well
             foreach ( Unit unit in GameObject.FindObjectsOfType<Unit>() )
             {
-                var unitPosition = unit.transform.position;
+                var unitPosition = unit.transform.localPosition;
                 UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
             }
         }
@@ -116,29 +116,49 @@ namespace Assets.Map
                 .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
         }
 
-        public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
+        //TODO: Temporary implementation of rendering graphics. Currently has a needless loop on gamemap
+        public void ShowUnitMovement( Unit unit )
         {
-            return RenderUnitMovement( unit, tileOfUnit, MovementMat, AttackRangeMat, DefaultMat );
-        }
-
-        private Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
-        {
-            List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, tileOfUnit ).ToList();
-
-            Action<Material, Material> setMaterials = ( m1, m2 ) =>
+            foreach ( GameTile tile in this )
             {
-                foreach ( var tile in validMovementTiles )
-                    this[ tile ].GetComponent<Renderer>().material = m1;
+                this[ tile.Position ].GetComponent<Renderer>().material = DefaultMat;
+            }
 
-                foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
-                    this[ tile ].GetComponent<Renderer>().material = m2;
-            };
+            if ( unit == null )
+                return;
 
-            setMaterials( movem, attackm );
+            List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, UnitGametileMap[ unit ] ).ToList();
 
-            //The caller now is given a function that it can use to undo what was done by this function
-            return () => setMaterials( defaultm, defaultm );
+            foreach ( var tile in validMovementTiles )
+                this[ tile ].GetComponent<Renderer>().material = MovementMat;
+
+            foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
+                this[ tile ].GetComponent<Renderer>().material = AttackRangeMat;
         }
+
+        //public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
+        //{
+        //    return RenderUnitMovement( unit, tileOfUnit, MovementMat, AttackRangeMat, DefaultMat );
+        //}
+
+        //private Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
+        //{
+        //    List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, tileOfUnit ).ToList();
+
+        //    Action<Material, Material> setMaterials = ( m1, m2 ) =>
+        //    {
+        //        foreach ( var tile in validMovementTiles )
+        //            this[ tile ].GetComponent<Renderer>().material = m1;
+
+        //        foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
+        //            this[ tile ].GetComponent<Renderer>().material = m2;
+        //    };
+
+        //    setMaterials( movem, attackm );
+
+        //    //The caller now is given a function that it can use to undo what was done by this function
+        //    return () => setMaterials( defaultm, defaultm );
+        //}
 
         public void RenderSelection( IEnumerable<Vector2Int> tiles )
         {
