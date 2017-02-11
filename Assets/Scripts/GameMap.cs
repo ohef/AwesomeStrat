@@ -9,22 +9,12 @@ using System.Collections;
 
 namespace Assets.Map
 {
-    [System.Serializable]
-    public class UnitPlacement : ScriptableObject
-    {
-        public Unit[] Units;
-        public int Width;
-        public int Height;
-    }
-
     [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
     public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
-        public static GameTile ImpassibleTile;
         public int Width;
         public int Height;
 
-        public Unit DefaultUnit;
         public GameTile TilePrefab;
 
         [SerializeField]
@@ -39,7 +29,6 @@ namespace Assets.Map
         public Material SelectionMat;
 
         private Mesh m_MapMesh;
-        public UnitPlacement unitInit;
         public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
 
         #region Monobehaviour Functions
@@ -116,7 +105,13 @@ namespace Assets.Map
                 .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
         }
 
-        //TODO: Temporary implementation of rendering graphics. Currently has a needless loop on gamemap
+        public void ShowUnitMovementIfHere( GameTile tile )
+        {
+            Unit unitThere;
+            UnitGametileMap.TryGetValue( tile, out unitThere );
+            ShowUnitMovement( unitThere );
+        }
+
         public void ShowUnitMovement( Unit unit )
         {
             foreach ( GameTile tile in this )

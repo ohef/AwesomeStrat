@@ -10,6 +10,7 @@ namespace Assets.Map
 {
     public class BattleSystem : MonoBehaviour
     {
+        public static BattleSystem instance;
         private List<BattleState> PlayerTurns;
         private enum BattleTurn
         {
@@ -26,12 +27,16 @@ namespace Assets.Map
 
         void Awake()
         {
-            BattleState.CurrentState = new PlayerSelectingUnit();
-            BattleState.sys = this;
+            instance = this;
         }
 
         // Use this for initialization
-        void Start() { }
+        void Start()
+        {
+            BattleState.CurrentState = new PlayerSelectingUnit();
+            Cursor.CursorMoved += Map.ShowUnitMovementIfHere;
+            EventSystem.current.SetSelectedGameObject( Cursor.gameObject );
+        }
 
         // Update is called once per frame
         void Update()
@@ -62,9 +67,6 @@ namespace Assets.Map
 
     public abstract class BattleState : IPlayerState
     {
-        public const string MoveMessage = "Move";
-        public const string WaitMessage = "Wait";
-
         private static Stack<IPlayerState> _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
         public static IPlayerState CurrentState {
             get { return _CurrentStateStack.Peek(); }
@@ -76,8 +78,6 @@ namespace Assets.Map
             }
         }
 
-        public static BattleSystem sys;
-
         public static void GoToPreviousState()
         {
             IPlayerState poppedState = _CurrentStateStack.Pop();
@@ -85,16 +85,7 @@ namespace Assets.Map
             CurrentState.Enter( poppedState );
         }
 
-        protected static Vector2Int UpdateCursor()
-        {
-            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
-            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
-            var inputVector = new Vector2Int( horizontal, vertical );
-            if ( vertical != 0 || horizontal != 0 )
-                return sys.Cursor.ShiftCursor( inputVector );
-
-            return Vector2Int.Zero;
-        }
+        protected static BattleSystem sys { get { return BattleSystem.instance; } }
 
         public abstract void Update( IPlayerState state );
 
@@ -123,14 +114,10 @@ namespace Assets.Map
         public static Action StopRendering;
         public override void Update( IPlayerState currentState )
         {
-            UpdateCursor();
-
             GameTile tile = sys.Cursor.CurrentTile;
             Unit unitAtTile;
 
             sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile );
-            sys.Map.ShowUnitMovement( unitAtTile );
-
             if ( unitAtTile != null )
             {
                 GameObject infoData = GameObject.Find( "InfoData" );
@@ -142,16 +129,65 @@ namespace Assets.Map
                 setLabel( "Attack", unitAtTile.Attack );
                 setLabel( "Defense", unitAtTile.Defense );
 
-                if ( Input.GetButtonDown( "Jump" ) )
+                if ( Input.GetButtonDown( "Submit" ) )
                 {
+                    sys.Cursor.CursorMoved -= sys.Map.ShowUnitMovementIfHere;
                     CurrentState = new PlayerMenuSelection( unitAtTile );
                 }
             }
         }
 
-        public override void Enter( IPlayerState state ) { } 
+        public override void Enter( IPlayerState state )
+        {
+            sys.Cursor.MovementEnabled = true;
+        } 
 
-        public override void Exit( IPlayerState state ) { }
+        public override void Exit( IPlayerState state ) {
+            sys.Cursor.MovementEnabled = false;
+        }
+    }
+
+    public class PlayerMenuSelection : BattleState
+    {
+        public Unit SelectedUnit;
+        public Button MoveButton;
+        public GameObject Menu;
+
+        public PlayerMenuSelection( Unit unit )
+        {
+            SelectedUnit = unit;
+
+            GameObject menu = GameObject.Find( "Menu" );
+            MoveButton  = GameObject.Instantiate( sys.MenuButton );
+            MoveButton.transform.SetParent( menu.transform );
+            MoveButton.GetComponentInChildren<Text>().text = "Move";
+            MoveButton.GetComponent<Button>().onClick.AddListener( StartMoving );
+            EventSystem.current.SetSelectedGameObject( MoveButton.gameObject );
+        }
+
+        private void StartMoving()
+        {
+            sys.Cursor.CursorMoved -= sys.Map.ShowUnitMovementIfHere;
+            CurrentState = new PlayerUnitAction( SelectedUnit );
+        }
+
+        public override void Update( IPlayerState state )
+        {
+            if ( Input.GetButtonDown( "Cancel" ) )
+            {
+                GoToPreviousState();
+            }
+        }
+
+        public override void Enter( IPlayerState state ) { }
+
+        public override void Exit( IPlayerState state )
+        {
+            Input.ResetInputAxes();
+
+            if ( MoveButton.IsDestroyed() == false )
+                GameObject.Destroy( MoveButton.gameObject );
+        }
     }
 
     public class PlayerUnitAction : PlayerSelectingUnit
@@ -170,8 +206,6 @@ namespace Assets.Map
 
         public override void Update( IPlayerState state )
         {
-            UpdateCursor();
-
             if ( Input.GetButtonDown( "Cancel" ) )
                 GoToPreviousState();
 
@@ -193,6 +227,8 @@ namespace Assets.Map
                             ExecuteAttack( SelectedUnit, unitUnderCursor );
                     }
 
+                    sys.Map.ShowUnitMovement( null );
+                    sys.Cursor.CursorMoved += sys.Map.ShowUnitMovementIfHere;
                     GoToPreviousState();
                     GoToPreviousState();
                 }
@@ -226,55 +262,15 @@ namespace Assets.Map
             sys.Map.SwapUnit( UnitTile, sys.Cursor.CurrentTile );
         }
 
-        public override void Enter( IPlayerState state ) { }
-
-        public override void Exit( IPlayerState state )
-        {
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        }
-    }
-
-    public class PlayerMenuSelection : BattleState
-    {
-        public Unit SelectedUnit;
-        public Button MoveButton;
-        public GameObject Menu;
-
-        public PlayerMenuSelection( Unit unit )
-        {
-            SelectedUnit = unit;
-
-            GameObject menu = GameObject.Find( "Menu" );
-            MoveButton  = GameObject.Instantiate( sys.MenuButton );
-            MoveButton.transform.SetParent( menu.transform );
-            MoveButton.GetComponentInChildren<Text>().text = "Move";
-            MoveButton.GetComponent<Button>().onClick.AddListener( StartMoving );
-            EventSystem.current.SetSelectedGameObject( MoveButton.gameObject );
-        }
-
-        private void StartMoving()
-        {
-            CurrentState = new PlayerUnitAction( SelectedUnit );
-        }
-
-        public override void Update( IPlayerState state )
-        {
-            if ( Input.GetButtonDown( "Cancel" ) )
-            {
-                GoToPreviousState();
-            }
-        }
-
         public override void Enter( IPlayerState state )
         {
+            sys.Cursor.MovementEnabled = true;
         }
 
         public override void Exit( IPlayerState state )
         {
-            Input.ResetInputAxes();
-
-            if ( MoveButton.IsDestroyed() == false )
-                GameObject.Destroy( MoveButton.gameObject );
+            sys.Cursor.MovementEnabled = false;
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
     }
 }
