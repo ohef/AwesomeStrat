@@ -17,10 +17,7 @@ namespace Assets.Map
 
         public GameTile TilePrefab;
 
-        [SerializeField]
         public GameTile[,] GameTiles;
-
-        public Transform ObjectOffset;
 
         public Material NormalMat;
         public Material MovementMat;
@@ -28,12 +25,16 @@ namespace Assets.Map
         public Material DefaultMat;
         public Material SelectionMat;
 
-        private Mesh m_MapMesh;
         public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
+
+        private GameObject TileLayer; //Game object to organize tiles
+
+        private Mesh m_MapMesh; //OLD: Using gametiles to do drawing on the mesh
 
         #region Monobehaviour Functions
         void Awake()
         {
+            TileLayer = GameObject.Find( "TileLayer" );
             GameTiles = new GameTile[ Width, Height ];
             foreach ( GameTile tile in GameObject.FindObjectsOfType<GameTile>() )
             {
@@ -84,7 +85,7 @@ namespace Assets.Map
             }
         }
 
-        private IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
+        public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
         {
             IEnumerable<int> rangeInterval = Range( -range, range );
             IEnumerable<int> xInterval = rangeInterval.Select( i => startingPos.x + i ).Where( i => !IsOverBound( i, 0, Width - 1 ) );
@@ -279,7 +280,7 @@ namespace Assets.Map
                     gameTile.Position.x = i;
                     gameTile.Position.y = j;
                     this[ gameTile.Position ] = gameTile;
-                    gameTile.transform.SetParent( ObjectOffset );
+                    gameTile.transform.SetParent( TileLayer.transform );
                     gameTile.transform.localPosition = gameTile.Position.ToVector3();
                     gameTile.name = gameTile.Position.ToString();
                 }

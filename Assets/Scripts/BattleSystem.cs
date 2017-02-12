@@ -21,9 +21,6 @@ namespace Assets.Map
         public GameMap Map;
         public CursorControl Cursor;
         public Button MenuButton;
-        public Canvas TempGFXCanvas;
-        private EnemyState _EnemyState;
-        private BattleTurn _Turn;
 
         void Awake()
         {
@@ -41,21 +38,8 @@ namespace Assets.Map
         // Update is called once per frame
         void Update()
         {
-            switch ( _Turn )
-            {
-                case BattleTurn.Player:
-                    BattleState.CurrentState.Update( BattleState.CurrentState );
-                    break;
-                case BattleTurn.Enemy:
-                    _EnemyState.Update();
-                    break;
-            }
+            BattleState.CurrentState.Update( BattleState.CurrentState );
         }
-    }
-
-    public class EnemyState
-    {
-        public void Update() { }
     }
 
     public interface IPlayerState
@@ -225,10 +209,12 @@ namespace Assets.Map
 
                         if ( unitUnderCursor != null )
                             ExecuteAttack( SelectedUnit, unitUnderCursor );
+                        else
+                            return;
                     }
 
-                    sys.Map.ShowUnitMovement( null );
                     sys.Cursor.CursorMoved += sys.Map.ShowUnitMovementIfHere;
+                    sys.Map.ShowUnitMovement( SelectedUnit );
                     GoToPreviousState();
                     GoToPreviousState();
                 }
@@ -237,12 +223,33 @@ namespace Assets.Map
 
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
         {
-            unitUnderCursor.HP -= CalculateDamage( selectedUnit, unitUnderCursor );
+            GameTile optimalAttackPos = GetOptimalAttackPosition( sys.Cursor.CurrentTile );
+            List<GameTile> optimalPath = MapSearcher.Search(
+                UnitTile,
+                optimalAttackPos,
+                sys.Map,
+                SelectedUnit.MovementRange );
+
+            sys.StartCoroutine(
+                General.CustomAnimation.InterpolateBetweenPoints(
+                    SelectedUnit.transform,
+                    optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
+                    0.11f ) );
+
+            sys.Map.SwapUnit( UnitTile, optimalAttackPos );
+
+            unitUnderCursor.HP -= selectedUnit.Attack - unitUnderCursor.Defense;
         }
 
-        private int CalculateDamage( Unit selectedUnit, Unit unitUnderCursor )
+        private GameTile GetOptimalAttackPosition( GameTile concerningTile )
         {
-            return selectedUnit.Attack - unitUnderCursor.Defense;
+            //Tiles thet unit can attack from
+            IEnumerable<Vector2Int> positions = sys.Map.GetTilesWithinAbsoluteRange( concerningTile.Position, SelectedUnit.AttackRange );
+            Vector2Int optimalPosition = positions
+                .Where( pos => movementTiles.Contains( pos ) )
+                .Select( pos => new { Pos = pos, Distance = concerningTile.Position.ManhattanDistance( pos ) } )
+                .OrderByDescending( data => data.Distance ).First().Pos;
+            return sys.Map[ optimalPosition ];
         }
 
         private void ExecuteMove()

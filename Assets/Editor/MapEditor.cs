@@ -68,8 +68,11 @@ public class MapEditorScene : Editor
 
     static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Remove Unit" };
 
+    static GameObject UnitLayer;
+
     static MapEditorScene()
     {
+        UnitLayer = GameObject.Find( "UnitLayer" );
         var unitPaths = Directory.GetFileSystemEntries( Application.dataPath + "/Prefabs/Units", "*.prefab" )
             .Select( path => "Assets" + path.Replace( Application.dataPath, "" ) ).ToList();
 
@@ -106,22 +109,28 @@ public class MapEditorScene : Editor
     private static void HandlePlaceUnitAction( SceneView scene )
     {
         int controlId = GUIUtility.GetControlID( FocusType.Passive );
-        Vector2 mousePosition = new Vector2( Event.current.mousePosition.x, Event.current.mousePosition.y );
-        Ray ray = HandleUtility.GUIPointToWorldRay( mousePosition );
+        Ray ray = HandleUtility.GUIPointToWorldRay( Event.current.mousePosition );
 
         RaycastHit rayHitInfo;
         if ( Physics.Raycast( ray, out rayHitInfo ) )
         {
+            Matrix4x4 mat = Matrix4x4.TRS(
+                rayHitInfo.point + Vector3.Scale( Vector3.up * 0.5f, map.transform.localScale ),
+                Quaternion.identity,
+                map.transform.localScale );
 
             Graphics.DrawMesh(
                 Units[ unitSelectionIndex ].GetComponent<MeshFilter>().sharedMesh,
-                rayHitInfo.point,
-                Quaternion.identity,
+                mat,
                 Units[ unitSelectionIndex ].GetComponent<MeshRenderer>().sharedMaterial,
                 0,
                 scene.camera );
 
             HandleUtility.Repaint();
+
+            //Assumes localscale is uniform, obviously false but just hacking
+            //Vector3 pointHitRescale = map.transform.InverseTransformPoint( rayHitInfo.point );
+            Vector3 pointHitRescale = rayHitInfo.point;
 
             if ( Event.current.type == EventType.mouseDown &&
                 Event.current.button == 0 &&
@@ -130,11 +139,13 @@ public class MapEditorScene : Editor
                 Event.current.control == false )
             {
                 var unit = Instantiate( Units[ unitSelectionIndex ] );
-                unit.transform.SetParent( map.ObjectOffset );
+                unit.transform.SetParent( UnitLayer.transform, false );
+
+                pointHitRescale = map.transform.InverseTransformPoint( rayHitInfo.point );
                 unit.transform.localPosition = new Vector3(
-                    ( int )Mathf.Floor( rayHitInfo.point.x ),
+                    Mathf.Floor( pointHitRescale.x ),
                     0,
-                    ( int )Mathf.Floor( rayHitInfo.point.z ) );
+                    Mathf.Floor( pointHitRescale.z ) );
 
                 EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
             }
