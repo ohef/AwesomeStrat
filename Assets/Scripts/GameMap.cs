@@ -9,7 +9,6 @@ using System.Collections;
 
 namespace Assets.Map
 {
-    [RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
     public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
         public int Width;
@@ -27,14 +26,11 @@ namespace Assets.Map
 
         public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
 
-        private GameObject TileLayer; //Game object to organize tiles
-
         private Mesh m_MapMesh; //OLD: Using gametiles to do drawing on the mesh
 
         #region Monobehaviour Functions
         void Awake()
         {
-            TileLayer = GameObject.Find( "TileLayer" );
             GameTiles = new GameTile[ Width, Height ];
             foreach ( GameTile tile in GameObject.FindObjectsOfType<GameTile>() )
             {
@@ -273,6 +269,7 @@ namespace Assets.Map
             Width = width;
             Height = height;
             GameTiles = new GameTile[ width, height ];
+            GameObject TileLayer = GameObject.Find( "TileLayer" );
             for ( int i = 0 ; i < width ; i++ )
                 for ( int j = 0 ; j < height ; j++ )
                 {

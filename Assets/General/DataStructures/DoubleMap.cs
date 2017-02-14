@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using System;
+using System.Collections;
 
 /// <summary>
 /// Just a simple one to one map with two dictionaries, probably 
@@ -9,10 +11,10 @@ using System.Collections.Generic;
 /// <typeparam name="B"></typeparam>
 
 [System.Serializable]
-public class DoubleDictionary<A, B> 
+public class DoubleDictionary<A, B> : IEnumerable<A>
 {
-    private Dictionary<A, B> AtoB;
-    private Dictionary<B, A> BtoA;
+    public Dictionary<A, B> AtoB; //A -> B Don't ever set this, should be used to enumerate
+    public Dictionary<B, A> BtoA; //B -> A Don't ever set this, should be used to enumerate
 
     public DoubleDictionary()
     {
@@ -37,6 +39,20 @@ public class DoubleDictionary<A, B>
         BtoA[ b ] = a;
     }
 
+    public void Remove( A a )
+    {
+        var b = AtoB[ a ];
+        AtoB.Remove( a );
+        BtoA.Remove( b );
+    }
+    
+    public void Remove(B b)
+    {
+        var a = BtoA[ b ];
+        BtoA.Remove( b );
+        AtoB.Remove( a );
+    }
+
     public B this[ A a ]
     {
         get { return AtoB[ a ]; }
@@ -55,5 +71,15 @@ public class DoubleDictionary<A, B>
     public bool TryGetValue( B b, out A a )
     {
         return BtoA.TryGetValue( b, out a );
+    }
+
+    public IEnumerator<A> GetEnumerator()
+    {
+        return AtoB.Keys.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator()
+    {
+        return AtoB.Keys.GetEnumerator();
     }
 }

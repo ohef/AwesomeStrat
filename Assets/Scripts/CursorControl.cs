@@ -15,7 +15,7 @@ namespace Assets.Map
     {
         public GameMap Map;
         public GameTile CurrentTile;
-        public Camera cursorCamera;
+        public Camera CursorCamera;
         public bool MovementEnabled;
         public event Action<GameTile> CursorMoved;
 
@@ -25,9 +25,10 @@ namespace Assets.Map
 
         void Start()
         {
-            cursorCamera.transform.LookAt( this.transform );
+            CursorCamera.transform.LookAt( this.transform );
             Unit firstunit = default( Unit );
             CurrentTile = Map.FirstOrDefault( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
+            CurrentTile = CurrentTile == null ? Map[ 0, 0 ] : CurrentTile;
             MoveCursorEventTrigger( CurrentTile.Position );
         }
 

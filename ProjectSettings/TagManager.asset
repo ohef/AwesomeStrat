@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - Map
+  - Unit
+  - GameTile
   layers:
   - Default
   - TransparentFX

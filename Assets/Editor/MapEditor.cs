@@ -83,7 +83,7 @@ public class MapEditorScene : Editor
         Units = unitPaths
             .Select( path => AssetDatabase.LoadAssetAtPath<MonoBehaviour>( path ) ).ToList();
 
-        map = GameObject.FindObjectOfType<GameMap>();
+        map = GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
 
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.onSceneGUIDelegate += OnSceneGUI;
@@ -91,6 +91,7 @@ public class MapEditorScene : Editor
 
     private static void OnSceneGUI( SceneView scene )
     {
+        map = map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : map;
         Handles.BeginGUI();
         toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
         Handles.EndGUI();
