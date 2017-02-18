@@ -15,7 +15,7 @@ namespace Assets.Map
 
         public void OnDrawGizmos()
         {
-            Gizmos.DrawSphere( this.transform.position, 0.11f );
+            //Gizmos.DrawSphere( this.transform.position, 10f);
         }
     }
 }

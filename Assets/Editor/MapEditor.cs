@@ -92,6 +92,7 @@ public class MapEditorScene : Editor
     private static void OnSceneGUI( SceneView scene )
     {
         map = map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : map;
+
         Handles.BeginGUI();
         toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
         Handles.EndGUI();
@@ -105,6 +106,15 @@ public class MapEditorScene : Editor
         {
             HandleRemoveUnitAction( scene );
         }
+    }
+
+    private static bool JustMouseDown()
+    {
+        return Event.current.type == EventType.mouseDown &&
+               Event.current.button == 0 &&
+               Event.current.alt == false &&
+               Event.current.shift == false &&
+               Event.current.control == false;
     }
 
     private static void HandlePlaceUnitAction( SceneView scene )
@@ -133,11 +143,7 @@ public class MapEditorScene : Editor
             //Vector3 pointHitRescale = map.transform.InverseTransformPoint( rayHitInfo.point );
             Vector3 pointHitRescale = rayHitInfo.point;
 
-            if ( Event.current.type == EventType.mouseDown &&
-                Event.current.button == 0 &&
-                Event.current.alt == false &&
-                Event.current.shift == false &&
-                Event.current.control == false )
+            if ( JustMouseDown() )
             {
                 var unit = Instantiate( Units[ unitSelectionIndex ] );
                 unit.transform.SetParent( UnitLayer.transform, false );
@@ -162,30 +168,23 @@ public class MapEditorScene : Editor
         Ray ray = HandleUtility.GUIPointToWorldRay( mousePosition );
 
         RaycastHit rayHitInfo;
-        if ( Physics.Raycast( ray, out rayHitInfo ) )
+        if ( Physics.Raycast( ray, out rayHitInfo ) && JustMouseDown() )
         {
-            if ( Event.current.type == EventType.mouseDown &&
-                Event.current.button == 0 &&
-                Event.current.alt == false &&
-                Event.current.shift == false &&
-                Event.current.control == false )
-            {
-                Vector3 hitUnitTile = new Vector3(
+            Vector3 hitUnitTile = new Vector3(
                     Mathf.Floor( rayHitInfo.point.x ),
                     0,
                     Mathf.Floor( rayHitInfo.point.z ) );
 
-                Unit hitUnit = 
-                FindObjectsOfType<Unit>().FirstOrDefault( unit =>
-                Mathf.Floor( unit.transform.position.x ) == hitUnitTile.x &&
-                Mathf.Floor( unit.transform.position.z ) == hitUnitTile.z
-                );
+            Unit hitUnit =
+            FindObjectsOfType<Unit>().FirstOrDefault( unit =>
+            Mathf.Floor( unit.transform.position.x ) == hitUnitTile.x &&
+            Mathf.Floor( unit.transform.position.z ) == hitUnitTile.z
+            );
 
-                if ( hitUnit != null )
-                {
-                    GameObject.DestroyImmediate( hitUnit.gameObject );
-                    EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
-                }
+            if ( hitUnit != null )
+            {
+                GameObject.DestroyImmediate( hitUnit.gameObject );
+                EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
             }
         }
 

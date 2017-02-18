@@ -157,14 +157,14 @@ namespace Assets.Map
             m_MapMesh.SetTriangles( tiles.SelectMany( tile => TrianglesForPosition( tile.x, tile.y ) ).ToList(), 3 );
         }
 
-        private HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
+        public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
         {
             var temp = GetFringeAttackTiles( movementTiles, attackRange );
-            temp.IntersectWith( movementTiles );
+            temp.UnionWith( movementTiles );
             return temp;
         }
 
-        private HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
+        public HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
         {
             HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
 

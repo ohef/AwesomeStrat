@@ -178,14 +178,15 @@ namespace Assets.Map
     {
         private Unit SelectedUnit;
         private GameTile UnitTile;
-        private HashSet<Vector2Int> movementTiles;
+        private HashSet<Vector2Int> MovementTiles;
+        private HashSet<Vector2Int> AttackTiles;
 
         public PlayerUnitAction( Unit selectedUnit )
         {
             SelectedUnit = selectedUnit;
             UnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
-            movementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
-            movementTiles.Remove( UnitTile.Position );
+            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
+            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
         }
 
         public override void Update( IPlayerState state )
@@ -194,20 +195,21 @@ namespace Assets.Map
                 GoToPreviousState();
 
             {
-                bool canMoveHere = movementTiles.Contains( sys.Cursor.CurrentTile.Position );
+                bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
+                bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
+                Unit unitUnderCursor = null;
+                sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
                 if ( Input.GetButtonDown( "Submit" ) )
                 {
-                    if ( canMoveHere )
+                    bool notTheSameUnit = unitUnderCursor != SelectedUnit;
+                    if ( canMoveHere && notTheSameUnit)
                     {
                         ExecuteMove();
                     }
                     else
                     {
-                        Unit unitUnderCursor;
-                        sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
-
-                        if ( unitUnderCursor != null )
+                        if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
                             ExecuteAttack( SelectedUnit, unitUnderCursor );
                         else
                             return;
@@ -230,25 +232,36 @@ namespace Assets.Map
                 sys.Map,
                 SelectedUnit.MovementRange );
 
-            sys.StartCoroutine(
-                General.CustomAnimation.InterpolateBetweenPoints(
-                    SelectedUnit.transform,
-                    optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
-                    0.11f ) );
+            if ( optimalPath != null )
+                sys.StartCoroutine(
+                    General.CustomAnimation.InterpolateBetweenPoints(
+                        SelectedUnit.transform,
+                        optimalPath.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
+                        0.11f ) );
 
             sys.Map.SwapUnit( UnitTile, optimalAttackPos );
 
             unitUnderCursor.HP -= selectedUnit.Attack - unitUnderCursor.Defense;
         }
 
-        private GameTile GetOptimalAttackPosition( GameTile concerningTile )
+        private GameTile GetOptimalAttackPosition( GameTile from )
         {
-            //Tiles thet unit can attack from
-            IEnumerable<Vector2Int> positions = sys.Map.GetTilesWithinAbsoluteRange( concerningTile.Position, SelectedUnit.AttackRange );
-            Vector2Int optimalPosition = positions
-                .Where( pos => movementTiles.Contains( pos ) )
-                .Select( pos => new { Pos = pos, Distance = concerningTile.Position.ManhattanDistance( pos ) } )
-                .OrderByDescending( data => data.Distance ).First().Pos;
+            // Does a reverse lookup from position to see if there are any 
+            // tiles we can move around the point we can move to
+            IEnumerable<Vector2Int> canMovePositions = sys.Map
+                .GetTilesWithinAbsoluteRange( from.Position, SelectedUnit.AttackRange )
+                .Where( pos => MovementTiles.Contains( pos ) );
+
+            if ( canMovePositions.Count() == 0 )
+                return null;
+
+            Vector2Int optimalPosition = canMovePositions
+                .Select( pos => new { Pos = pos, Distance = from.Position.ManhattanDistance( pos ) } )
+                .OrderByDescending( data => data.Distance )
+                .First()
+                .Pos;
+
+            //Vector2Int optimalPosition = from.Position;
             return sys.Map[ optimalPosition ];
         }
 

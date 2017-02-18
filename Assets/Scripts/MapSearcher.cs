@@ -30,6 +30,9 @@ namespace Assets.Map
 
         public static List<GameTile> Search( GameTile start, GameTile goal, GameMap map, int bound = int.MaxValue )
         {
+            if ( start == goal )
+                return new List<GameTile> { goal };
+
             HashSet<GridNode> closedSet = new HashSet<GridNode>();
             ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();
 
@@ -72,6 +75,7 @@ namespace Assets.Map
                 }
             }
 
+            //There is no path
             return null;
         }
 
