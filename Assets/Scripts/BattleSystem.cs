@@ -99,9 +99,12 @@ namespace Assets.Map
         public override void Update( IPlayerState currentState )
         {
             GameTile tile = sys.Cursor.CurrentTile;
-            Unit unitAtTile;
 
+            sys.Cursor.UpdateAction();
+
+            Unit unitAtTile;
             sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile );
+
             if ( unitAtTile != null )
             {
                 GameObject infoData = GameObject.Find( "InfoData" );
@@ -121,13 +124,10 @@ namespace Assets.Map
             }
         }
 
-        public override void Enter( IPlayerState state )
-        {
-            sys.Cursor.MovementEnabled = true;
+        public override void Enter( IPlayerState state ) {
         } 
 
         public override void Exit( IPlayerState state ) {
-            sys.Cursor.MovementEnabled = false;
         }
     }
 
@@ -195,6 +195,8 @@ namespace Assets.Map
                 GoToPreviousState();
 
             {
+                sys.Cursor.UpdateAction();
+
                 bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
                 bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
                 Unit unitUnderCursor = null;
@@ -203,7 +205,7 @@ namespace Assets.Map
                 if ( Input.GetButtonDown( "Submit" ) )
                 {
                     bool notTheSameUnit = unitUnderCursor != SelectedUnit;
-                    if ( canMoveHere && notTheSameUnit)
+                    if ( canMoveHere && notTheSameUnit )
                     {
                         ExecuteMove();
                     }
@@ -284,12 +286,10 @@ namespace Assets.Map
 
         public override void Enter( IPlayerState state )
         {
-            sys.Cursor.MovementEnabled = true;
         }
 
         public override void Exit( IPlayerState state )
         {
-            sys.Cursor.MovementEnabled = false;
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
     }
