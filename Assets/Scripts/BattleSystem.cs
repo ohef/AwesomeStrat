@@ -31,8 +31,16 @@ namespace Assets.Map
         void Start()
         {
             BattleState.CurrentState = new PlayerSelectingUnit();
-            Cursor.CursorMoved += Map.ShowUnitMovementIfHere;
+            Cursor.CursorMoved += CursorMoved;
             EventSystem.current.SetSelectedGameObject( Cursor.gameObject );
+        }
+
+        private void CursorMoved( GameTile tile )
+        {
+            if ( BattleState.CurrentState is PlayerSelectingUnit )
+            {
+                Map.ShowUnitMovementIfHere( tile );
+            }
         }
 
         // Update is called once per frame
@@ -118,7 +126,6 @@ namespace Assets.Map
 
                 if ( Input.GetButtonDown( "Submit" ) )
                 {
-                    sys.Cursor.CursorMoved -= sys.Map.ShowUnitMovementIfHere;
                     CurrentState = new PlayerMenuSelection( unitAtTile );
                 }
             }
@@ -151,7 +158,6 @@ namespace Assets.Map
 
         private void StartMoving()
         {
-            sys.Cursor.CursorMoved -= sys.Map.ShowUnitMovementIfHere;
             CurrentState = new PlayerUnitAction( SelectedUnit );
         }
 
@@ -174,7 +180,7 @@ namespace Assets.Map
         }
     }
 
-    public class PlayerUnitAction : PlayerSelectingUnit
+    public class PlayerUnitAction : BattleState
     {
         private Unit SelectedUnit;
         private GameTile UnitTile;
@@ -217,7 +223,6 @@ namespace Assets.Map
                             return;
                     }
 
-                    sys.Cursor.CursorMoved += sys.Map.ShowUnitMovementIfHere;
                     sys.Map.ShowUnitMovement( SelectedUnit );
                     GoToPreviousState();
                     GoToPreviousState();
