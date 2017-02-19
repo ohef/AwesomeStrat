@@ -34,3 +34,8 @@ sysinfo.txt
 bin/
 Plugins/
 Plugins.meta
+
+*_Data/
+*.exe
+*.pdb
+*.7z
