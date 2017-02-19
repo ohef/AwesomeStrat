@@ -50,17 +50,15 @@ namespace Assets.Map
             MoveCursor( CurrentTile.Position );
         }
 
+        #endregion
+
         public void UpdateAction()
         {
             int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
             int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
             var inputVector = new Vector2Int( horizontal, vertical );
-            if ( vertical != 0 || horizontal != 0 )
-            {
-                ShiftCursor( inputVector );
-            }
+            ShiftCursor( inputVector );
         }
-        #endregion
 
         /// <summary>
         /// Shifts the cursor according to directional vector, returns the updated position if successful
@@ -70,8 +68,11 @@ namespace Assets.Map
         /// <returns></returns>
         public void ShiftCursor( Vector2Int direction )
         {
-            Vector2Int updatedPosition = CurrentTile.Position + direction;
-            MoveCursor( updatedPosition );
+            if ( direction.AbsoluteNormal() != 0 )
+            {
+                Vector2Int updatedPosition = CurrentTile.Position + direction;
+                MoveCursor( updatedPosition );
+            }
         }
 
         /// <summary>
