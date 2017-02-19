@@ -52,6 +52,16 @@ namespace Assets.General.DataStructures
             return string.Format( "({0},{1})", x, y );
         }
 
+        public static bool operator!=(Vector2Int x, Vector2Int y)
+        {
+            return !x.Equals( y );
+        }
+
+        public static bool operator==(Vector2Int x, Vector2Int y)
+        {
+            return x.Equals( y );
+        }
+
         public bool Equals( Vector2Int x, Vector2Int y )
         {
             return x.x == y.x && y.y == x.y;

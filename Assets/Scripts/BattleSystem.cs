@@ -233,7 +233,7 @@ namespace Assets.Map
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
         {
             GameTile optimalAttackPos = GetOptimalAttackPosition( sys.Cursor.CurrentTile );
-            if ( optimalAttackPos == UnitTile ) //We don't need to move
+            if ( optimalAttackPos != UnitTile ) //We need to move
             {
                 ExecuteMove( optimalAttackPos );
             }
@@ -246,12 +246,13 @@ namespace Assets.Map
             // tiles we can move around the point we can move to
             IEnumerable<Vector2Int> canMovePositions = sys.Map
                 .GetTilesWithinAbsoluteRange( on.Position, SelectedUnit.AttackRange )
-                .Where( pos => MovementTiles.Contains( pos ) ).ToList();
+                .Where( pos => MovementTiles.Contains( pos ) )
+                .ToList();
 
             if ( canMovePositions.Count() == 0 )
                 return null;
-            else if ( canMovePositions.Any( pos => pos.Equals( UnitTile.Position ) ) )
-                return on;
+            else if ( canMovePositions.Any( pos => pos == UnitTile.Position ) )
+                return UnitTile;
 
             Vector2Int optimalPosition = canMovePositions
                 .Select( pos => new { Pos = pos, Distance = on.Position.ManhattanDistance( pos ) } )
