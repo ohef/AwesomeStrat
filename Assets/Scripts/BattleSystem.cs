@@ -18,6 +18,17 @@ namespace Assets.Map
             Enemy
         };
 
+        private Stack<IPlayerState> _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
+        public IPlayerState CurrentState {
+            get { return _CurrentStateStack.Peek(); }
+            set
+            {
+                _CurrentStateStack.Peek().Exit( this );
+                value.Enter( this );
+                _CurrentStateStack.Push( value );
+            }
+        }
+
         public GameMap Map;
         public CursorControl Cursor;
         public Button MenuButton;
@@ -30,14 +41,14 @@ namespace Assets.Map
         // Use this for initialization
         void Start()
         {
-            BattleState.CurrentState = new PlayerSelectingUnit();
+            CurrentState = new PlayerSelectingUnit();
             Cursor.CursorMoved += CursorMoved;
             EventSystem.current.SetSelectedGameObject( Cursor.gameObject );
         }
 
         private void CursorMoved( GameTile tile )
         {
-            if ( BattleState.CurrentState is PlayerSelectingUnit )
+            if ( CurrentState is PlayerSelectingUnit )
             {
                 Map.ShowUnitMovementIfHere( tile );
             }
@@ -46,65 +57,56 @@ namespace Assets.Map
         // Update is called once per frame
         void Update()
         {
-            BattleState.CurrentState.Update( BattleState.CurrentState );
+            CurrentState.Update( this );
+        }
+
+        public void GoToPreviousState()
+        {
+            IPlayerState poppedState = _CurrentStateStack.Pop();
+            poppedState.Exit( this );
+            CurrentState.Enter( this );
         }
     }
 
     public interface IPlayerState
     {
-        void Update( IPlayerState state );
-        void Enter( IPlayerState state );
-        void Exit( IPlayerState state );
+        void Update( BattleSystem state );
+        void Enter( BattleSystem state );
+        void Exit( BattleSystem state );
     }
 
     public abstract class BattleState : IPlayerState
     {
-        private static Stack<IPlayerState> _CurrentStateStack = new Stack<IPlayerState>( new IPlayerState[] { new NullState() } );
-        public static IPlayerState CurrentState {
-            get { return _CurrentStateStack.Peek(); }
-            set
-            {
-                _CurrentStateStack.Peek().Exit( value );
-                value.Enter( _CurrentStateStack.Peek() );
-                _CurrentStateStack.Push( value );
-            }
-        }
+        /// <summary>
+        //TODO is this really needed?
+        /// </summary>
+        protected BattleSystem sys { get { return BattleSystem.instance; } }
 
-        public static void GoToPreviousState()
-        {
-            IPlayerState poppedState = _CurrentStateStack.Pop();
-            poppedState.Exit( CurrentState );
-            CurrentState.Enter( poppedState );
-        }
+        public abstract void Update( BattleSystem sys );
 
-        protected static BattleSystem sys { get { return BattleSystem.instance; } }
+        public abstract void Enter( BattleSystem sys );
 
-        public abstract void Update( IPlayerState state );
-
-        public abstract void Enter( IPlayerState state );
-
-        public abstract void Exit( IPlayerState state );
+        public abstract void Exit( BattleSystem sys );
     }
 
     public class NullState : IPlayerState
     {
-        public void Enter( IPlayerState state )
+        public void Enter( BattleSystem state )
         {
         }
 
-        public void Exit( IPlayerState state )
+        public void Exit( BattleSystem state )
         {
         }
 
-        public void Update( IPlayerState state )
+        public void Update( BattleSystem state )
         {
         }
     }
 
     public class PlayerSelectingUnit : BattleState
     {
-        public static Action StopRendering;
-        public override void Update( IPlayerState currentState )
+        public override void Update( BattleSystem sys )
         {
             GameTile tile = sys.Cursor.CurrentTile;
 
@@ -126,30 +128,33 @@ namespace Assets.Map
 
                 if ( Input.GetButtonDown( "Submit" ) )
                 {
-                    CurrentState = new PlayerMenuSelection( unitAtTile );
+                    sys.CurrentState = new PlayerMenuSelection { SelectedUnit = unitAtTile };
                 }
             }
         }
 
-        public override void Enter( IPlayerState state ) {
-        } 
+        public override void Enter( BattleSystem sys ) { }
 
-        public override void Exit( IPlayerState state ) {
-        }
+        public override void Exit( BattleSystem sys ) { }
     }
 
     public class PlayerMenuSelection : BattleState
     {
         public Unit SelectedUnit;
         public Button MoveButton;
-        public GameObject Menu;
 
-        public PlayerMenuSelection( Unit unit )
+        public override void Update( BattleSystem sys )
         {
-            SelectedUnit = unit;
+            if ( Input.GetButtonDown( "Cancel" ) )
+            {
+                sys.GoToPreviousState();
+            }
+        }
 
+        public override void Enter( BattleSystem sys )
+        {
             GameObject menu = GameObject.Find( "Menu" );
-            MoveButton  = GameObject.Instantiate( sys.MenuButton );
+            MoveButton = GameObject.Instantiate( sys.MenuButton );
             MoveButton.transform.SetParent( menu.transform );
             MoveButton.GetComponentInChildren<Text>().text = "Move";
             MoveButton.GetComponent<Button>().onClick.AddListener( StartMoving );
@@ -158,77 +163,31 @@ namespace Assets.Map
 
         private void StartMoving()
         {
-            CurrentState = new PlayerUnitAction( SelectedUnit );
-        }
-
-        public override void Update( IPlayerState state )
-        {
-            if ( Input.GetButtonDown( "Cancel" ) )
+            sys.CurrentState = new PlayerUnitAction
             {
-                GoToPreviousState();
-            }
+                SelectedUnit = SelectedUnit,
+                UnitTile = sys.Map.UnitGametileMap[ SelectedUnit ]
+            };
         }
 
-        public override void Enter( IPlayerState state ) { }
 
-        public override void Exit( IPlayerState state )
+        public override void Exit( BattleSystem sys )
         {
             Input.ResetInputAxes();
 
             if ( MoveButton.IsDestroyed() == false )
+            {
                 GameObject.Destroy( MoveButton.gameObject );
+            }
         }
     }
 
     public class PlayerUnitAction : BattleState
     {
-        private Unit SelectedUnit;
-        private GameTile UnitTile;
-        private HashSet<Vector2Int> MovementTiles;
-        private HashSet<Vector2Int> AttackTiles;
-
-        public PlayerUnitAction( Unit selectedUnit )
-        {
-            SelectedUnit = selectedUnit;
-            UnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
-            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
-            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
-        }
-
-        public override void Update( IPlayerState state )
-        {
-            if ( Input.GetButtonDown( "Cancel" ) )
-                GoToPreviousState();
-
-            {
-                sys.Cursor.UpdateAction();
-
-                bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
-                bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
-                Unit unitUnderCursor = null;
-                sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
-
-                if ( Input.GetButtonDown( "Submit" ) )
-                {
-                    bool notTheSameUnit = unitUnderCursor != SelectedUnit;
-                    if ( canMoveHere && notTheSameUnit )
-                    {
-                        ExecuteMove( sys.Cursor.CurrentTile );
-                    }
-                    else
-                    {
-                        if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
-                            ExecuteAttack( SelectedUnit, unitUnderCursor );
-                        else
-                            return;
-                    }
-
-                    sys.Map.ShowUnitMovement( SelectedUnit );
-                    GoToPreviousState();
-                    GoToPreviousState();
-                }
-            }
-        }
+        public Unit SelectedUnit;
+        public GameTile UnitTile;
+        public HashSet<Vector2Int> MovementTiles;
+        public HashSet<Vector2Int> AttackTiles;
 
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
         {
@@ -280,11 +239,48 @@ namespace Assets.Map
             sys.Map.SwapUnit( UnitTile, to);
         }
 
-        public override void Enter( IPlayerState state )
+        public override void Update( BattleSystem sys )
         {
+            if ( Input.GetButtonDown( "Cancel" ) )
+                sys.GoToPreviousState();
+
+            {
+                sys.Cursor.UpdateAction();
+
+                bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
+                bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
+                Unit unitUnderCursor = null;
+                sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
+
+                if ( Input.GetButtonDown( "Submit" ) )
+                {
+                    bool notTheSameUnit = unitUnderCursor != SelectedUnit;
+                    if ( canMoveHere && notTheSameUnit )
+                    {
+                        ExecuteMove( sys.Cursor.CurrentTile );
+                    }
+                    else
+                    {
+                        if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
+                            ExecuteAttack( SelectedUnit, unitUnderCursor );
+                        else
+                            return;
+                    }
+
+                    sys.Map.ShowUnitMovement( SelectedUnit );
+                    sys.GoToPreviousState();
+                    sys.GoToPreviousState();
+                }
+            }
         }
 
-        public override void Exit( IPlayerState state )
+        public override void Enter( BattleSystem sys )
+        {
+            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
+            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
+        }
+
+        public override void Exit( BattleSystem sys )
         {
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
