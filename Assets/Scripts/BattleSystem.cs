@@ -42,15 +42,15 @@ namespace Assets.Map
         void Start()
         {
             CurrentState = new PlayerSelectingUnit();
-            Cursor.CursorMoved += CursorMoved;
+            Cursor.CursorMoved.AddListener( CursorMoved );
             EventSystem.current.SetSelectedGameObject( Cursor.gameObject );
         }
 
-        private void CursorMoved( GameTile tile )
+        private void CursorMoved()
         {
             if ( CurrentState is PlayerSelectingUnit )
             {
-                Map.ShowUnitMovementIfHere( tile );
+                Map.ShowUnitMovementIfHere( Cursor.CurrentTile );
             }
         }
 
@@ -108,24 +108,10 @@ namespace Assets.Map
     {
         public override void Update( BattleSystem sys )
         {
-            GameTile tile = sys.Cursor.CurrentTile;
-
             sys.Cursor.UpdateAction();
-
             Unit unitAtTile;
-            sys.Map.UnitGametileMap.TryGetValue( tile, out unitAtTile );
-
-            if ( unitAtTile != null )
+            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
             {
-                GameObject infoData = GameObject.Find( "InfoData" );
-                Action<string, int> setLabel = ( label, val ) =>
-                infoData.transform.Find( label ).GetComponent<Text>().text = val.ToString();
-
-                setLabel( "HP", unitAtTile.HP );
-                setLabel( "Move", unitAtTile.MovementRange );
-                setLabel( "Attack", unitAtTile.Attack );
-                setLabel( "Defense", unitAtTile.Defense );
-
                 if ( Input.GetButtonDown( "Submit" ) )
                 {
                     sys.CurrentState = new PlayerMenuSelection { SelectedUnit = unitAtTile };

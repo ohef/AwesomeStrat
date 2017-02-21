@@ -7,6 +7,7 @@ using Assets.General.UnityExtensions;
 using Assets.General;
 using System.Linq;
 using System;
+using System.Collections.Generic;
 
 namespace Assets.Map
 {
@@ -30,16 +31,20 @@ namespace Assets.Map
                 {
                     m_CurrentTile = value;
                     if ( CursorMoved != null )
-                        CursorMoved( m_CurrentTile );
+                        CursorMoved.Invoke();
                 }
             }
         }
 
-        public event Action<GameTile> CursorMoved;
+        public UnityEvent CursorMoved;
 
         #region UnityMonoBehaviourFunctions
 
-        void Awake() { }
+        void Awake()
+        {
+            if ( CursorMoved == null )
+                CursorMoved = new UnityEvent();
+        }
 
         void Start()
         {
