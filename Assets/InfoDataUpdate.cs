@@ -25,9 +25,9 @@ public class InfoDataUpdate : MonoBehaviour {
     }
 
     public void UpdateInfo() {
-        var currentTile = BattleSystem.instance.Cursor.CurrentTile;
+        var currentTile = BattleSystem.Instance.Cursor.CurrentTile;
         Unit unitAtTile;
-        if ( BattleSystem.instance.Map.UnitGametileMap.TryGetValue( currentTile, out unitAtTile ) == true )
+        if ( BattleSystem.Instance.Map.UnitGametileMap.TryGetValue( currentTile, out unitAtTile ) == true )
         {
             HP.text = unitAtTile.HP.ToString();
             Move.text = unitAtTile.MovementRange.ToString();
