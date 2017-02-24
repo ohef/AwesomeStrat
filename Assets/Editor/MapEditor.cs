@@ -66,11 +66,18 @@ public class MapEditorScene : Editor
 
     static int toolSelectionIndex = 0;
 
-    static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Remove Unit" };
+    static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Remove Unit", "Reinitialize" };
 
     static GameObject UnitLayer;
 
     static MapEditorScene()
+    {
+        Initialize();
+        SceneView.onSceneGUIDelegate -= OnSceneGUI;
+        SceneView.onSceneGUIDelegate += OnSceneGUI;
+    }
+
+    public static void Initialize()
     {
         UnitLayer = GameObject.Find( "UnitLayer" );
         var unitPaths = Directory.GetFileSystemEntries( Application.dataPath + "/Prefabs/Units", "*.prefab" )
@@ -84,9 +91,6 @@ public class MapEditorScene : Editor
             .Select( path => AssetDatabase.LoadAssetAtPath<MonoBehaviour>( path ) ).ToList();
 
         map = GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
-
-        SceneView.onSceneGUIDelegate -= OnSceneGUI;
-        SceneView.onSceneGUIDelegate += OnSceneGUI;
     }
 
     private static void OnSceneGUI( SceneView scene )
@@ -97,14 +101,18 @@ public class MapEditorScene : Editor
         toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
         Handles.EndGUI();
 
-        if ( toolSelectionIndex == 1 ) //Place Unit
+        switch ( toolSelectionIndex )
         {
-            DrawUnitSelectorGUI( scene.position );
-            HandlePlaceUnitAction( scene );
-        }
-        else if ( toolSelectionIndex == 2 )
-        {
-            HandleRemoveUnitAction( scene );
+            case 1:
+                DrawUnitSelectorGUI( scene.position );
+                HandlePlaceUnitAction( scene );
+                break;
+            case 2:
+                HandleRemoveUnitAction( scene );
+                break;
+            case 3:
+                Initialize();
+                break;
         }
     }
 
@@ -139,20 +147,16 @@ public class MapEditorScene : Editor
 
             HandleUtility.Repaint();
 
-            //Assumes localscale is uniform, obviously false but just hacking
-            //Vector3 pointHitRescale = map.transform.InverseTransformPoint( rayHitInfo.point );
-            Vector3 pointHitRescale = rayHitInfo.point;
-
             if ( JustMouseDown() )
             {
                 var unit = Instantiate( Units[ unitSelectionIndex ] );
                 unit.transform.SetParent( UnitLayer.transform, false );
 
-                pointHitRescale = map.transform.InverseTransformPoint( rayHitInfo.point );
+                rayHitInfo.point = map.transform.InverseTransformPoint( rayHitInfo.point );
                 unit.transform.localPosition = new Vector3(
-                    Mathf.Floor( pointHitRescale.x ),
+                    Mathf.Floor( rayHitInfo.point.x ),
                     0,
-                    Mathf.Floor( pointHitRescale.z ) );
+                    Mathf.Floor( rayHitInfo.point.z ) );
 
                 EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
             }
@@ -171,14 +175,14 @@ public class MapEditorScene : Editor
         if ( Physics.Raycast( ray, out rayHitInfo ) && JustMouseDown() )
         {
             Vector3 hitUnitTile = new Vector3(
-                    Mathf.Floor( rayHitInfo.point.x ),
+                    Mathf.Floor( rayHitInfo.point.x / map.transform.localScale.x ),
                     0,
-                    Mathf.Floor( rayHitInfo.point.z ) );
+                    Mathf.Floor( rayHitInfo.point.z / map.transform.localScale.z ) );
 
             Unit hitUnit =
             FindObjectsOfType<Unit>().FirstOrDefault( unit =>
-            Mathf.Floor( unit.transform.position.x ) == hitUnitTile.x &&
-            Mathf.Floor( unit.transform.position.z ) == hitUnitTile.z
+            Mathf.Floor( unit.transform.localPosition.x ) == hitUnitTile.x &&
+            Mathf.Floor( unit.transform.localPosition.z ) == hitUnitTile.z
             );
 
             if ( hitUnit != null )
