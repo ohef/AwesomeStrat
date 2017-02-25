@@ -44,7 +44,6 @@ namespace Assets.Map
         {
             CurrentState = new PlayerSelectingUnit();
             Cursor.CursorMoved.AddListener( CursorMoved );
-            EventSystem.current.SetSelectedGameObject( Cursor.gameObject );
         }
 
         // Update is called once per frame
@@ -146,7 +145,7 @@ namespace Assets.Map
         private Unit SelectedUnit;
         private Button MoveButton;
 
-        public PlayerMenuSelection(Unit selectedUnit)
+        public PlayerMenuSelection( Unit selectedUnit )
         {
             SelectedUnit = selectedUnit;
         }
@@ -161,22 +160,19 @@ namespace Assets.Map
 
         public override void Enter( BattleSystem sys )
         {
-            GameObject menu = GameObject.Find( "Menu" );
-            MoveButton = GameObject.Instantiate( sys.MenuButton );
-            MoveButton.transform.SetParent( menu.transform );
-            MoveButton.GetComponentInChildren<Text>().text = "Move";
-            MoveButton.GetComponent<Button>().onClick.AddListener( StartMoving );
-            EventSystem.current.SetSelectedGameObject( MoveButton.gameObject );
+            //TODO: Put this in a member var
+            CommandMenu menu = GameObject.Find( "Menu" ).GetComponent<CommandMenu>();
+            Button addedButton = menu.AddButton( "Move", StartMoving );
+            EventSystem.current.SetSelectedGameObject( addedButton.gameObject );
         }
 
         public override void Exit( BattleSystem sys )
         {
+            //To prevent the next state from catching the submit button
             Input.ResetInputAxes();
 
-            if ( MoveButton.IsDestroyed() == false )
-            {
-                GameObject.Destroy( MoveButton.gameObject );
-            }
+            CommandMenu menu = GameObject.Find( "Menu" ).GetComponent<CommandMenu>();
+            menu.ClearButtons();
         }
 
         private void StartMoving()
