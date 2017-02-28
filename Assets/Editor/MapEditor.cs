@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using UnityEditor.SceneManagement;
 using System;
+using UnityEngine.SceneManagement;
 
 [ExecuteInEditMode]
 public class MapEditor : EditorWindow
@@ -56,7 +57,7 @@ public class MapEditor : EditorWindow
 [InitializeOnLoad]
 public class MapEditorScene : Editor
 {
-    static GameMap map;
+    static GameMap Map;
     static GameTile lastHitTile;
     static List<MonoBehaviour> Units;
     static Texture2D[] UnitPreviews;
@@ -79,7 +80,6 @@ public class MapEditorScene : Editor
 
     public static void Initialize()
     {
-        UnitLayer = GameObject.Find( "UnitLayer" );
         var unitPaths = Directory.GetFileSystemEntries( Application.dataPath + "/Prefabs/Units", "*.prefab" )
             .Select( path => "Assets" + path.Replace( Application.dataPath, "" ) ).ToList();
 
@@ -89,13 +89,16 @@ public class MapEditorScene : Editor
 
         Units = unitPaths
             .Select( path => AssetDatabase.LoadAssetAtPath<MonoBehaviour>( path ) ).ToList();
-
-        map = GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
     }
 
-    private static void OnSceneGUI( SceneView scene )
+    private static void OnSceneGUI( SceneView sceneView )
     {
-        map = map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : map;
+        Scene scene = EditorSceneManager.GetActiveScene();
+        if ( scene.name != "maptest" )
+            return;
+
+        UnitLayer = UnitLayer == null ? GameObject.Find( "UnitLayer" ) : UnitLayer;
+        Map = Map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : Map;
 
         Handles.BeginGUI();
         toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
@@ -104,11 +107,11 @@ public class MapEditorScene : Editor
         switch ( toolSelectionIndex )
         {
             case 1:
-                DrawUnitSelectorGUI( scene.position );
-                HandlePlaceUnitAction( scene );
+                DrawUnitSelectorGUI( sceneView.position );
+                BeginPlacingUnit( sceneView );
                 break;
             case 2:
-                HandleRemoveUnitAction( scene );
+                HandleRemoveUnitAction( sceneView );
                 break;
             case 3:
                 Initialize();
@@ -125,7 +128,7 @@ public class MapEditorScene : Editor
                Event.current.control == false;
     }
 
-    private static void HandlePlaceUnitAction( SceneView scene )
+    private static void BeginPlacingUnit( SceneView scene )
     {
         int controlId = GUIUtility.GetControlID( FocusType.Passive );
         Ray ray = HandleUtility.GUIPointToWorldRay( Event.current.mousePosition );
@@ -133,36 +136,66 @@ public class MapEditorScene : Editor
         RaycastHit rayHitInfo;
         if ( Physics.Raycast( ray, out rayHitInfo ) )
         {
-            Matrix4x4 mat = Matrix4x4.TRS(
-                rayHitInfo.point + Vector3.Scale( Vector3.up * 0.5f, map.transform.localScale ),
-                Quaternion.identity,
-                map.transform.localScale );
-
-            Graphics.DrawMesh(
-                Units[ unitSelectionIndex ].GetComponent<MeshFilter>().sharedMesh,
-                mat,
-                Units[ unitSelectionIndex ].GetComponent<MeshRenderer>().sharedMaterial,
-                0,
-                scene.camera );
-
-            HandleUtility.Repaint();
-
+            DrawUnitMeshOverMap( scene, rayHitInfo );
             if ( JustMouseDown() )
             {
-                var unit = Instantiate( Units[ unitSelectionIndex ] );
-                unit.transform.SetParent( UnitLayer.transform, false );
-
-                rayHitInfo.point = map.transform.InverseTransformPoint( rayHitInfo.point );
-                unit.transform.localPosition = new Vector3(
-                    Mathf.Floor( rayHitInfo.point.x ),
-                    0,
-                    Mathf.Floor( rayHitInfo.point.z ) );
-
-                EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
+                PlaceUnit( rayHitInfo );
             }
         }
 
         HandleUtility.AddDefaultControl( controlId );
+    }
+
+    private static void PlaceUnit( RaycastHit rayHitInfo )
+    {
+        var unit = Instantiate( Units[ unitSelectionIndex ] );
+        unit.transform.SetParent( UnitLayer.transform, false );
+
+        var localizedPoint = Map.transform.InverseTransformPoint( rayHitInfo.point );
+        unit.transform.localPosition = new Vector3(
+            Mathf.Floor( localizedPoint.x ),
+            0,
+            Mathf.Floor( localizedPoint.z ) );
+
+        EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
+    }
+
+    private static void DrawUnitMeshOverMap( SceneView scene, RaycastHit rayHitInfo )
+    {
+        Matrix4x4 rescaleHit = Matrix4x4.TRS(
+            rayHitInfo.point + Vector3.Scale( Vector3.up * 0.5f, Map.transform.localScale ),
+            Quaternion.identity,
+            Map.transform.localScale );
+
+        MonoBehaviour selectedUnit = Units[ unitSelectionIndex ];
+        foreach ( var skinnedMeshR in selectedUnit.GetComponentsInChildren<SkinnedMeshRenderer>() )
+        {
+            Graphics.DrawMesh(
+                skinnedMeshR.sharedMesh,
+                rescaleHit,
+                skinnedMeshR.sharedMaterial,
+                0,
+                scene.camera );
+        }
+
+        foreach ( var meshfilter in selectedUnit.GetComponentsInChildren<MeshFilter>() )
+        {
+            foreach ( var meshrenderer in selectedUnit.GetComponentsInChildren<MeshRenderer>() )
+            {
+                Graphics.DrawMesh( meshfilter.sharedMesh,
+                    rescaleHit, meshrenderer.sharedMaterial,
+                    0, scene.camera );
+            }
+        }
+
+        //Graphics.DrawMesh(
+        //    Units[ unitSelectionIndex ].GetComponent<MeshFilter>().sharedMesh,
+        //    rescaleHit,
+        //    Units[ unitSelectionIndex ].GetComponent<MeshRenderer>().sharedMaterial,
+        //    0,
+        //    scene.camera );
+
+        HandleUtility.Repaint();
     }
 
     private static void HandleRemoveUnitAction( SceneView scene )
@@ -175,9 +208,9 @@ public class MapEditorScene : Editor
         if ( Physics.Raycast( ray, out rayHitInfo ) && JustMouseDown() )
         {
             Vector3 hitUnitTile = new Vector3(
-                    Mathf.Floor( rayHitInfo.point.x / map.transform.localScale.x ),
+                    Mathf.Floor( rayHitInfo.point.x / Map.transform.localScale.x ),
                     0,
-                    Mathf.Floor( rayHitInfo.point.z / map.transform.localScale.z ) );
+                    Mathf.Floor( rayHitInfo.point.z / Map.transform.localScale.z ) );
 
             Unit hitUnit =
             FindObjectsOfType<Unit>().FirstOrDefault( unit =>
