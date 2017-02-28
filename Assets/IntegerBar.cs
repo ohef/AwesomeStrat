@@ -9,7 +9,7 @@ public class IntegerBar : MonoBehaviour {
     private float initMaxAnchor;
 
 	// Use this for initialization
-	void Start () {
+	void Awake () {
         m_trans = this.GetComponent<RectTransform>();
         initMaxAnchor = m_trans.anchorMax.x;
     }
