@@ -203,9 +203,14 @@ namespace Assets.Map
         {
             Button defaultSelected = sys.Menu.AddButton( "Wait", () => sys.GoToDefaultState() );
             if ( Interactables.Any( i => i is Unit ) )
-                defaultSelected = sys.Menu.AddButton( "Attack", () => sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is Unit ).Cast<Unit>() ) );
+                defaultSelected = sys.Menu.AddButton( "Attack", StartChooseAttacks );
 
             EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
+        }
+
+        public void StartChooseAttacks()
+        {
+            sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is Unit ).Cast<Unit>() );
         }
     }
 
@@ -230,29 +235,33 @@ namespace Assets.Map
                 sys.GoToPreviousState();
             }
 
-            {
-                Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
-                if ( ToAttack.Count > 0 )
-                {
-                    if ( input.x == 1 )
-                    {
-                        if ( CurrentlySelected.Next != null )
-                            CurrentlySelected = CurrentlySelected.Next;
-                        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
-                    }
-                    else if ( input.x == -1 )
-                    {
-                        if ( CurrentlySelected.Previous != null )
-                            CurrentlySelected = CurrentlySelected.Previous;
-                        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
-                    }
-                }
-            }
+            HandleChoosing( sys );
 
             if ( Input.GetButtonDown( "Submit" ) )
             {
                 SelectedUnit.AttackUnit( CurrentlySelected.Value );
+                sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
                 sys.GoToDefaultState();
+            }
+        }
+
+        private void HandleChoosing( BattleSystem sys )
+        {
+            Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
+            if ( ToAttack.Count > 0 )
+            {
+                if ( input.x == 1 )
+                {
+                    if ( CurrentlySelected.Next != null )
+                        CurrentlySelected = CurrentlySelected.Next;
+                    sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+                }
+                else if ( input.x == -1 )
+                {
+                    if ( CurrentlySelected.Previous != null )
+                        CurrentlySelected = CurrentlySelected.Previous;
+                    sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+                }
             }
         }
 
