@@ -5,6 +5,8 @@ using UnityEngine.UI;
 using Assets.General.DataStructures;
 using System.Linq;
 using UnityEngine.EventSystems;
+using UnityEngine.Events;
+using Assets.General.UnityExtensions;
 
 namespace Assets.Map
 {
@@ -38,6 +40,7 @@ namespace Assets.Map
         public GameMap Map;
         public CursorControl Cursor;
         public CommandMenu Menu;
+        public UnityEvent StateChanged;
 
         void Awake()
         {
@@ -47,7 +50,7 @@ namespace Assets.Map
         // Use this for initialization
         void Start()
         {
-            CurrentState = new PlayerSelectingUnit();
+            CurrentState = DefaultState;
             Cursor.CursorMoved.AddListener( CursorMoved );
         }
 
@@ -59,6 +62,9 @@ namespace Assets.Map
 
         public void GoToPreviousState()
         {
+            if ( CurrentState == DefaultState )
+                return;
+
             IPlayerState poppedState = StateStack.Pop();
             poppedState.Exit( this );
             CurrentState.Enter( this );
@@ -80,14 +86,7 @@ namespace Assets.Map
 
         private void OnRenderObject()
         {
-            PlayerUnitAction state =
-                BattleSystem.Instance.CurrentState is PlayerUnitAction ?
-                ( PlayerUnitAction )BattleSystem.Instance.CurrentState :
-                    null;
-            if ( state != null )
-            {
-                state.OnRenderObject();
-            }
+            CurrentState.OnRenderObject();
         }
     }
 
@@ -104,6 +103,8 @@ namespace Assets.Map
 
         public virtual void CursorMoved() { }
 
+        public virtual void OnRenderObject() { }
+
         public virtual void Update( BattleSystem sys ) { }
 
         public virtual void Enter( BattleSystem sys ) { }
@@ -113,11 +114,11 @@ namespace Assets.Map
 
     public class NullState : BattleState { }
 
-    public class PlayerSelectingUnit : BattleState
+    public class PlayerSelectingUnit : MapCursorState
     {
         public override void Update( BattleSystem sys )
         {
-            sys.Cursor.UpdateAction();
+            base.Update( sys );
             Unit unitAtTile;
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
             {
@@ -130,10 +131,6 @@ namespace Assets.Map
                 }
             }
         }
-
-        public override void Enter( BattleSystem sys ) { }
-
-        public override void Exit( BattleSystem sys ) { }
 
         public override void CursorMoved()
         {
@@ -179,7 +176,7 @@ namespace Assets.Map
 
         private void StartMoving()
         {
-            sys.CurrentState = new PlayerUnitAction( SelectedUnit, sys.Map.UnitGametileMap[ SelectedUnit ] );
+            sys.CurrentState = new PlayerMoveSelect( SelectedUnit );
             SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
         }
     }
@@ -188,39 +185,101 @@ namespace Assets.Map
     {
         private Unit SelectedUnit;
 
-        //public AfterMoveSelect(Unit selectedUnit, )
-
-        public override void Enter( BattleSystem sys )
+        public AfterMoveSelect( Unit selectedUnit, IEnumerable<Unit> interactables )
         {
+            SelectedUnit = selectedUnit;
+            Button defaultSelected = sys.Menu.AddButton( "Wait", () => sys.GoToDefaultState() );
+            if ( interactables.Any( i => i is Unit ) )
+                defaultSelected = sys.Menu.AddButton( "Attack", () => sys.CurrentState = new ChooseAttacks( SelectedUnit, interactables.Where( i => i is Unit ).Cast<Unit>() ) );
+
+            EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
         }
     }
 
-    public class PlayerUnitAction : BattleState
+    public class ChooseAttacks : BattleState
     {
         private Unit SelectedUnit;
-        private GameTile UnitTile;
-        private HashSet<Vector2Int> MovementTiles;
-        private HashSet<Vector2Int> AttackTiles;
-        private LinkedList<GameTile> TilesToPass ;
+        private LinkedList<Unit> ToAttack;
+        private LinkedListNode<Unit> CurrentlySelected;
 
-        public PlayerUnitAction(Unit selectedUnit, GameTile unitTile)
+        public ChooseAttacks( Unit selectedUnit, IEnumerable<Unit> toAttack )
         {
             SelectedUnit = selectedUnit;
-            UnitTile = unitTile;
-            TilesToPass = new LinkedList<GameTile>();
-            TilesToPass.AddFirst( UnitTile );
-            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, UnitTile ) );
-            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
+            ToAttack = new LinkedList<Unit>( toAttack );
+            CurrentlySelected = ToAttack.First;
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
         }
 
-        #region Interface Implementation
+        public override void Update( BattleSystem sys )
+        {
+            if ( Input.GetButtonDown( "Cancel" ) )
+            {
+                sys.GoToPreviousState();
+            }
+
+            {
+                Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
+                if ( ToAttack.Count > 0 )
+                {
+                    if ( input.x == 1 )
+                    {
+                        if ( CurrentlySelected.Next != null )
+                            CurrentlySelected = CurrentlySelected.Next;
+                        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+                    }
+                    else if ( input.x == -1 )
+                    {
+                        if ( CurrentlySelected.Previous != null )
+                            CurrentlySelected = CurrentlySelected.Previous;
+                        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+                    }
+                }
+            }
+
+            if ( Input.GetButtonDown( "Submit" ) )
+            {
+                SelectedUnit.AttackUnit( CurrentlySelected.Value );
+                sys.GoToDefaultState();
+            }
+        }
+
+        public override void Enter( BattleSystem sys )
+        {
+            sys.Map.ShowStandingAttackRange( SelectedUnit );
+        }
+    }
+
+    public class MapCursorState : BattleState
+    {
         public override void Update( BattleSystem sys )
         {
             if ( Input.GetButtonDown( "Cancel" ) )
                 sys.GoToPreviousState();
 
             sys.Cursor.UpdateAction();
+        }
+    }
 
+    public class PlayerMoveSelect : MapCursorState
+    {
+        private Unit SelectedUnit;
+        private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
+        private HashSet<Vector2Int> MovementTiles;
+        private HashSet<Vector2Int> AttackTiles;
+        private LinkedList<GameTile> TilesToPass ;
+
+        public PlayerMoveSelect( Unit selectedUnit )
+        {
+            SelectedUnit = selectedUnit;
+            TilesToPass = new LinkedList<GameTile>();
+            TilesToPass.AddFirst( SelectedTile );
+            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
+            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
+        }
+
+        public override void Update( BattleSystem sys )
+        {
+            base.Update( sys );
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
             bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
 
@@ -233,65 +292,53 @@ namespace Assets.Map
                 if ( canMoveHere && notTheSameUnit )
                 {
                     ExecuteMove( sys.Cursor.CurrentTile );
+                    sys.CurrentState = new AfterMoveSelect( SelectedUnit, GetAttackableUnits().ToArray() );
                 }
-                else
-                {
-                    if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
-                        ExecuteAttack( SelectedUnit, unitUnderCursor );
-                    else
-                        return;
-                }
-
-                sys.Map.ShowUnitMovement( SelectedUnit );
-                sys.GoToDefaultState();
+                //else
+                //{
+                //    if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
+                //        ExecuteAttack( SelectedUnit, unitUnderCursor );
+                //    else
+                //        return;
+                //}
+                //sys.Map.ShowUnitMovement( SelectedUnit );
+                //sys.GoToDefaultState();
             }
         }
 
-        private IEnumerable<Unit> GetAttackableUnits( Unit unitUnderCursor, GameTile currentTile )
+        private IEnumerable<Unit> GetAttackableUnits()
         {
-            foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( currentTile.Position, unitUnderCursor.AttackRange ) )
+            foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
             {
-                Unit unitCheck;
+                if ( tile == SelectedTile.Position )
+                    continue;
+
+                Unit unitCheck = null;
                 if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
                     yield return unitCheck;
             }
             yield break;
         }
 
-        public void OnRenderObject()
+        public override void OnRenderObject()
         {
             sys.Map.RenderForPath( TilesToPass );
-        }
-
-        public override void Enter( BattleSystem sys )
-        {
         }
 
         public override void Exit( BattleSystem sys )
         {
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
-        #endregion
 
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
         {
             GameTile lastTile = TilesToPass.First();
-            if ( lastTile != UnitTile ) //We need to move
+            if ( lastTile != SelectedTile ) //We need to move
             {
                 ExecuteMove( lastTile );
             }
-            unitUnderCursor.HP -= selectedUnit.Attack - unitUnderCursor.Defense;
+            selectedUnit.AttackUnit( unitUnderCursor );
         }
-
-        //private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
-        //{
-        //    GameTile optimalAttackPos = GetOptimalAttackPosition( sys.Cursor.CurrentTile );
-        //    if ( optimalAttackPos != UnitTile ) //We need to move
-        //    {
-        //        ExecuteMove( optimalAttackPos );
-        //    }
-        //    unitUnderCursor.HP -= selectedUnit.Attack - unitUnderCursor.Defense;
-        //}
 
         private GameTile GetOptimalAttackPosition( GameTile on )
         {
@@ -304,8 +351,8 @@ namespace Assets.Map
 
             if ( canMovePositions.Count() == 0 )
                 return null;
-            else if ( canMovePositions.Any( pos => pos == UnitTile.Position ) )
-                return UnitTile;
+            else if ( canMovePositions.Any( pos => pos == SelectedTile.Position ) )
+                return SelectedTile;
 
             Vector2Int optimalPosition = canMovePositions
                 .Select( pos => new { Pos = pos, Distance = on.Position.ManhattanDistance( pos ) } )
@@ -319,13 +366,15 @@ namespace Assets.Map
         private void ExecuteMove( GameTile to )
         {
             SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", true );
-            sys.StartCoroutine(
-                General.CustomAnimation.InterpolateBetweenPointsAndCallback(
-                    SelectedUnit.transform,
-                    TilesToPass.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
-                    0.22f, () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
 
-            sys.Map.SwapUnit( UnitTile, to);
+            sys.StartCoroutine(
+                General.UnityExtensions.CoroutineHelper.AddAfter(
+                    General.CustomAnimation.InterpolateBetweenPoints( SelectedUnit.transform,
+                    TilesToPass.Select( x => x.GetComponent<Transform>().localPosition )
+                    .Reverse().ToList(), 0.22f ),
+                    () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
+
+            sys.Map.SwapUnit( SelectedTile, to);
         }
 
         public override void CursorMoved()
@@ -346,21 +395,21 @@ namespace Assets.Map
 
             if ( TilesToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
             {
-                TilesToPass = new LinkedList<GameTile>( MapSearcher.Search( UnitTile, to, sys.Map, SelectedUnit.MovementRange ) );
+                TilesToPass = new LinkedList<GameTile>( MapSearcher.Search( SelectedTile, to, sys.Map, SelectedUnit.MovementRange ) );
                 return;
             }
 
-            var foundNode = TilesToPass.Find( to );
-            if ( foundNode != null )
+            LinkedListNode<GameTile> alreadyPresent = TilesToPass.Find( to );
+            if ( alreadyPresent == null )
             {
-                while ( TilesToPass.First != foundNode )
+                TilesToPass.AddFirst( to );
+            }
+            else
+            {
+                while ( TilesToPass.First != alreadyPresent )
                 {
                     TilesToPass.RemoveFirst();
                 }
-            }
-            else 
-            {
-                TilesToPass.AddFirst( to );
             }
         }
     }
