@@ -109,6 +109,22 @@ namespace Assets.Map
             ShowUnitMovement( unitThere );
         }
 
+        public void ShowStandingAttackRange( Unit unit )
+        {
+            foreach ( GameTile tile in this )
+            {
+                this[ tile.Position ].GetComponent<Renderer>().material = DefaultMat;
+            }
+
+            if ( unit == null )
+                return;
+
+            foreach ( Vector2Int v in GetTilesWithinAbsoluteRange( UnitGametileMap[ unit ].Position, unit.AttackRange ) )
+            {
+                this[ v ].GetComponent<Renderer>().material = AttackRangeMat;
+            }
+        }
+
         public void ShowUnitMovement( Unit unit )
         {
             foreach ( GameTile tile in this )
@@ -267,9 +283,9 @@ namespace Assets.Map
         {
             foreach ( var tile in tilesToPass )
             {
-                PlayerUnitAction state = 
-                    BattleSystem.Instance.CurrentState is PlayerUnitAction ? 
-                    ( PlayerUnitAction )BattleSystem.Instance.CurrentState :
+                PlayerMoveSelect state = 
+                    BattleSystem.Instance.CurrentState is PlayerMoveSelect ? 
+                    ( PlayerMoveSelect )BattleSystem.Instance.CurrentState :
                     null;
 
                 if ( state != null )
@@ -305,17 +321,9 @@ namespace Assets.Map
 
         public void ReInitializeMap( int width, int height )
         {
-            if ( GameTiles != null )
+            foreach ( var tile in GameObject.FindObjectsOfType<GameTile>() )
             {
-                for ( int i = 0 ; i < Width ; i++ )
-                {
-                    for ( int j = 0 ; j < Height ; j++ )
-                    {
-                        GameTile tile = GameTiles[ i, j ];
-                        if ( tile != null )
-                            GameObject.DestroyImmediate( GameTiles[ i, j ].gameObject );
-                    }
-                }
+                GameObject.DestroyImmediate( tile.gameObject );
             }
             InitializeMap( width, height );
         }
