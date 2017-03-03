@@ -59,9 +59,7 @@ namespace Assets.Map
 
         public void UpdateAction()
         {
-            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
-            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
-            var inputVector = new Vector2Int( horizontal, vertical );
+            Vector2Int inputVector = Vector2IntExt.GetInputAsDiscrete();
             ShiftCursor( inputVector );
         }
 
