@@ -286,7 +286,6 @@ namespace Assets.Map
         private Unit SelectedUnit;
         private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
         private HashSet<Vector2Int> MovementTiles;
-        private HashSet<Vector2Int> AttackTiles;
         private LinkedList<GameTile> TilesToPass ;
 
         public WhereToMove( Unit selectedUnit )
@@ -298,7 +297,6 @@ namespace Assets.Map
         {
             base.Update( sys );
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
-            bool canAttackHere = AttackTiles.Contains( sys.Cursor.CurrentTile.Position );
 
             Unit unitUnderCursor = null;
             sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
@@ -314,6 +312,32 @@ namespace Assets.Map
             }
         }
 
+        public override void Exit( BattleSystem sys )
+        {
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+        }
+
+        public override void Enter( BattleSystem sys )
+        {
+            TilesToPass = new LinkedList<GameTile>();
+            TilesToPass.AddFirst( SelectedTile );
+            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
+        }
+
+        public override void CursorMoved()
+        {
+            bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
+            if ( withinMoveRange )
+            {
+                AttemptToLengthenPath( sys.Cursor.CurrentTile );
+            }
+        }
+
+        public override void OnRenderObject()
+        {
+            sys.Map.RenderForPath( TilesToPass );
+        }
+
         private IEnumerable<Unit> GetAttackableUnits()
         {
             foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
@@ -326,24 +350,6 @@ namespace Assets.Map
                     yield return unitCheck;
             }
             yield break;
-        }
-
-        public override void OnRenderObject()
-        {
-            sys.Map.RenderForPath( TilesToPass );
-        }
-
-        public override void Exit( BattleSystem sys )
-        {
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        }
-
-        public override void Enter( BattleSystem sys )
-        {
-            TilesToPass = new LinkedList<GameTile>();
-            TilesToPass.AddFirst( SelectedTile );
-            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
-            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
         }
 
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
@@ -391,15 +397,6 @@ namespace Assets.Map
                     () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
 
             sys.Map.SwapUnit( SelectedTile, to);
-        }
-
-        public override void CursorMoved()
-        {
-            bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
-            if ( withinMoveRange )
-            {
-                AttemptToLengthenPath( sys.Cursor.CurrentTile );
-            }
         }
 
         private void AttemptToLengthenPath( GameTile to )
