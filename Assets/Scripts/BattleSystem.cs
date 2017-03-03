@@ -240,9 +240,13 @@ namespace Assets.Map
             if ( Input.GetButtonDown( "Submit" ) )
             {
                 SelectedUnit.AttackUnit( CurrentlySelected.Value );
-                sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
                 sys.GoToDefaultState();
             }
+        }
+
+        public override void Exit( BattleSystem sys )
+        {
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         }
 
         private void HandleChoosing( BattleSystem sys )
@@ -252,14 +256,20 @@ namespace Assets.Map
             {
                 if ( input.x == 1 )
                 {
-                    if ( CurrentlySelected.Next != null )
+                    if ( CurrentlySelected.Next == null )
+                        CurrentlySelected = ToAttack.First;
+                    else
                         CurrentlySelected = CurrentlySelected.Next;
+
                     sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
                 }
                 else if ( input.x == -1 )
                 {
-                    if ( CurrentlySelected.Previous != null )
+                    if ( CurrentlySelected.Previous == null )
+                        CurrentlySelected = ToAttack.Last;
+                    else
                         CurrentlySelected = CurrentlySelected.Previous;
+
                     sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
                 }
             }
