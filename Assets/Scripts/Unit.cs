@@ -50,11 +50,6 @@ namespace Assets.Map
         public IntChangedEvent MaxHPChanged;
         public UnityEvent UnitChanged;
 
-        void OnDrawGizmos()
-        {
-            Gizmos.DrawCube( this.transform.position, Vector3.one * 0.5f );
-        }
-
         void Awake()
         {
             HPChanged = new IntChangedEvent();
@@ -67,6 +62,11 @@ namespace Assets.Map
         void Start()
         {
             UnitChanged.Invoke();
+        }
+
+        public void AttackUnit( Unit otherUnit )
+        {
+            otherUnit.HP -= this.Attack - otherUnit.Defense;
         }
     }
 }
