@@ -35,7 +35,7 @@ namespace Assets.Map
             }
         }
 
-        private BattleState DefaultState = new PlayerSelectingUnit();
+        private BattleState DefaultState = new ChoosingUnitForAction();
 
         public GameMap Map;
         public CursorControl Cursor;
@@ -112,36 +112,19 @@ namespace Assets.Map
         public virtual void Exit( BattleSystem sys ) { }
     }
 
-    public class NullState : BattleState { }
-
-    public class PlayerSelectingUnit : MapCursorState
+    public abstract class ControlCursor : BattleState
     {
         public override void Update( BattleSystem sys )
         {
-            base.Update( sys );
-            Unit unitAtTile;
-            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
-            {
-                if ( Input.GetButtonDown( "Submit" ) )
-                {
+            if ( Input.GetButtonDown( "Cancel" ) )
+                sys.GoToPreviousState();
 
-                    Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
-                    unitAnimator.SetBool( "Selected", true );
-                    sys.CurrentState = new BeforeMoveSelect( unitAtTile );
-                }
-            }
-        }
-
-        public override void CursorMoved()
-        {
-            sys.Map.ShowUnitMovementIfHere( sys.Cursor.CurrentTile );
+            sys.Cursor.UpdateAction();
         }
     }
 
-    public class MenuState : BattleState
+    public abstract class MenuState : BattleState
     {
-        public override void Enter( BattleSystem sys ) { }
-
         public override void Exit( BattleSystem sys )
         {
             //To prevent the next state from catching the submit button
@@ -158,11 +141,35 @@ namespace Assets.Map
         }
     }
 
-    public class BeforeMoveSelect : MenuState
+    public class ChoosingUnitForAction : ControlCursor
+    {
+        public override void Update( BattleSystem sys )
+        {
+            base.Update( sys );
+            Unit unitAtTile;
+            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
+            {
+                if ( Input.GetButtonDown( "Submit" ) )
+                {
+
+                    Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
+                    unitAnimator.SetBool( "Selected", true );
+                    sys.CurrentState = new MoveAndOtherActions( unitAtTile );
+                }
+            }
+        }
+
+        public override void CursorMoved()
+        {
+            sys.Map.ShowUnitMovementIfHere( sys.Cursor.CurrentTile );
+        }
+    }
+
+    public class MoveAndOtherActions : MenuState
     {
         private Unit SelectedUnit;
 
-        public BeforeMoveSelect( Unit selectedUnit )
+        public MoveAndOtherActions( Unit selectedUnit )
         {
             SelectedUnit = selectedUnit;
         }
@@ -176,21 +183,27 @@ namespace Assets.Map
 
         private void StartMoving()
         {
-            sys.CurrentState = new PlayerMoveSelect( SelectedUnit );
+            sys.CurrentState = new WhereToMove( SelectedUnit );
             SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
         }
     }
 
-    public class AfterMoveSelect : MenuState
+    public class ActionsAfterMove : MenuState
     {
         private Unit SelectedUnit;
+        private IEnumerable<Unit> Interactables;
 
-        public AfterMoveSelect( Unit selectedUnit, IEnumerable<Unit> interactables )
+        public ActionsAfterMove( Unit selectedUnit, IEnumerable<Unit> interactables )
         {
             SelectedUnit = selectedUnit;
+            Interactables = interactables;
+        }
+
+        public override void Enter( BattleSystem sys )
+        {
             Button defaultSelected = sys.Menu.AddButton( "Wait", () => sys.GoToDefaultState() );
-            if ( interactables.Any( i => i is Unit ) )
-                defaultSelected = sys.Menu.AddButton( "Attack", () => sys.CurrentState = new ChooseAttacks( SelectedUnit, interactables.Where( i => i is Unit ).Cast<Unit>() ) );
+            if ( Interactables.Any( i => i is Unit ) )
+                defaultSelected = sys.Menu.AddButton( "Attack", () => sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is Unit ).Cast<Unit>() ) );
 
             EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
         }
@@ -249,18 +262,7 @@ namespace Assets.Map
         }
     }
 
-    public class MapCursorState : BattleState
-    {
-        public override void Update( BattleSystem sys )
-        {
-            if ( Input.GetButtonDown( "Cancel" ) )
-                sys.GoToPreviousState();
-
-            sys.Cursor.UpdateAction();
-        }
-    }
-
-    public class PlayerMoveSelect : MapCursorState
+    public class WhereToMove : ControlCursor
     {
         private Unit SelectedUnit;
         private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
@@ -268,13 +270,9 @@ namespace Assets.Map
         private HashSet<Vector2Int> AttackTiles;
         private LinkedList<GameTile> TilesToPass ;
 
-        public PlayerMoveSelect( Unit selectedUnit )
+        public WhereToMove( Unit selectedUnit )
         {
             SelectedUnit = selectedUnit;
-            TilesToPass = new LinkedList<GameTile>();
-            TilesToPass.AddFirst( SelectedTile );
-            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
-            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
         }
 
         public override void Update( BattleSystem sys )
@@ -292,17 +290,8 @@ namespace Assets.Map
                 if ( canMoveHere && notTheSameUnit )
                 {
                     ExecuteMove( sys.Cursor.CurrentTile );
-                    sys.CurrentState = new AfterMoveSelect( SelectedUnit, GetAttackableUnits().ToArray() );
+                    sys.CurrentState = new ActionsAfterMove( SelectedUnit, GetAttackableUnits().ToArray() );
                 }
-                //else
-                //{
-                //    if ( unitUnderCursor != null && notTheSameUnit && canAttackHere )
-                //        ExecuteAttack( SelectedUnit, unitUnderCursor );
-                //    else
-                //        return;
-                //}
-                //sys.Map.ShowUnitMovement( SelectedUnit );
-                //sys.GoToDefaultState();
             }
         }
 
@@ -328,6 +317,14 @@ namespace Assets.Map
         public override void Exit( BattleSystem sys )
         {
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+        }
+
+        public override void Enter( BattleSystem sys )
+        {
+            TilesToPass = new LinkedList<GameTile>();
+            TilesToPass.AddFirst( SelectedTile );
+            MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
+            AttackTiles = sys.Map.GetAttackTiles( MovementTiles, SelectedUnit.AttackRange );
         }
 
         private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )

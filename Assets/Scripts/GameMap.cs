@@ -283,9 +283,9 @@ namespace Assets.Map
         {
             foreach ( var tile in tilesToPass )
             {
-                PlayerMoveSelect state = 
-                    BattleSystem.Instance.CurrentState is PlayerMoveSelect ? 
-                    ( PlayerMoveSelect )BattleSystem.Instance.CurrentState :
+                WhereToMove state = 
+                    BattleSystem.Instance.CurrentState is WhereToMove ? 
+                    ( WhereToMove )BattleSystem.Instance.CurrentState :
                     null;
 
                 if ( state != null )
