@@ -49,18 +49,5 @@ namespace Assets.General
                 //yield return null;
             }
         }
-
-        /// <summary>
-        /// Moves a transform between a set of points at a linear speed
-        /// </summary>
-        /// <param name="toInterp">The transform of the given object to move</param>
-        /// <param name="nodesToPass">List of nodes to pass the transform through</param>
-        /// <param name="seconds">The time taken to get through each pair of points</param>
-        public static IEnumerator InterpolateBetweenPointsAndCallback( Transform toInterp, IList<Vector3> nodesToPass, float seconds, Action whenDone )
-        {
-            yield return InterpolateBetweenPoints( toInterp, nodesToPass, seconds );
-            whenDone();
-            yield return null;
-        }
     }
 }
