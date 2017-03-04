@@ -212,8 +212,8 @@ public class MapEditorScene : Editor
                     0,
                     Mathf.Floor( rayHitInfo.point.z / Map.transform.localScale.z ) );
 
-            Unit hitUnit =
-            FindObjectsOfType<Unit>().FirstOrDefault( unit =>
+            MapUnit hitUnit =
+            FindObjectsOfType<MapUnit>().FirstOrDefault( unit =>
             Mathf.Floor( unit.transform.localPosition.x ) == hitUnitTile.x &&
             Mathf.Floor( unit.transform.localPosition.z ) == hitUnitTile.z
             );

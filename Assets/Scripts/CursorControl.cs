@@ -49,7 +49,7 @@ namespace Assets.Map
         void Start()
         {
             CursorCamera.transform.LookAt( this.transform );
-            Unit firstunit = default( Unit );
+            MapUnit firstunit = default( MapUnit );
             CurrentTile = Map.FirstOrDefault( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
             CurrentTile = CurrentTile == null ? Map[ 0, 0 ] : CurrentTile;
             MoveCursor( CurrentTile.Position );

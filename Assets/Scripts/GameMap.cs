@@ -24,7 +24,7 @@ namespace Assets.Map
         public Material DefaultMat;
         public Material SelectionMat;
 
-        public DoubleDictionary<Unit,GameTile> UnitGametileMap = new DoubleDictionary<Unit,GameTile>();
+        public DoubleDictionary<MapUnit,GameTile> UnitGametileMap = new DoubleDictionary<MapUnit,GameTile>();
 
         private Mesh m_MapMesh; //OLD: Using gametiles to do drawing on the mesh
 
@@ -38,7 +38,7 @@ namespace Assets.Map
             }
 
             //Actual transforms tell you were they are in the array, might be bad but oh well
-            foreach ( Unit unit in GameObject.FindObjectsOfType<Unit>() )
+            foreach ( MapUnit unit in GameObject.FindObjectsOfType<MapUnit>() )
             {
                 var unitPosition = unit.transform.localPosition;
                 UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
@@ -96,7 +96,7 @@ namespace Assets.Map
                 }
         }
 
-        public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
+        public IEnumerable<Vector2Int> GetValidMovementPositions( MapUnit unit, GameTile unitsTile )
         {
             return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
                 .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
@@ -104,12 +104,12 @@ namespace Assets.Map
 
         public void ShowUnitMovementIfHere( GameTile tile )
         {
-            Unit unitThere;
+            MapUnit unitThere;
             UnitGametileMap.TryGetValue( tile, out unitThere );
             ShowUnitMovement( unitThere );
         }
 
-        public void ShowStandingAttackRange( Unit unit )
+        public void ShowStandingAttackRange( MapUnit unit )
         {
             foreach ( GameTile tile in this )
             {
@@ -125,7 +125,7 @@ namespace Assets.Map
             }
         }
 
-        public void ShowUnitMovement( Unit unit )
+        public void ShowUnitMovement( MapUnit unit )
         {
             foreach ( GameTile tile in this )
             {
@@ -342,7 +342,7 @@ namespace Assets.Map
 
         public bool Occupied( GameTile tile )
         {
-            Unit u;
+            MapUnit u;
             return UnitGametileMap.TryGetValue( tile, out u );
         }
 

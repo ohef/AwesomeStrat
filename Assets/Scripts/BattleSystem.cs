@@ -146,7 +146,7 @@ namespace Assets.Map
         public override void Update( BattleSystem sys )
         {
             base.Update( sys );
-            Unit unitAtTile;
+            MapUnit unitAtTile;
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
             {
                 if ( Input.GetButtonDown( "Submit" ) )
@@ -167,9 +167,9 @@ namespace Assets.Map
 
     public class MoveAndOtherActions : MenuState
     {
-        private Unit SelectedUnit;
+        private MapUnit SelectedUnit;
 
-        public MoveAndOtherActions( Unit selectedUnit )
+        public MoveAndOtherActions( MapUnit selectedUnit )
         {
             SelectedUnit = selectedUnit;
         }
@@ -190,10 +190,10 @@ namespace Assets.Map
 
     public class ActionsAfterMove : MenuState
     {
-        private Unit SelectedUnit;
-        private IEnumerable<Unit> Interactables;
+        private MapUnit SelectedUnit;
+        private IEnumerable<MapUnit> Interactables;
 
-        public ActionsAfterMove( Unit selectedUnit, IEnumerable<Unit> interactables )
+        public ActionsAfterMove( MapUnit selectedUnit, IEnumerable<MapUnit> interactables )
         {
             SelectedUnit = selectedUnit;
             Interactables = interactables;
@@ -202,7 +202,7 @@ namespace Assets.Map
         public override void Enter( BattleSystem sys )
         {
             Button defaultSelected = sys.Menu.AddButton( "Wait", () => sys.GoToDefaultState() );
-            if ( Interactables.Any( i => i is Unit ) )
+            if ( Interactables.Any( i => i is MapUnit ) )
                 defaultSelected = sys.Menu.AddButton( "Attack", StartChooseAttacks );
 
             EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
@@ -210,20 +210,20 @@ namespace Assets.Map
 
         public void StartChooseAttacks()
         {
-            sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is Unit ).Cast<Unit>() );
+            sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
         }
     }
 
     public class ChooseAttacks : BattleState
     {
-        private Unit SelectedUnit;
-        private LinkedList<Unit> ToAttack;
-        private LinkedListNode<Unit> CurrentlySelected;
+        private MapUnit SelectedUnit;
+        private LinkedList<MapUnit> ToAttack;
+        private LinkedListNode<MapUnit> CurrentlySelected;
 
-        public ChooseAttacks( Unit selectedUnit, IEnumerable<Unit> toAttack )
+        public ChooseAttacks( MapUnit selectedUnit, IEnumerable<MapUnit> toAttack )
         {
             SelectedUnit = selectedUnit;
-            ToAttack = new LinkedList<Unit>( toAttack );
+            ToAttack = new LinkedList<MapUnit>( toAttack );
             CurrentlySelected = ToAttack.First;
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
         }
@@ -283,12 +283,12 @@ namespace Assets.Map
 
     public class WhereToMove : ControlCursor
     {
-        private Unit SelectedUnit;
+        private MapUnit SelectedUnit;
         private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
         private HashSet<Vector2Int> MovementTiles;
         private LinkedList<GameTile> TilesToPass ;
 
-        public WhereToMove( Unit selectedUnit )
+        public WhereToMove( MapUnit selectedUnit )
         {
             SelectedUnit = selectedUnit;
         }
@@ -298,7 +298,7 @@ namespace Assets.Map
             base.Update( sys );
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
 
-            Unit unitUnderCursor = null;
+            MapUnit unitUnderCursor = null;
             sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
             if ( Input.GetButtonDown( "Submit" ) )
@@ -338,21 +338,21 @@ namespace Assets.Map
             sys.Map.RenderForPath( TilesToPass );
         }
 
-        private IEnumerable<Unit> GetAttackableUnits()
+        private IEnumerable<MapUnit> GetAttackableUnits()
         {
             foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
             {
                 if ( tile == SelectedTile.Position )
                     continue;
 
-                Unit unitCheck = null;
+                MapUnit unitCheck = null;
                 if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
                     yield return unitCheck;
             }
             yield break;
         }
 
-        private void ExecuteAttack( Unit selectedUnit, Unit unitUnderCursor )
+        private void ExecuteAttack( MapUnit selectedUnit, MapUnit unitUnderCursor )
         {
             GameTile lastTile = TilesToPass.First();
             if ( lastTile != SelectedTile ) //We need to move
