@@ -8,5 +8,6 @@ public class IntChangedEvent : UnityEvent<int> { }
 
 public class MapUnit : Unit
 {
-    bool hasTakenAction;
+    public bool hasTakenAction = false;
+    public bool hasMoved = false;
 }

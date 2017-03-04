@@ -149,12 +149,11 @@ namespace Assets.Map
             MapUnit unitAtTile;
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
             {
-                if ( Input.GetButtonDown( "Submit" ) )
+                if ( Input.GetButtonDown( "Submit" ) && unitAtTile.hasTakenAction == false )
                 {
-
                     Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
                     unitAnimator.SetBool( "Selected", true );
-                    sys.CurrentState = new MoveAndOtherActions( unitAtTile );
+                    sys.CurrentState = new SelectUnitActions( unitAtTile );
                 }
             }
         }
@@ -165,20 +164,28 @@ namespace Assets.Map
         }
     }
 
-    public class MoveAndOtherActions : MenuState
+    public class SelectUnitActions : MenuState
     {
         private MapUnit SelectedUnit;
+        private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
 
-        public MoveAndOtherActions( MapUnit selectedUnit )
+        public SelectUnitActions( MapUnit selectedUnit )
         {
             SelectedUnit = selectedUnit;
         }
 
         public override void Enter( BattleSystem sys )
         {
-            //TODO: Put this in a member var
-            Button addedButton = sys.Menu.AddButton( "Move", StartMoving );
-            EventSystem.current.SetSelectedGameObject( addedButton.gameObject );
+            Button defaultSelected = sys.Menu.AddButton( "Wait", Wait );
+
+            if ( SelectedUnit.hasMoved == false )
+                sys.Menu.AddButton( "Move", StartMoving );
+
+            var interactables = GetAttackableUnits();
+            if ( interactables.Count() > 0 )
+                defaultSelected = sys.Menu.AddButton( "Attack", () => StartChooseAttacks( interactables ) );
+
+            EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
         }
 
         private void StartMoving()
@@ -186,31 +193,30 @@ namespace Assets.Map
             sys.CurrentState = new WhereToMove( SelectedUnit );
             SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
         }
-    }
 
-    public class ActionsAfterMove : MenuState
-    {
-        private MapUnit SelectedUnit;
-        private IEnumerable<MapUnit> Interactables;
-
-        public ActionsAfterMove( MapUnit selectedUnit, IEnumerable<MapUnit> interactables )
+        private IEnumerable<MapUnit> GetAttackableUnits()
         {
-            SelectedUnit = selectedUnit;
-            Interactables = interactables;
+            foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
+            {
+                if ( tile == SelectedTile.Position )
+                    continue;
+
+                MapUnit unitCheck = null;
+                if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
+                    yield return unitCheck;
+            }
+            yield break;
         }
 
-        public override void Enter( BattleSystem sys )
+        private void Wait()
         {
-            Button defaultSelected = sys.Menu.AddButton( "Wait", () => sys.GoToDefaultState() );
-            if ( Interactables.Any( i => i is MapUnit ) )
-                defaultSelected = sys.Menu.AddButton( "Attack", StartChooseAttacks );
-
-            EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
+            sys.GoToDefaultState();
+            SelectedUnit.hasTakenAction = true;
         }
 
-        public void StartChooseAttacks()
+        private void StartChooseAttacks( IEnumerable<MapUnit> interactables )
         {
-            sys.CurrentState = new ChooseAttacks( SelectedUnit, Interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
+            sys.CurrentState = new ChooseAttacks( SelectedUnit, interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
         }
     }
 
@@ -241,12 +247,18 @@ namespace Assets.Map
             {
                 SelectedUnit.AttackUnit( CurrentlySelected.Value );
                 sys.GoToDefaultState();
+                SelectedUnit.hasTakenAction = true;
             }
         }
 
         public override void Exit( BattleSystem sys )
         {
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+        }
+
+        public override void Enter( BattleSystem sys )
+        {
+            sys.Map.ShowStandingAttackRange( SelectedUnit );
         }
 
         private void HandleChoosing( BattleSystem sys )
@@ -273,11 +285,6 @@ namespace Assets.Map
                     sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
                 }
             }
-        }
-
-        public override void Enter( BattleSystem sys )
-        {
-            sys.Map.ShowStandingAttackRange( SelectedUnit );
         }
     }
 
@@ -307,7 +314,7 @@ namespace Assets.Map
                 if ( canMoveHere && notTheSameUnit )
                 {
                     ExecuteMove( sys.Cursor.CurrentTile );
-                    sys.CurrentState = new ActionsAfterMove( SelectedUnit, GetAttackableUnits().ToArray() );
+                    sys.CurrentState = new SelectUnitActions( SelectedUnit );
                 }
             }
         }
@@ -336,20 +343,6 @@ namespace Assets.Map
         public override void OnRenderObject()
         {
             sys.Map.RenderForPath( TilesToPass );
-        }
-
-        private IEnumerable<MapUnit> GetAttackableUnits()
-        {
-            foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
-            {
-                if ( tile == SelectedTile.Position )
-                    continue;
-
-                MapUnit unitCheck = null;
-                if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
-                    yield return unitCheck;
-            }
-            yield break;
         }
 
         private void ExecuteAttack( MapUnit selectedUnit, MapUnit unitUnderCursor )
@@ -397,6 +390,7 @@ namespace Assets.Map
                     () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
 
             sys.Map.SwapUnit( SelectedTile, to);
+            SelectedUnit.hasMoved = true;
         }
 
         private void AttemptToLengthenPath( GameTile to )
