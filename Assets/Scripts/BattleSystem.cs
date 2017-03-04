@@ -70,13 +70,13 @@ namespace Assets.Map
             CurrentState.Enter( this );
         }
 
-        public void GoToDefaultState()
+        public void GoToStateAndForget( BattleState state )
         {
             IPlayerState poppedState = StateStack.Pop();
             poppedState.Exit( this );
-            DefaultState.Enter( this );
+            state.Enter( this );
             StateStack.Clear();
-            CurrentState = DefaultState;
+            CurrentState = state;
         }
 
         private void CursorMoved()
@@ -87,6 +87,24 @@ namespace Assets.Map
         private void OnRenderObject()
         {
             CurrentState.OnRenderObject();
+        }
+    }
+
+    public abstract class TurnState : IPlayerState
+    {
+        public void Enter( BattleSystem state )
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Exit( BattleSystem state )
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update( BattleSystem state )
+        {
+            throw new NotImplementedException();
         }
     }
 
@@ -143,6 +161,15 @@ namespace Assets.Map
 
     public class ChoosingUnitForAction : ControlCursor
     {
+        private static ChoosingUnitForAction instance = new ChoosingUnitForAction();
+        public static ChoosingUnitForAction Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
         public override void Update( BattleSystem sys )
         {
             base.Update( sys );
@@ -210,7 +237,7 @@ namespace Assets.Map
 
         private void Wait()
         {
-            sys.GoToDefaultState();
+            sys.GoToStateAndForget( ChoosingUnitForAction.Instance );
             SelectedUnit.hasTakenAction = true;
         }
 
@@ -246,7 +273,7 @@ namespace Assets.Map
             if ( Input.GetButtonDown( "Submit" ) )
             {
                 SelectedUnit.AttackUnit( CurrentlySelected.Value );
-                sys.GoToDefaultState();
+                sys.GoToStateAndForget( ChoosingUnitForAction.Instance );
                 SelectedUnit.hasTakenAction = true;
             }
         }
