@@ -15,27 +15,10 @@ namespace Assets.Map
         private static BattleSystem instance;
         public static BattleSystem Instance { get { return instance; } }
 
-        private enum BattleTurn
-        {
-            Player,
-            Enemy
-        };
+        private Stack<BattleState> TurnStateStack = new Stack<BattleState>();
+        public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
 
-        private Stack<BattleState> StateStack = new Stack<BattleState>();
-        public BattleState CurrentState {
-            get { return StateStack.Peek(); }
-            set
-            {
-                if ( StateStack.Count > 0 )
-                {
-                    StateStack.Peek().Exit( this );
-                    value.Enter( this );
-                }
-                StateStack.Push( value );
-            }
-        }
-
-        private BattleState DefaultState = new ChoosingUnitForAction();
+        public TurnState CurrentTurn;
 
         public GameMap Map;
         public CursorControl Cursor;
@@ -50,61 +33,82 @@ namespace Assets.Map
         // Use this for initialization
         void Start()
         {
-            CurrentState = DefaultState;
+            CurrentTurn = new PlayerTurn();
+            TurnState = ChoosingUnitForAction.Instance;
             Cursor.CursorMoved.AddListener( CursorMoved );
         }
 
         // Update is called once per frame
         void Update()
         {
-            CurrentState.Update( this );
-        }
-
-        public void GoToPreviousState()
-        {
-            if ( CurrentState == DefaultState )
-                return;
-
-            IPlayerState poppedState = StateStack.Pop();
-            poppedState.Exit( this );
-            CurrentState.Enter( this );
-        }
-
-        public void GoToStateAndForget( BattleState state )
-        {
-            IPlayerState poppedState = StateStack.Pop();
-            poppedState.Exit( this );
-            state.Enter( this );
-            StateStack.Clear();
-            CurrentState = state;
+            CurrentTurn.Update( this );
         }
 
         private void CursorMoved()
         {
-            CurrentState.CursorMoved();
+            CurrentTurn.CursorMoved();
         }
 
         private void OnRenderObject()
         {
-            CurrentState.OnRenderObject();
+            CurrentTurn.OnRenderObject();
         }
     }
 
     public abstract class TurnState : IPlayerState
     {
-        public void Enter( BattleSystem state )
-        {
-            throw new NotImplementedException();
+        protected BattleSystem sys { get { return BattleSystem.Instance; } }
+
+        private Stack<BattleState> StateStack = new Stack<BattleState>();
+        public BattleState State {
+            get { return StateStack.Peek(); }
+            set
+            {
+                if ( StateStack.Count > 0 )
+                {
+                    StateStack.Peek().Exit( sys );
+                    value.Enter( sys );
+                }
+                StateStack.Push( value );
+            }
         }
 
-        public void Exit( BattleSystem state )
+        public void GoToPreviousState()
         {
-            throw new NotImplementedException();
+            if ( State == ChoosingUnitForAction.Instance )
+                return;
+
+            IPlayerState poppedState = StateStack.Pop();
+            poppedState.Exit( sys );
+            State.Enter( sys );
         }
 
-        public void Update( BattleSystem state )
+        public void GoToStateAndForget( BattleState state )
         {
-            throw new NotImplementedException();
+            IPlayerState poppedState = StateStack.Pop();
+            poppedState.Exit( sys );
+            state.Enter( sys );
+            StateStack.Clear();
+            State = state;
+        }
+
+        public virtual void Enter( BattleSystem sys ) { }
+
+        public virtual void Exit( BattleSystem sys ) { }
+
+        public virtual void Update( BattleSystem sys )
+        {
+            State.Update( sys );
+        }
+
+        public virtual void CursorMoved()
+        {
+            State.CursorMoved();
+        }
+
+        public virtual void OnRenderObject()
+        {
+            State.OnRenderObject();
         }
     }
 
@@ -114,6 +118,8 @@ namespace Assets.Map
         void Enter( BattleSystem state );
         void Exit( BattleSystem state );
     }
+
+    public class PlayerTurn : TurnState { }
 
     public abstract class BattleState : IPlayerState
     {
@@ -135,7 +141,7 @@ namespace Assets.Map
         public override void Update( BattleSystem sys )
         {
             if ( Input.GetButtonDown( "Cancel" ) )
-                sys.GoToPreviousState();
+                sys.CurrentTurn.GoToPreviousState();
 
             sys.Cursor.UpdateAction();
         }
@@ -154,7 +160,7 @@ namespace Assets.Map
         {
             if ( Input.GetButtonDown( "Cancel" ) )
             {
-                sys.GoToPreviousState();
+                sys.CurrentTurn.GoToPreviousState();
             }
         }
     }
@@ -180,7 +186,7 @@ namespace Assets.Map
                 {
                     Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
                     unitAnimator.SetBool( "Selected", true );
-                    sys.CurrentState = new SelectUnitActions( unitAtTile );
+                    sys.TurnState = new SelectUnitActions( unitAtTile );
                 }
             }
         }
@@ -217,7 +223,7 @@ namespace Assets.Map
 
         private void StartMoving()
         {
-            sys.CurrentState = new WhereToMove( SelectedUnit );
+            sys.TurnState = new WhereToMove( SelectedUnit );
             SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
         }
 
@@ -237,13 +243,13 @@ namespace Assets.Map
 
         private void Wait()
         {
-            sys.GoToStateAndForget( ChoosingUnitForAction.Instance );
+            sys.CurrentTurn.GoToStateAndForget( ChoosingUnitForAction.Instance );
             SelectedUnit.hasTakenAction = true;
         }
 
         private void StartChooseAttacks( IEnumerable<MapUnit> interactables )
         {
-            sys.CurrentState = new ChooseAttacks( SelectedUnit, interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
+            sys.TurnState = new ChooseAttacks( SelectedUnit, interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
         }
     }
 
@@ -265,7 +271,7 @@ namespace Assets.Map
         {
             if ( Input.GetButtonDown( "Cancel" ) )
             {
-                sys.GoToPreviousState();
+                sys.CurrentTurn.GoToPreviousState();
             }
 
             HandleChoosing( sys );
@@ -273,7 +279,7 @@ namespace Assets.Map
             if ( Input.GetButtonDown( "Submit" ) )
             {
                 SelectedUnit.AttackUnit( CurrentlySelected.Value );
-                sys.GoToStateAndForget( ChoosingUnitForAction.Instance );
+                sys.CurrentTurn.GoToStateAndForget( ChoosingUnitForAction.Instance );
                 SelectedUnit.hasTakenAction = true;
             }
         }
@@ -341,7 +347,7 @@ namespace Assets.Map
                 if ( canMoveHere && notTheSameUnit )
                 {
                     ExecuteMove( sys.Cursor.CurrentTile );
-                    sys.CurrentState = new SelectUnitActions( SelectedUnit );
+                    sys.TurnState = new SelectUnitActions( SelectedUnit );
                 }
             }
         }
