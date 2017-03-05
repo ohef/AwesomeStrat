@@ -24,6 +24,7 @@ namespace Assets.Map
         public CursorControl Cursor;
         public CommandMenu Menu;
         public UnityEvent StateChanged;
+        public event Action InRenderObject;
 
         void Awake()
         {
@@ -34,8 +35,6 @@ namespace Assets.Map
         void Start()
         {
             CurrentTurn = new PlayerTurn();
-            TurnState = ChoosingUnitForAction.Instance;
-            Cursor.CursorMoved.AddListener( CursorMoved );
         }
 
         // Update is called once per frame
@@ -44,14 +43,10 @@ namespace Assets.Map
             CurrentTurn.Update( this );
         }
 
-        private void CursorMoved()
-        {
-            CurrentTurn.CursorMoved();
-        }
-
         private void OnRenderObject()
         {
-            CurrentTurn.OnRenderObject();
+            if ( InRenderObject != null )
+                InRenderObject();
         }
     }
 
@@ -100,16 +95,6 @@ namespace Assets.Map
         {
             State.Update( sys );
         }
-
-        public virtual void CursorMoved()
-        {
-            State.CursorMoved();
-        }
-
-        public virtual void OnRenderObject()
-        {
-            State.OnRenderObject();
-        }
     }
 
     public interface IPlayerState
@@ -119,15 +104,18 @@ namespace Assets.Map
         void Exit( BattleSystem state );
     }
 
-    public class PlayerTurn : TurnState { }
+    public class PlayerTurn : TurnState
+    {
+        public PlayerTurn()
+        {
+            State = ChoosingUnitForAction.Instance;
+            State.Enter( sys );
+        }
+    }
 
     public abstract class BattleState : IPlayerState
     {
         protected BattleSystem sys { get { return BattleSystem.Instance; } }
-
-        public virtual void CursorMoved() { }
-
-        public virtual void OnRenderObject() { }
 
         public virtual void Update( BattleSystem sys ) { }
 
@@ -191,7 +179,17 @@ namespace Assets.Map
             }
         }
 
-        public override void CursorMoved()
+        public override void Enter( BattleSystem sys )
+        {
+            sys.Cursor.CursorMoved.AddListener( CursorMoved );
+        }
+
+        public override void Exit( BattleSystem sys )
+        {
+            sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
+        }
+
+        public void CursorMoved()
         {
             sys.Map.ShowUnitMovementIfHere( sys.Cursor.CurrentTile );
         }
@@ -352,19 +350,23 @@ namespace Assets.Map
             }
         }
 
-        public override void Exit( BattleSystem sys )
-        {
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        }
-
         public override void Enter( BattleSystem sys )
         {
+            sys.InRenderObject += OnRenderObject;
+            sys.Cursor.CursorMoved.AddListener( CursorMoved );
             TilesToPass = new LinkedList<GameTile>();
             TilesToPass.AddFirst( SelectedTile );
             MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
         }
 
-        public override void CursorMoved()
+        public override void Exit( BattleSystem sys )
+        {
+            sys.InRenderObject -= OnRenderObject;
+            sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
+            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+        }
+
+        public void CursorMoved()
         {
             bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
             if ( withinMoveRange )
@@ -373,7 +375,7 @@ namespace Assets.Map
             }
         }
 
-        public override void OnRenderObject()
+        public void OnRenderObject()
         {
             sys.Map.RenderForPath( TilesToPass );
         }
