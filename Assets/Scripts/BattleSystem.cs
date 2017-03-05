@@ -68,6 +68,8 @@ namespace Assets.Map
             }
         }
 
+        public Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
+
         public void GoToPreviousState()
         {
             if ( State == ChoosingUnitForAction.Instance )
@@ -453,6 +455,38 @@ namespace Assets.Map
                     TilesToPass.RemoveFirst();
                 }
             }
+        }
+    }
+
+    public interface ICommand
+    {
+        void Execute();
+    }
+
+    public interface IUndoCommand : ICommand
+    {
+        void Undo();
+    }
+
+    public struct UndoCommandAction : IUndoCommand
+    {
+        private Action execute;
+        private Action undo;
+
+        public UndoCommandAction( Action execute, Action undo )
+        {
+            this.execute = execute;
+            this.undo = undo;
+        }
+
+        public void Execute()
+        {
+            execute();
+        }
+
+        public void Undo()
+        {
+            undo();
         }
     }
 }

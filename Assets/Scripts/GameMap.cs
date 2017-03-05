@@ -284,8 +284,8 @@ namespace Assets.Map
             foreach ( var tile in tilesToPass )
             {
                 WhereToMove state = 
-                    BattleSystem.Instance.CurrentState is WhereToMove ? 
-                    ( WhereToMove )BattleSystem.Instance.CurrentState :
+                    BattleSystem.Instance.TurnState is WhereToMove ? 
+                    ( WhereToMove )BattleSystem.Instance.TurnState :
                     null;
 
                 if ( state != null )
