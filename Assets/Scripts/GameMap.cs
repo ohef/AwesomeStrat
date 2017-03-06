@@ -7,8 +7,6 @@ using System.Linq;
 using Assets.General;
 using System.Collections;
 
-namespace Assets.Map
-{
     public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
         public int Width;
@@ -283,9 +281,9 @@ namespace Assets.Map
         {
             foreach ( var tile in tilesToPass )
             {
-                WhereToMove state = 
-                    BattleSystem.Instance.TurnState is WhereToMove ? 
-                    ( WhereToMove )BattleSystem.Instance.TurnState :
+                WhereToMoveState state = 
+                    BattleSystem.Instance.TurnState is WhereToMoveState ? 
+                    ( WhereToMoveState )BattleSystem.Instance.TurnState :
                     null;
 
                 if ( state != null )
@@ -395,4 +393,3 @@ namespace Assets.Map
             return GameTiles.GetEnumerator();
         }
     } 
-}

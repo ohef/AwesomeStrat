@@ -4,8 +4,6 @@ using System.Linq;
 using System.Text;
 using Assets.General.DataStructures;
 
-namespace Assets.Map
-{
     public interface IHeuristic<TNode, THeurVal>
     {
         THeurVal CalculateHeuristic( TNode a, TNode b );
@@ -184,4 +182,3 @@ namespace Assets.Map
             return obj.Location.x + obj.Location.y * 1000;
         }
     }
-}
