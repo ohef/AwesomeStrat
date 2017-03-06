@@ -41,7 +41,7 @@ public class BattleSystem : MonoBehaviour
         CurrentTurn.Update( this );
     }
 
-    private void OnRenderObject()
+    void OnRenderObject()
     {
         if ( InRenderObject != null )
             InRenderObject();

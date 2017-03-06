@@ -2,21 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class MenuState : BattleState
+public abstract class MenuState : CancelableState
 {
     public override void Exit( BattleSystem sys )
     {
         //To prevent the next state from catching the submit button
         Input.ResetInputAxes();
         sys.Menu.ClearButtons();
-    }
-
-    public override void Update( BattleSystem sys )
-    {
-        if ( Input.GetButtonDown( "Cancel" ) )
-        {
-            sys.CurrentTurn.GoToPreviousState();
-        }
     }
 }
 

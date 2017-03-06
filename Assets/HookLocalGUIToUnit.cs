@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
-using Assets.Map;
 
 [RequireComponent( typeof( MapUnit ) )]
 public class HookLocalGUIToUnit : MonoBehaviour {

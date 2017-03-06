@@ -1,18 +1,23 @@
 ﻿using Assets.General.DataStructures;
+using Assets.General.UnityExtensions;
+using Assets.General;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using System;
 
 public class WhereToMoveState : ControlCursorState
 {
     private MapUnit SelectedUnit;
-    private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
+    private GameTile InitialUnitTile;
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<GameTile> TilesToPass;
 
     public WhereToMoveState( MapUnit selectedUnit )
     {
         SelectedUnit = selectedUnit;
+        InitialUnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
     }
 
     public override void Update( BattleSystem sys )
@@ -28,10 +33,40 @@ public class WhereToMoveState : ControlCursorState
             bool notTheSameUnit = unitUnderCursor != SelectedUnit;
             if ( canMoveHere && notTheSameUnit )
             {
-                ExecuteMove( sys.Cursor.CurrentTile );
+                sys.CurrentTurn.DoCommand( 
+                    CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
                 sys.TurnState = new ChoosingUnitActionsState( SelectedUnit );
             }
         }
+    }
+
+    private UndoCommandAction CreateMoveCommand( GameTile targetTile, GameTile initialTile )
+    {
+        return new UndoCommandAction(
+            delegate
+            {
+                SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", true );
+
+                SelectedUnit.StartCoroutine(
+                    CoroutineHelper.AddAfter( CustomAnimation.InterpolateBetweenPoints( SelectedUnit.transform,
+                    TilesToPass.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(),
+                    0.22f ),
+                () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
+
+                sys.Map.PlaceUnit( SelectedUnit, targetTile );
+                SelectedUnit.hasMoved = true;
+            },
+            delegate
+            {
+                SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false );
+                SelectedUnit.StopAllCoroutines();
+
+                sys.Map.PlaceUnit( SelectedUnit, initialTile );
+                SelectedUnit.transform.position = initialTile.transform.position;
+
+                sys.Cursor.MoveCursor( initialTile.Position );
+                SelectedUnit.hasMoved = false;
+            } );
     }
 
     public override void Enter( BattleSystem sys )
@@ -39,8 +74,8 @@ public class WhereToMoveState : ControlCursorState
         sys.InRenderObject += OnRenderObject;
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
         TilesToPass = new LinkedList<GameTile>();
-        TilesToPass.AddFirst( SelectedTile );
-        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, SelectedTile ) );
+        TilesToPass.AddFirst( InitialUnitTile );
+        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
     }
 
     public override void Exit( BattleSystem sys )
@@ -64,53 +99,38 @@ public class WhereToMoveState : ControlCursorState
         sys.Map.RenderForPath( TilesToPass );
     }
 
-    private void ExecuteAttack( MapUnit selectedUnit, MapUnit unitUnderCursor )
-    {
-        GameTile lastTile = TilesToPass.First();
-        if ( lastTile != SelectedTile ) //We need to move
-        {
-            ExecuteMove( lastTile );
-        }
-        selectedUnit.AttackUnit( unitUnderCursor );
-    }
+    //private void ExecuteAttack( MapUnit selectedUnit, MapUnit unitUnderCursor )
+    //{
+    //    GameTile lastTile = TilesToPass.First();
+    //    if ( lastTile != SelectedTile ) //We need to move
+    //    {
+    //        ExecuteMove( lastTile );
+    //    }
+    //    selectedUnit.AttackUnit( unitUnderCursor );
+    //}
 
-    private GameTile GetOptimalAttackPosition( GameTile on )
-    {
-        // Does a reverse lookup from position to see if there are any 
-        // tiles we can move around the point we can move to
-        IEnumerable<Vector2Int> canMovePositions = sys.Map
-            .GetTilesWithinAbsoluteRange( on.Position, SelectedUnit.AttackRange )
-            .Where( pos => MovementTiles.Contains( pos ) )
-            .ToList();
+    //private GameTile GetOptimalAttackPosition( GameTile on )
+    //{
+    //    // Does a reverse lookup from position to see if there are any 
+    //    // tiles we can move around the point we can move to
+    //    IEnumerable<Vector2Int> canMovePositions = sys.Map
+    //        .GetTilesWithinAbsoluteRange( on.Position, SelectedUnit.AttackRange )
+    //        .Where( pos => MovementTiles.Contains( pos ) )
+    //        .ToList();
 
-        if ( canMovePositions.Count() == 0 )
-            return null;
-        else if ( canMovePositions.Any( pos => pos == SelectedTile.Position ) )
-            return SelectedTile;
+    //    if ( canMovePositions.Count() == 0 )
+    //        return null;
+    //    else if ( canMovePositions.Any( pos => pos == SelectedTile.Position ) )
+    //        return SelectedTile;
 
-        Vector2Int optimalPosition = canMovePositions
-            .Select( pos => new { Pos = pos, Distance = on.Position.ManhattanDistance( pos ) } )
-            .OrderByDescending( data => data.Distance )
-            .First()
-            .Pos;
+    //    Vector2Int optimalPosition = canMovePositions
+    //        .Select( pos => new { Pos = pos, Distance = on.Position.ManhattanDistance( pos ) } )
+    //        .OrderByDescending( data => data.Distance )
+    //        .First()
+    //        .Pos;
 
-        return sys.Map[ optimalPosition ];
-    }
-
-    private void ExecuteMove( GameTile to )
-    {
-        SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", true );
-
-        sys.StartCoroutine(
-            General.UnityExtensions.CoroutineHelper.AddAfter(
-                General.CustomAnimation.InterpolateBetweenPoints( SelectedUnit.transform,
-                TilesToPass.Select( x => x.GetComponent<Transform>().localPosition )
-                .Reverse().ToList(), 0.22f ),
-                () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
-
-        sys.Map.SwapUnit( SelectedTile, to );
-        SelectedUnit.hasMoved = true;
-    }
+    //    return sys.Map[ optimalPosition ];
+    //}
 
     private void AttemptToLengthenPath( GameTile to )
     {
@@ -121,7 +141,7 @@ public class WhereToMoveState : ControlCursorState
 
         if ( TilesToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
         {
-            TilesToPass = new LinkedList<GameTile>( MapSearcher.Search( SelectedTile, to, sys.Map, SelectedUnit.MovementRange ) );
+            TilesToPass = new LinkedList<GameTile>( MapSearcher.Search( InitialUnitTile, to, sys.Map, SelectedUnit.MovementRange ) );
             return;
         }
 

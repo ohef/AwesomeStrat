@@ -21,7 +21,7 @@ public abstract class TurnState : IPlayerState
         }
     }
 
-    public Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
+    private Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
 
     public void GoToPreviousState()
     {
@@ -33,6 +33,14 @@ public abstract class TurnState : IPlayerState
         State.Enter( sys );
     }
 
+    public void UndoEverything()
+    {
+        foreach ( var command in Commands )
+            command.Undo();
+
+        Commands.Clear();
+    }
+
     public void GoToStateAndForget( BattleState state )
     {
         IPlayerState poppedState = StateStack.Pop();
@@ -40,6 +48,12 @@ public abstract class TurnState : IPlayerState
         state.Enter( sys );
         StateStack.Clear();
         State = state;
+    }
+
+    public void DoCommand( IUndoCommand command )
+    {
+        Commands.Push( command );
+        command.Execute();
     }
 
     public virtual void Enter( BattleSystem sys ) { }

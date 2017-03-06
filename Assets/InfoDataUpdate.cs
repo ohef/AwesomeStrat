@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System;
-using Assets.Map;
 using UnityEngine.UI;
 
 /// <summary>

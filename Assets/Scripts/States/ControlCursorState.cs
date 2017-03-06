@@ -2,13 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ControlCursorState : BattleState
+public abstract class ControlCursorState : CancelableState
 {
     public override void Update( BattleSystem sys )
     {
-        if ( Input.GetButtonDown( "Cancel" ) )
-            sys.CurrentTurn.GoToPreviousState();
-
+        base.Update( sys );
         sys.Cursor.UpdateAction();
     }
 }
