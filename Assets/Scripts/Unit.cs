@@ -3,6 +3,8 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
+public class IntChangedEvent : UnityEvent<int> { }
+
 [Serializable]
 public class Unit : MonoBehaviour
 {

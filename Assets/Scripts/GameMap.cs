@@ -22,7 +22,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     public Material DefaultMat;
     public Material SelectionMat;
 
-    public DoubleDictionary<MapUnit, GameTile> UnitGametileMap = new DoubleDictionary<MapUnit, GameTile>();
+    public DoubleDictionary<Unit, GameTile> UnitGametileMap = new DoubleDictionary<Unit, GameTile>();
 
     private Mesh m_MapMesh; //OLD: Using gametiles to do drawing on the mesh
 
@@ -36,7 +36,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         }
 
         //Actual transforms tell you were they are in the array, might be bad but oh well
-        foreach ( MapUnit unit in GameObject.FindObjectsOfType<MapUnit>() )
+        foreach ( Unit unit in GameObject.FindObjectsOfType<Unit>() )
         {
             var unitPosition = unit.transform.localPosition;
             UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
@@ -94,7 +94,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
             }
     }
 
-    public IEnumerable<Vector2Int> GetValidMovementPositions( MapUnit unit, GameTile unitsTile )
+    public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
     {
         return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
             .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
@@ -102,12 +102,12 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 
     public void ShowUnitMovementIfHere( GameTile tile )
     {
-        MapUnit unitThere;
+        Unit unitThere;
         UnitGametileMap.TryGetValue( tile, out unitThere );
         ShowUnitMovement( unitThere );
     }
 
-    public void ShowStandingAttackRange( MapUnit unit )
+    public void ShowStandingAttackRange( Unit unit )
     {
         foreach ( GameTile tile in this )
         {
@@ -123,7 +123,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         }
     }
 
-    public void ShowUnitMovement( MapUnit unit )
+    public void ShowUnitMovement( Unit unit )
     {
         foreach ( GameTile tile in this )
         {
@@ -340,11 +340,11 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 
     public bool Occupied( GameTile tile )
     {
-        MapUnit u;
+        Unit u;
         return UnitGametileMap.TryGetValue( tile, out u );
     }
 
-    public void PlaceUnit( MapUnit unit, GameTile b )
+    public void PlaceUnit( Unit unit, GameTile b )
     {
         if ( Occupied( b ) == false )
             UnitGametileMap.Add( unit, b );

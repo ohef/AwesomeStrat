@@ -47,7 +47,7 @@ public class CursorControl : MonoBehaviour
     void Start()
     {
         CursorCamera.transform.LookAt( this.transform );
-        MapUnit firstunit = default( MapUnit );
+        Unit firstunit = default( Unit );
         CurrentTile = Map.FirstOrDefault( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
         CurrentTile = CurrentTile == null ? Map[ 0, 0 ] : CurrentTile;
         MoveCursor( CurrentTile.Position );

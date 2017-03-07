@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ChoosingUnitState : ControlCursorState
+public class ChoosingUnitState : BattleState
 {
     private static ChoosingUnitState instance = new ChoosingUnitState();
     public static ChoosingUnitState Instance
@@ -15,15 +15,21 @@ public class ChoosingUnitState : ControlCursorState
 
     public override void Update( BattleSystem sys )
     {
-        base.Update( sys );
-        MapUnit unitAtTile;
-        if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) )
+        sys.Cursor.UpdateAction();
+        if ( Input.GetButtonDown( "Submit" ) )
         {
-            if ( Input.GetButtonDown( "Submit" ) && unitAtTile.hasTakenAction == false )
+            Unit unitAtTile;
+            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) 
+                && sys.CurrentTurn.ControlledUnits.Contains( unitAtTile )
+                && sys.CurrentTurn.HasNotActed.Contains( unitAtTile ) )
             {
                 Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
                 unitAnimator.SetBool( "Selected", true );
                 sys.TurnState = new ChoosingUnitActionsState( unitAtTile );
+            }
+            else
+            {
+                sys.TurnState = new TurnMenuState();
             }
         }
     }

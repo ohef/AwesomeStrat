@@ -16,7 +16,9 @@ public class BattleSystem : MonoBehaviour
     private Stack<BattleState> TurnStateStack = new Stack<BattleState>();
     public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
 
-    public TurnState CurrentTurn;
+    private LinkedList<TurnState> TurnOrder;
+    private LinkedListNode<TurnState> currentTurn;
+    public TurnState CurrentTurn { get { return currentTurn.Value; } }
 
     public GameMap Map;
     public CursorControl Cursor;
@@ -27,12 +29,13 @@ public class BattleSystem : MonoBehaviour
     void Awake()
     {
         instance = this;
+        TurnOrder = new LinkedList<TurnState>( new TurnState[] { new PlayerTurnState() } );
+        currentTurn = TurnOrder.First;
     }
 
     // Use this for initialization
     void Start()
     {
-        CurrentTurn = new PlayerTurnState();
     }
 
     // Update is called once per frame
@@ -45,6 +48,19 @@ public class BattleSystem : MonoBehaviour
     {
         if ( InRenderObject != null )
             InRenderObject();
+    }
+
+    public void EndTurn()
+    {
+        CurrentTurn.Exit( this );
+
+        LinkedListNode<TurnState> nextTurn = currentTurn.Next;
+        if ( nextTurn == null )
+            currentTurn = TurnOrder.First;
+        else
+            currentTurn = nextTurn;
+
+        CurrentTurn.Enter( this );
     }
 }
 

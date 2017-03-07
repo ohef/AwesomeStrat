@@ -7,19 +7,21 @@ using UnityEngine.UI;
 
 public class ChoosingUnitActionsState : MenuState
 {
-    private MapUnit SelectedUnit;
+    private Unit SelectedUnit;
     private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
+    private bool MoveTaken;
 
-    public ChoosingUnitActionsState( MapUnit selectedUnit )
+    public ChoosingUnitActionsState( Unit selectedUnit, bool moveTaken = false )
     {
         SelectedUnit = selectedUnit;
+        MoveTaken = moveTaken;
     }
 
     public override void Enter( BattleSystem sys )
     {
         Button defaultSelected = sys.Menu.AddButton( "Wait", Wait );
 
-        if ( SelectedUnit.hasMoved == false )
+        if ( MoveTaken == false )
             sys.Menu.AddButton( "Move", StartMoving );
 
         var interactables = GetAttackableUnits();
@@ -35,14 +37,14 @@ public class ChoosingUnitActionsState : MenuState
         SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
     }
 
-    private IEnumerable<MapUnit> GetAttackableUnits()
+    private IEnumerable<Unit> GetAttackableUnits()
     {
         foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
         {
             if ( tile == SelectedTile.Position )
                 continue;
 
-            MapUnit unitCheck = null;
+            Unit unitCheck = null;
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
                 yield return unitCheck;
         }
@@ -52,12 +54,12 @@ public class ChoosingUnitActionsState : MenuState
     private void Wait()
     {
         sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-        SelectedUnit.hasTakenAction = true;
+        sys.CurrentTurn.HasNotActed.Remove( SelectedUnit );
     }
 
-    private void StartChooseAttacks( IEnumerable<MapUnit> interactables )
+    private void StartChooseAttacks( IEnumerable<Unit> interactables )
     {
-        sys.TurnState = new ChooseAttacksState( SelectedUnit, interactables.Where( i => i is MapUnit ).Cast<MapUnit>() );
+        sys.TurnState = new ChooseAttacksState( SelectedUnit, interactables.Where( i => i is Unit ).Cast<Unit>() );
     }
 }
 

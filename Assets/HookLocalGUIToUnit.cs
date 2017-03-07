@@ -2,16 +2,16 @@
 using UnityEngine.UI;
 using System.Collections;
 
-[RequireComponent( typeof( MapUnit ) )]
+[RequireComponent( typeof( Unit ) )]
 public class HookLocalGUIToUnit : MonoBehaviour {
 
-    private MapUnit Unit;
+    private Unit Unit;
     public IntegerBar Bar; 
     public Text HPText; 
 
     void Awake()
     {
-        Unit = this.GetComponent<MapUnit>();
+        Unit = this.GetComponent<Unit>();
     }
 
     public void UpdateRelatedViews()

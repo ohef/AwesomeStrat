@@ -6,6 +6,9 @@ public abstract class TurnState : IPlayerState
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
 
+    public HashSet<Unit> ControlledUnits;
+    public HashSet<Unit> HasNotActed;
+
     private Stack<BattleState> StateStack = new Stack<BattleState>();
     public BattleState State
     {
@@ -56,9 +59,19 @@ public abstract class TurnState : IPlayerState
         command.Execute();
     }
 
-    public virtual void Enter( BattleSystem sys ) { }
+    public virtual void Enter( BattleSystem sys )
+    {
+        State = ChoosingUnitState.Instance;
+        State.Enter( sys );
+        HasNotActed = new HashSet<Unit>( ControlledUnits );
+    }
 
-    public virtual void Exit( BattleSystem sys ) { }
+    public virtual void Exit( BattleSystem sys )
+    {
+        State.Exit( sys );
+        StateStack.Clear();
+        Commands.Clear();
+    }
 
     public virtual void Update( BattleSystem sys )
     {

@@ -6,14 +6,14 @@ using UnityEngine;
 
 public class ChooseAttacksState : BattleState
 {
-    private MapUnit UnitMakingAttacks;
-    private LinkedList<MapUnit> ToAttack;
-    private LinkedListNode<MapUnit> CurrentlySelected;
+    private Unit UnitMakingAttacks;
+    private LinkedList<Unit> ToAttack;
+    private LinkedListNode<Unit> CurrentlySelected;
 
-    public ChooseAttacksState( MapUnit selectedUnit, IEnumerable<MapUnit> toAttack )
+    public ChooseAttacksState( Unit selectedUnit, IEnumerable<Unit> toAttack )
     {
         UnitMakingAttacks = selectedUnit;
-        ToAttack = new LinkedList<MapUnit>( toAttack );
+        ToAttack = new LinkedList<Unit>( toAttack );
         CurrentlySelected = ToAttack.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
@@ -31,11 +31,11 @@ public class ChooseAttacksState : BattleState
         {
             AttackUnit( UnitMakingAttacks, CurrentlySelected.Value );
             sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-            UnitMakingAttacks.hasTakenAction = true;
+            sys.CurrentTurn.HasNotActed.Remove( UnitMakingAttacks );
         }
     }
 
-    public void AttackUnit( MapUnit attackingUnit, MapUnit otherUnit )
+    public void AttackUnit( Unit attackingUnit, Unit otherUnit )
     {
         otherUnit.GetComponentInChildren<Animator>().SetTrigger( "Damaged" );
         attackingUnit.GetComponentInChildren<Animator>().SetTrigger( "Attack" );
