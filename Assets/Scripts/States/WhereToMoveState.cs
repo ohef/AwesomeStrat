@@ -7,14 +7,19 @@ using System.Linq;
 using UnityEngine;
 using System;
 
-public class WhereToMoveState : ControlCursorState
+public class WhereToMoveState : BattleState
 {
     private Unit SelectedUnit;
     private GameTile InitialUnitTile;
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<GameTile> TilesToPass;
 
-    public WhereToMoveState( Unit selectedUnit )
+    public static BattleState Create( Unit selectedUnit )
+    {
+        return new ControlCursorState( new CancelableState( new WhereToMoveState( selectedUnit ) ) );
+    }
+
+    private WhereToMoveState( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
         InitialUnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
@@ -22,8 +27,6 @@ public class WhereToMoveState : ControlCursorState
 
     public override void Update( BattleSystem sys )
     {
-        base.Update( sys );
-
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
@@ -35,7 +38,7 @@ public class WhereToMoveState : ControlCursorState
             {
                 sys.CurrentTurn.DoCommand( 
                     CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
-                sys.TurnState = new ChoosingUnitActionsState( SelectedUnit, true );
+                sys.TurnState = ChoosingUnitActionsState.Create( SelectedUnit, true );
             }
         }
     }
@@ -80,6 +83,7 @@ public class WhereToMoveState : ControlCursorState
                 SelectedUnit.transform.position = initialTile.transform.position;
 
                 sys.Cursor.MoveCursor( initialTile.Position );
+                sys.Map.ShowUnitMovement( SelectedUnit );
             } );
     }
 

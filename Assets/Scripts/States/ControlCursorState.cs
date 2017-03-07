@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class ControlCursorState : CancelableState
+public class ControlCursorState : DecoratorState
 {
+    public ControlCursorState( IPlayerState wrappee ) : base( wrappee )
+    {
+    }
+
     public override void Update( BattleSystem sys )
     {
-        base.Update( sys );
         sys.Cursor.UpdateAction();
+        base.Update( sys );
     }
 }

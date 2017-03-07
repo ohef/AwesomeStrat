@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -11,7 +12,12 @@ public class ChoosingUnitActionsState : MenuState
     private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
     private bool MoveTaken;
 
-    public ChoosingUnitActionsState( Unit selectedUnit, bool moveTaken = false )
+    public static BattleState Create( Unit selectedUnit, bool movetaken = false )
+    {
+        return new CancelableState( new ChoosingUnitActionsState( selectedUnit, movetaken ) );
+    }
+
+    private ChoosingUnitActionsState( Unit selectedUnit, bool moveTaken = false )
     {
         SelectedUnit = selectedUnit;
         MoveTaken = moveTaken;
@@ -27,29 +33,35 @@ public class ChoosingUnitActionsState : MenuState
 
         defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
 
-        var interactables = GetAttackableUnits();
+        var interactables = GetAttackableUnits( unit => unit.tag == "Player" );
         if ( interactables.Count() > 0 )
-            defaultSelected = sys.Menu.AddButton( "Attack", () => StartChooseAttacks( interactables ) );
+            defaultSelected = sys.Menu.AddButton( "Attack", () => StartAttacking( interactables ) );
 
         EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
     }
 
     private void StartMoving()
     {
-        sys.TurnState = new WhereToMoveState( SelectedUnit );
+        sys.TurnState = WhereToMoveState.Create( SelectedUnit );
         SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
     }
 
-    private IEnumerable<Unit> GetAttackableUnits()
+    private IEnumerable<Unit> GetAttackableUnits( Predicate<Unit> unitPredicate )
     {
         foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
         {
+            //You can't interact with yourself =)
             if ( tile == SelectedTile.Position )
                 continue;
 
-            Unit unitCheck = null;
-            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitCheck ) )
-                yield return unitCheck;
+            Unit unitToCheck = null;
+            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitToCheck ) )
+            {
+                if ( unitPredicate( unitToCheck ) )
+                    break;
+                else
+                    yield return unitToCheck;
+            }
         }
         yield break;
     }
@@ -60,9 +72,9 @@ public class ChoosingUnitActionsState : MenuState
         sys.CurrentTurn.UnitFinished( SelectedUnit );
     }
 
-    private void StartChooseAttacks( IEnumerable<Unit> interactables )
+    private void StartAttacking( IEnumerable<Unit> interactables )
     {
-        sys.TurnState = new ChooseAttacksState( SelectedUnit, interactables.Where( i => i is Unit ).Cast<Unit>() );
+        sys.TurnState = ChooseAttacksState.Create( SelectedUnit, interactables );
     }
 }
 

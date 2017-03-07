@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class ChoosingUnitState : BattleState
 {
-    private static ChoosingUnitState instance = new ChoosingUnitState();
-    public static ChoosingUnitState Instance
+    private static BattleState instance = new ControlCursorState( new ChoosingUnitState() );
+    public static BattleState Instance
     {
         get
         {
@@ -15,7 +15,6 @@ public class ChoosingUnitState : BattleState
 
     public override void Update( BattleSystem sys )
     {
-        sys.Cursor.UpdateAction();
         if ( Input.GetButtonDown( "Submit" ) )
         {
             Unit unitAtTile;
@@ -25,11 +24,11 @@ public class ChoosingUnitState : BattleState
             {
                 Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
                 unitAnimator.SetBool( "Selected", true );
-                sys.TurnState = new ChoosingUnitActionsState( unitAtTile );
+                sys.TurnState = ChoosingUnitActionsState.Create( unitAtTile ); 
             }
             else
             {
-                sys.TurnState = new TurnMenuState();
+                sys.TurnState = TurnMenuState.Create();
             }
         }
     }

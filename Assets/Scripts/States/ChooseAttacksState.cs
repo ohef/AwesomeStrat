@@ -6,13 +6,18 @@ using UnityEngine;
 
 public class ChooseAttacksState : BattleState
 {
-    private Unit UnitMakingAttacks;
+    private Unit SelectedAttackingUnit;
     private LinkedList<Unit> ToAttack;
     private LinkedListNode<Unit> CurrentlySelected;
 
+    public static BattleState Create( Unit selectedUnit, IEnumerable<Unit> toAttack )
+    {
+        return new CancelableState( new ChooseAttacksState( selectedUnit, toAttack ), false );
+    }
+
     public ChooseAttacksState( Unit selectedUnit, IEnumerable<Unit> toAttack )
     {
-        UnitMakingAttacks = selectedUnit;
+        SelectedAttackingUnit = selectedUnit;
         ToAttack = new LinkedList<Unit>( toAttack );
         CurrentlySelected = ToAttack.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
@@ -20,18 +25,13 @@ public class ChooseAttacksState : BattleState
 
     public override void Update( BattleSystem sys )
     {
-        if ( Input.GetButtonDown( "Cancel" ) )
-        {
-            sys.CurrentTurn.GoToPreviousState();
-        }
-
         HandleChoosing( sys );
 
         if ( Input.GetButtonDown( "Submit" ) )
         {
-            AttackUnit( UnitMakingAttacks, CurrentlySelected.Value );
+            AttackUnit( SelectedAttackingUnit, CurrentlySelected.Value );
             sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-            sys.CurrentTurn.UnitFinished( UnitMakingAttacks );
+            sys.CurrentTurn.UnitFinished( SelectedAttackingUnit );
         }
     }
 
@@ -44,12 +44,12 @@ public class ChooseAttacksState : BattleState
 
     public override void Exit( BattleSystem sys )
     {
-        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ UnitMakingAttacks ].Position );
+        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedAttackingUnit ].Position );
     }
 
     public override void Enter( BattleSystem sys )
     {
-        sys.Map.ShowStandingAttackRange( UnitMakingAttacks );
+        sys.Map.ShowStandingAttackRange( SelectedAttackingUnit );
     }
 
     private void HandleChoosing( BattleSystem sys )

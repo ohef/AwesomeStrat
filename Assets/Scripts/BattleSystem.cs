@@ -13,7 +13,6 @@ public class BattleSystem : MonoBehaviour
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
 
-    private Stack<BattleState> TurnStateStack = new Stack<BattleState>();
     public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
 
     private LinkedList<TurnState> TurnOrder;
@@ -23,6 +22,8 @@ public class BattleSystem : MonoBehaviour
     public GameMap Map;
     public CursorControl Cursor;
     public CommandMenu Menu;
+    public Transform UnitLayer;
+    public Transform TileLayer;
     public UnityEvent StateChanged;
     public event Action InRenderObject;
 
@@ -30,7 +31,7 @@ public class BattleSystem : MonoBehaviour
     {
         instance = this;
 
-        TurnOrder = new LinkedList<TurnState>( new TurnState[] { new PlayerTurnState() } );
+        TurnOrder = new LinkedList<TurnState>( new TurnState[] { new PlayerTurnState( unit => unit.tag == "Player" ) } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
     }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class MenuState : CancelableState
+public abstract class MenuState : BattleState
 {
     public override void Exit( BattleSystem sys )
     {

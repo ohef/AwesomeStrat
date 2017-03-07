@@ -3,7 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class TurnMenuState : MenuState {
+public class TurnMenuState : MenuState
+{
+    public static BattleState Create()
+    {
+        return new CancelableState( new TurnMenuState() );
+    }
 
     public override void Enter( BattleSystem sys )
     {
