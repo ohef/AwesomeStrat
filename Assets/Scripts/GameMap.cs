@@ -281,19 +281,11 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     {
         foreach ( var tile in tilesToPass )
         {
-            WhereToMoveState state =
-                BattleSystem.Instance.TurnState is WhereToMoveState ?
-                ( WhereToMoveState )BattleSystem.Instance.TurnState :
-                null;
-
-            if ( state != null )
-            {
-                DefaultMat.SetPass( 0 );
-                Graphics.DrawMeshNow( tile.GetComponent<MeshFilter>().sharedMesh,
-                    transform.localToWorldMatrix *
-                    Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
-                    Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ) );
-            }
+            DefaultMat.SetPass( 0 );
+            Graphics.DrawMeshNow( tile.GetComponent<MeshFilter>().sharedMesh,
+                transform.localToWorldMatrix *
+                Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
+                Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ) );
         }
     }
     #endregion
