@@ -29,8 +29,10 @@ public class BattleSystem : MonoBehaviour
     void Awake()
     {
         instance = this;
+
         TurnOrder = new LinkedList<TurnState>( new TurnState[] { new PlayerTurnState() } );
         currentTurn = TurnOrder.First;
+        currentTurn.Value.Enter( this );
     }
 
     // Use this for initialization

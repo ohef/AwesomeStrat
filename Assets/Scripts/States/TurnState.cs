@@ -25,6 +25,7 @@ public abstract class TurnState : IPlayerState
     }
 
     private Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
+    private Stack<IUndoCommand> CommandsForReEnter = new Stack<IUndoCommand>();
 
     public void GoToPreviousState()
     {
@@ -48,9 +49,15 @@ public abstract class TurnState : IPlayerState
     {
         IPlayerState poppedState = StateStack.Pop();
         poppedState.Exit( sys );
+        ClearManagementHistory();
         state.Enter( sys );
-        StateStack.Clear();
         State = state;
+    }
+
+    public void ClearManagementHistory()
+    {
+        StateStack.Clear();
+        Commands.Clear();
     }
 
     public void DoCommand( IUndoCommand command )
@@ -59,18 +66,38 @@ public abstract class TurnState : IPlayerState
         command.Execute();
     }
 
+    public void UnitFinished( Unit unit )
+    {
+        foreach ( var ren in unit.GetComponentsInChildren<SkinnedMeshRenderer>() )
+        {
+            UndoCommandAction setFinishedColor = new UndoCommandAction (
+                delegate { ren.material.color = new Color( 0.75f, 0.75f, 0.75f ); },
+                delegate { ren.material.color = new Color( 1.00f, 1.00f, 1.00f ); } );
+            setFinishedColor.Execute();
+            CommandsForReEnter.Push( setFinishedColor );
+        }
+        HasNotActed.Remove( unit );
+    }
+
     public virtual void Enter( BattleSystem sys )
     {
         State = ChoosingUnitState.Instance;
         State.Enter( sys );
+        RefreshTurn();
         HasNotActed = new HashSet<Unit>( ControlledUnits );
+    }
+
+    private void RefreshTurn()
+    {
+        foreach ( var c in CommandsForReEnter )
+            c.Undo();
+        CommandsForReEnter.Clear();
     }
 
     public virtual void Exit( BattleSystem sys )
     {
         State.Exit( sys );
-        StateStack.Clear();
-        Commands.Clear();
+        ClearManagementHistory();
     }
 
     public virtual void Update( BattleSystem sys )

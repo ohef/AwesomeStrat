@@ -54,7 +54,7 @@ public class ChoosingUnitActionsState : MenuState
     private void Wait()
     {
         sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-        sys.CurrentTurn.HasNotActed.Remove( SelectedUnit );
+        sys.CurrentTurn.UnitFinished( SelectedUnit );
     }
 
     private void StartChooseAttacks( IEnumerable<Unit> interactables )

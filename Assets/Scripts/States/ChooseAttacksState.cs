@@ -31,7 +31,7 @@ public class ChooseAttacksState : BattleState
         {
             AttackUnit( UnitMakingAttacks, CurrentlySelected.Value );
             sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-            sys.CurrentTurn.HasNotActed.Remove( UnitMakingAttacks );
+            sys.CurrentTurn.UnitFinished( UnitMakingAttacks );
         }
     }
 
