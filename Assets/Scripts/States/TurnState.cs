@@ -79,19 +79,19 @@ public abstract class TurnState : IPlayerState
         HasNotActed.Remove( unit );
     }
 
+    private void RefreshTurn()
+    {
+        foreach ( var c in CommandsForReEnter )
+            c.Undo();
+        CommandsForReEnter.Clear();
+    }
+
     public virtual void Enter( BattleSystem sys )
     {
         State = ChoosingUnitState.Instance;
         State.Enter( sys );
         RefreshTurn();
         HasNotActed = new HashSet<Unit>( ControlledUnits );
-    }
-
-    private void RefreshTurn()
-    {
-        foreach ( var c in CommandsForReEnter )
-            c.Undo();
-        CommandsForReEnter.Clear();
     }
 
     public virtual void Exit( BattleSystem sys )

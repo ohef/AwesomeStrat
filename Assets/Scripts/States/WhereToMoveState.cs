@@ -62,8 +62,6 @@ public class WhereToMoveState : ControlCursorState
         return new UndoCommandAction(
             delegate
             {
-                ;
-
                 SelectedUnit.StartCoroutine(
                     CoroutineHelper.AddActions( 
                         CustomAnimation.InterpolateBetweenPoints( SelectedUnit.transform, 

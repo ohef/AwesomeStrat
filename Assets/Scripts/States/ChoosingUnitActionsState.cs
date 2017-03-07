@@ -19,10 +19,13 @@ public class ChoosingUnitActionsState : MenuState
 
     public override void Enter( BattleSystem sys )
     {
-        Button defaultSelected = sys.Menu.AddButton( "Wait", Wait );
+        Button defaultSelected = null;
+        Button waitButton = sys.Menu.AddButton( "Wait", Wait );
 
         if ( MoveTaken == false )
-            sys.Menu.AddButton( "Move", StartMoving );
+            defaultSelected = sys.Menu.AddButton( "Move", StartMoving );
+
+        defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
 
         var interactables = GetAttackableUnits();
         if ( interactables.Count() > 0 )
