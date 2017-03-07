@@ -53,9 +53,4 @@ public class Unit : MonoBehaviour
     {
         UnitChanged.Invoke();
     }
-
-    public void AttackUnit( MapUnit otherUnit )
-    {
-        otherUnit.HP -= this.Attack - otherUnit.Defense;
-    }
 }
