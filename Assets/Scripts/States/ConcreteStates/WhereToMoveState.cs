@@ -126,37 +126,4 @@ public class WhereToMoveState : BattleState
             }
         }
     }
-
-    //private void ExecuteAttack( MapUnit selectedUnit, MapUnit unitUnderCursor )
-    //{
-    //    GameTile lastTile = TilesToPass.First();
-    //    if ( lastTile != SelectedTile ) //We need to move
-    //    {
-    //        ExecuteMove( lastTile );
-    //    }
-    //    selectedUnit.AttackUnit( unitUnderCursor );
-    //}
-
-    //private GameTile GetOptimalAttackPosition( GameTile on )
-    //{
-    //    // Does a reverse lookup from position to see if there are any 
-    //    // tiles we can move around the point we can move to
-    //    IEnumerable<Vector2Int> canMovePositions = sys.Map
-    //        .GetTilesWithinAbsoluteRange( on.Position, SelectedUnit.AttackRange )
-    //        .Where( pos => MovementTiles.Contains( pos ) )
-    //        .ToList();
-
-    //    if ( canMovePositions.Count() == 0 )
-    //        return null;
-    //    else if ( canMovePositions.Any( pos => pos == SelectedTile.Position ) )
-    //        return SelectedTile;
-
-    //    Vector2Int optimalPosition = canMovePositions
-    //        .Select( pos => new { Pos = pos, Distance = on.Position.ManhattanDistance( pos ) } )
-    //        .OrderByDescending( data => data.Distance )
-    //        .First()
-    //        .Pos;
-
-    //    return sys.Map[ optimalPosition ];
-    //}
 }
