@@ -58,7 +58,7 @@ public class ChoosingUnitActionsState : MenuState
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitToCheck ) )
             {
                 if ( unitPredicate( unitToCheck ) )
-                    break;
+                    continue;
                 else
                     yield return unitToCheck;
             }
