@@ -6,11 +6,19 @@ namespace TacticsGame
     [RequireComponent( typeof( Camera) )]
     public class CameraController : MonoBehaviour
     {
-        private Camera camera; 
+        private Camera MapCamera; 
 
         void Awake()
         {
-            camera = GetComponent<Camera>();
+            MapCamera = GetComponent<Camera>();
+        }
+
+        private void Start()
+        {
+            foreach ( Unit unit in BattleSystem.Instance.Map.UnitGametileMap )
+            {
+                unit.transform.GetChild( 0 ).rotation = MapCamera.transform.rotation;
+            } 
         }
 
         public void RotateFortyFiveDegrees()

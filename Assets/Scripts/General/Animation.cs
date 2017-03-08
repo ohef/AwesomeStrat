@@ -32,6 +32,11 @@ namespace Assets.General
         /// <param name="seconds">The time taken to get through each pair of points</param>
         public static IEnumerator InterpolateBetweenPoints( Transform toInterp, IList<Vector3> nodesToPass, float seconds )
         {
+            yield return InterpolateBetweenPointsDecoupled( toInterp, toInterp, nodesToPass, seconds );
+        }
+
+        public static IEnumerator InterpolateBetweenPointsDecoupled( Transform toMove, Transform toRotate, IList<Vector3> nodesToPass, float seconds )
+        {
             if ( nodesToPass.Count > 1 )
             {
                 float rate = 1.0f / seconds;
@@ -41,11 +46,11 @@ namespace Assets.General
                     float t = i - currentNode;
                     Vector3 a = nodesToPass[ currentNode ];
                     Vector3 b = nodesToPass[ currentNode + 1 ];
-                    toInterp.rotation = Quaternion.LookRotation( b - a );
-                    toInterp.localPosition = Vector3.Lerp( a, b, t );
+                    toRotate.rotation = Quaternion.LookRotation( b - a );
+                    toMove.localPosition = Vector3.Lerp( a, b, t );
                     yield return null;
                 }
-                toInterp.localPosition = nodesToPass.Last();
+                toMove.localPosition = nodesToPass.Last();
                 //yield return null;
             }
         }

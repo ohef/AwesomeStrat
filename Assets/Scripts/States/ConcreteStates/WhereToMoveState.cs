@@ -66,7 +66,8 @@ public class WhereToMoveState : BattleState
             {
                 SelectedUnit.StartCoroutine(
                     CoroutineHelper.AddActions( 
-                        CustomAnimation.InterpolateBetweenPoints( SelectedUnit.transform, 
+                        CustomAnimation.InterpolateBetweenPointsDecoupled( SelectedUnit.transform,
+                        SelectedUnit.transform.FindChild( "Model" ),
                         TilesToPass.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(), 0.22f ),
                         () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", true ),
                         () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
