@@ -23,14 +23,19 @@ public class ChoosingUnitState : BattleState
                 && sys.CurrentTurn.HasNotActed.Contains( unitAtTile ) )
             {
                 Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
-                unitAnimator.SetBool( "Selected", true );
-                sys.TurnState = ChoosingUnitActionsState.Create( unitAtTile ); 
+                unitAnimator.SetTrigger( "Selected" );
+                StartMoving( unitAtTile );
             }
             else
             {
                 sys.TurnState = TurnMenuState.Create();
             }
         }
+    }
+
+    private void StartMoving( Unit unit )
+    {
+        sys.TurnState = WhereToMoveState.Create( unit );
     }
 
     public override void Enter( BattleSystem sys )

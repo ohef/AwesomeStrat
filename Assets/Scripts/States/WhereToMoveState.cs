@@ -32,13 +32,12 @@ public class WhereToMoveState : BattleState
 
         if ( Input.GetButtonDown( "Submit" ) )
         {
-            bool notTheSameUnit = unitUnderCursor != SelectedUnit;
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
-            if ( canMoveHere && notTheSameUnit )
+            if ( canMoveHere )
             {
                 sys.CurrentTurn.DoCommand( 
                     CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
-                sys.TurnState = ChoosingUnitActionsState.Create( SelectedUnit, true );
+                sys.TurnState = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
     }

@@ -10,26 +10,21 @@ public class ChoosingUnitActionsState : MenuState
 {
     private Unit SelectedUnit;
     private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
-    private bool MoveTaken;
 
-    public static BattleState Create( Unit selectedUnit, bool movetaken = false )
+    public static BattleState Create( Unit selectedUnit)
     {
-        return new CancelableState( new ChoosingUnitActionsState( selectedUnit, movetaken ) );
+        return new CancelableState( new ChoosingUnitActionsState( selectedUnit ) );
     }
 
-    private ChoosingUnitActionsState( Unit selectedUnit, bool moveTaken = false )
+    private ChoosingUnitActionsState( Unit selectedUnit)
     {
         SelectedUnit = selectedUnit;
-        MoveTaken = moveTaken;
     }
 
     public override void Enter( BattleSystem sys )
     {
         Button defaultSelected = null;
         Button waitButton = sys.Menu.AddButton( "Wait", Wait );
-
-        if ( MoveTaken == false )
-            defaultSelected = sys.Menu.AddButton( "Move", StartMoving );
 
         defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
 
@@ -38,12 +33,6 @@ public class ChoosingUnitActionsState : MenuState
             defaultSelected = sys.Menu.AddButton( "Attack", () => StartAttacking( interactables ) );
 
         EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
-    }
-
-    private void StartMoving()
-    {
-        sys.TurnState = WhereToMoveState.Create( SelectedUnit );
-        SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Selected", false );
     }
 
     private IEnumerable<Unit> GetAttackableUnits( Predicate<Unit> unitPredicate )
