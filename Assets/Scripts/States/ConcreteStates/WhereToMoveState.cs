@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using System;
+using UnityEngine.Rendering;
 
 public class WhereToMoveState : BattleState
 {
@@ -13,6 +14,7 @@ public class WhereToMoveState : BattleState
     private GameTile InitialUnitTile;
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<GameTile> TilesToPass;
+    private CommandBuffer buf = new CommandBuffer();
 
     public static BattleState Create( Unit selectedUnit )
     {
@@ -27,6 +29,7 @@ public class WhereToMoveState : BattleState
 
     public override void Update( BattleSystem sys )
     {
+        RenderForPath( TilesToPass );
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
@@ -44,19 +47,19 @@ public class WhereToMoveState : BattleState
 
     public override void Enter( BattleSystem sys )
     {
-        sys.InRenderObject += OnRenderObject;
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
 
         TilesToPass = new LinkedList<GameTile>();
         TilesToPass.AddFirst( InitialUnitTile );
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
+        Camera.main.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
     }
 
     public override void Exit( BattleSystem sys )
     {
-        sys.InRenderObject -= OnRenderObject;
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
+        Camera.main.RemoveAllCommandBuffers();
     }
 
     private UndoCommandAction CreateMoveCommand( GameTile targetTile, GameTile initialTile )
@@ -96,10 +99,26 @@ public class WhereToMoveState : BattleState
         }
     }
 
-    private void OnRenderObject()
+    public void RenderForPath( IEnumerable<GameTile> tilesToPass )
     {
-        sys.Map.RenderForPath( TilesToPass );
+        buf.Clear();
+        foreach ( var tile in tilesToPass )
+        {
+            buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
+        }
     }
+
+    //public void RenderForPath( IEnumerable<GameTile> tilesToPass )
+    //{
+    //    foreach ( var tile in tilesToPass )
+    //    {
+    //        sys.Map.DefaultMat.SetPass( -1 );
+    //        Graphics.DrawMeshNow( tile.GetComponent<MeshFilter>().sharedMesh,
+    //            sys.Map.transform.localToWorldMatrix *
+    //            Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
+    //            Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ) );
+    //    }
+    //}
 
     private void AttemptToLengthenPath( GameTile to )
     {

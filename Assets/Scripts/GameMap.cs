@@ -6,6 +6,7 @@ using Assets.General.UnityExtensions;
 using System.Linq;
 using Assets.General;
 using System.Collections;
+using UnityEngine.Rendering;
 
 public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 {
@@ -275,18 +276,6 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         mesh.triangles = triangles;
 
         return mesh;
-    }
-
-    public void RenderForPath( IEnumerable<GameTile> tilesToPass )
-    {
-        foreach ( var tile in tilesToPass )
-        {
-            DefaultMat.SetPass( 0 );
-            Graphics.DrawMeshNow( tile.GetComponent<MeshFilter>().sharedMesh,
-                transform.localToWorldMatrix *
-                Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
-                Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ) );
-        }
     }
     #endregion
 

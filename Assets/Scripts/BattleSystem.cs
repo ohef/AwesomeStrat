@@ -25,7 +25,6 @@ public class BattleSystem : MonoBehaviour
     public Transform UnitLayer;
     public Transform TileLayer;
     public UnityEvent StateChanged;
-    public event Action InRenderObject;
 
     void Awake()
     {
@@ -36,21 +35,10 @@ public class BattleSystem : MonoBehaviour
         currentTurn.Value.Enter( this );
     }
 
-    // Use this for initialization
-    void Start()
-    {
-    }
-
     // Update is called once per frame
     void Update()
     {
         CurrentTurn.Update( this );
-    }
-
-    void OnRenderObject()
-    {
-        if ( InRenderObject != null )
-            InRenderObject();
     }
 
     public void EndTurn()
