@@ -17,7 +17,7 @@ public class BattleSystem : MonoBehaviour
 
     private LinkedList<TurnState> TurnOrder;
     private LinkedListNode<TurnState> currentTurn;
-    public TurnState CurrentTurn { get { return currentTurn.Value; } }
+    private TurnState CurrentTurn { get { return currentTurn.Value; } }
 
     public GameMap Map;
     public CursorControl Cursor;
@@ -55,7 +55,14 @@ public class BattleSystem : MonoBehaviour
     }
 }
 
-public interface IPlayerState
+public interface ITurnState
+{
+    void Update( TurnState context );
+    void Enter( TurnState context );
+    void Exit( TurnState context );
+}
+
+public interface ISystemState
 {
     void Update( BattleSystem state );
     void Enter( BattleSystem state );

@@ -3,27 +3,27 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class DecoratorState : BattleState, IPlayerState
+public abstract class DecoratorState : BattleState, ITurnState
 {
-    private IPlayerState wrappee;
+    private ITurnState wrappee;
 
-    public DecoratorState( IPlayerState wrappee )
+    public DecoratorState( ITurnState wrappee )
     {
         this.wrappee = wrappee;
     }
 
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
-        wrappee.Update( sys );
+        wrappee.Update( context );
     }
 
-    public override void Enter( BattleSystem sys )
+    public override void Enter( TurnState context )
     {
-        wrappee.Enter( sys );
+        wrappee.Enter( context );
     }
 
-    public override void Exit( BattleSystem sys )
+    public override void Exit( TurnState context )
     {
-        wrappee.Exit( sys );
+        wrappee.Exit( context );
     }
 }

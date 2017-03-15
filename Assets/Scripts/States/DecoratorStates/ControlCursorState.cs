@@ -4,13 +4,11 @@ using UnityEngine;
 
 public class ControlCursorState : DecoratorState
 {
-    public ControlCursorState( IPlayerState wrappee ) : base( wrappee )
-    {
-    }
+    public ControlCursorState( ITurnState wrappee ) : base( wrappee ) { }
 
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
         sys.Cursor.UpdateAction();
-        base.Update( sys );
+        base.Update( context );
     }
 }

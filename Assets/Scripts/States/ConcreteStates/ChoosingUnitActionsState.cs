@@ -21,10 +21,10 @@ public class ChoosingUnitActionsState : MenuState
         SelectedUnit = selectedUnit;
     }
 
-    public override void Enter( BattleSystem sys )
+    public override void Enter( TurnState context )
     {
         Button defaultSelected = null;
-        Button waitButton = sys.Menu.AddButton( "Wait", Wait );
+        Button waitButton = sys.Menu.AddButton( "Wait", () => Wait( context ) );
 
         defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
 
@@ -55,10 +55,10 @@ public class ChoosingUnitActionsState : MenuState
         yield break;
     }
 
-    private void Wait()
+    private void Wait(TurnState context)
     {
-        sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-        sys.CurrentTurn.UnitFinished( SelectedUnit );
+        context.GoToStateAndForget( ChoosingUnitState.Instance );
+        context.UnitFinished( SelectedUnit );
     }
 
     private void StartAttacking( IEnumerable<Unit> interactables )

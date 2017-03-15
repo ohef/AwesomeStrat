@@ -13,14 +13,14 @@ public class ChoosingUnitState : BattleState
         }
     }
 
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
         if ( Input.GetButtonDown( "Submit" ) )
         {
             Unit unitAtTile;
             if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) 
-                && sys.CurrentTurn.ControlledUnits.Contains( unitAtTile )
-                && sys.CurrentTurn.HasNotActed.Contains( unitAtTile ) )
+                && context.ControlledUnits.Contains( unitAtTile )
+                && context.HasNotActed.Contains( unitAtTile ) )
             {
                 Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
                 unitAnimator.SetTrigger( "Selected" );
@@ -38,12 +38,12 @@ public class ChoosingUnitState : BattleState
         sys.TurnState = WhereToMoveState.Create( unit );
     }
 
-    public override void Enter( BattleSystem sys )
+    public override void Enter( TurnState context )
     {
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
     }
 
-    public override void Exit( BattleSystem sys )
+    public override void Exit( TurnState context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
     }

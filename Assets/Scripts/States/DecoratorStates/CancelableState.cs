@@ -6,21 +6,21 @@ using UnityEngine;
 public class CancelableState : DecoratorState
 {
     private bool undo;
-    public CancelableState( IPlayerState wrappee, bool undo = true ) : base( wrappee )
+    public CancelableState( ITurnState wrappee, bool undo = true ) : base( wrappee )
     {
         this.undo = undo;
     }
 
     // Update is called once per frame
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
         if ( Input.GetButtonDown( "Cancel" ) )
         {
             Input.ResetInputAxes();
             if ( undo == true )
-                sys.CurrentTurn.UndoEverything();
-            sys.CurrentTurn.GoToPreviousState();
+                context.UndoEverything();
+            context.GoToPreviousState();
         }
-        base.Update( sys );
+        base.Update( context );
 	}
 }

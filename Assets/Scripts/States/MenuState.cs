@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class MenuState : BattleState
 {
-    public override void Exit( BattleSystem sys )
+    public override void Exit( TurnState context )
     {
         //To prevent the next state from catching the submit button
         Input.ResetInputAxes();

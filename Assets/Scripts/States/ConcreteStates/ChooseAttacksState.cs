@@ -23,16 +23,26 @@ public class ChooseAttacksState : BattleState
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
 
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
-        HandleChoosing( sys );
+        HandleChoosing();
 
         if ( Input.GetButtonDown( "Submit" ) )
         {
             AttackUnit( SelectedAttackingUnit, CurrentlySelected.Value );
-            sys.CurrentTurn.GoToStateAndForget( ChoosingUnitState.Instance );
-            sys.CurrentTurn.UnitFinished( SelectedAttackingUnit );
+            context.GoToStateAndForget( ChoosingUnitState.Instance );
+            context.UnitFinished( SelectedAttackingUnit );
         }
+    }
+
+    public override void Exit( TurnState context )
+    {
+        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedAttackingUnit ].Position );
+    }
+
+    public override void Enter( TurnState context )
+    {
+        sys.Map.ShowStandingAttackRange( SelectedAttackingUnit );
     }
 
     public void AttackUnit( Unit attackingUnit, Unit otherUnit )
@@ -42,26 +52,16 @@ public class ChooseAttacksState : BattleState
         otherUnit.HP -= attackingUnit.Attack - otherUnit.Defense;
     }
 
-    public override void Exit( BattleSystem sys )
-    {
-        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedAttackingUnit ].Position );
-    }
-
-    public override void Enter( BattleSystem sys )
-    {
-        sys.Map.ShowStandingAttackRange( SelectedAttackingUnit );
-    }
-
-    private void HandleChoosing( BattleSystem sys )
+    private void HandleChoosing()
     {
         Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
         if ( ToAttack.Count > 0 )
         {
-            HandleInput( sys, input );
+            HandleInput( input );
         }
     }
 
-    private void HandleInput( BattleSystem sys, Vector2Int input )
+    private void HandleInput( Vector2Int input )
     {
         if ( input.x == 1 )
         {

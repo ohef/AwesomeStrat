@@ -28,6 +28,6 @@ public class PlayerTurnState : TurnState
             .ToList() );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
 
-        State.Enter( sys );
+        State.Enter( this );
     }
 }

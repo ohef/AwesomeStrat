@@ -27,7 +27,7 @@ public class WhereToMoveState : BattleState
         InitialUnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
     }
 
-    public override void Update( BattleSystem sys )
+    public override void Update( TurnState context )
     {
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
@@ -38,14 +38,14 @@ public class WhereToMoveState : BattleState
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
             if ( canMoveHere )
             {
-                sys.CurrentTurn.DoCommand( 
+                context.DoCommand( 
                     CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
                 sys.TurnState = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
     }
 
-    public override void Enter( BattleSystem sys )
+    public override void Enter( TurnState context )
     {
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
 
@@ -56,7 +56,7 @@ public class WhereToMoveState : BattleState
         Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, buf );
     }
 
-    public override void Exit( BattleSystem sys )
+    public override void Exit( TurnState context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );

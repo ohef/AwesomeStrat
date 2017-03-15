@@ -10,7 +10,7 @@ public class TurnMenuState : MenuState
         return new CancelableState( new TurnMenuState() );
     }
 
-    public override void Enter( BattleSystem sys )
+    public override void Enter( TurnState context )
     {
         var def = sys.Menu.AddButton( "End Turn", sys.EndTurn );
         EventSystem.current.SetSelectedGameObject( def.gameObject );

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class TurnState : IPlayerState
+public abstract class TurnState : ISystemState
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
 
@@ -17,8 +17,8 @@ public abstract class TurnState : IPlayerState
         {
             if ( StateStack.Count > 0 )
             {
-                StateStack.Peek().Exit( sys );
-                value.Enter( sys );
+                StateStack.Peek().Exit( this );
+                value.Enter( this );
             }
             StateStack.Push( value );
         }
@@ -32,9 +32,9 @@ public abstract class TurnState : IPlayerState
         if ( State == ChoosingUnitState.Instance )
             return;
 
-        IPlayerState poppedState = StateStack.Pop();
-        poppedState.Exit( sys );
-        State.Enter( sys );
+        ITurnState poppedState = StateStack.Pop();
+        poppedState.Exit( this );
+        State.Enter( this );
     }
 
     public void UndoEverything()
@@ -47,10 +47,10 @@ public abstract class TurnState : IPlayerState
 
     public void GoToStateAndForget( BattleState state )
     {
-        IPlayerState poppedState = StateStack.Pop();
-        poppedState.Exit( sys );
+        ITurnState poppedState = StateStack.Pop();
+        poppedState.Exit( this );
         ClearManagementHistory();
-        state.Enter( sys );
+        state.Enter( this );
         State = state;
     }
 
@@ -89,19 +89,19 @@ public abstract class TurnState : IPlayerState
     public virtual void Enter( BattleSystem sys )
     {
         State = ChoosingUnitState.Instance;
-        State.Enter( sys );
+        State.Enter( this );
         RefreshTurn();
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
     public virtual void Exit( BattleSystem sys )
     {
-        State.Exit( sys );
+        State.Exit( this );
         ClearManagementHistory();
     }
 
     public virtual void Update( BattleSystem sys )
     {
-        State.Update( sys );
+        State.Update( this );
     }
 }
