@@ -28,7 +28,7 @@ public class ChoosingUnitActionsState : MenuState
 
         defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
 
-        var interactables = GetAttackableUnits( unit => unit.tag == "Player" );
+        var interactables = GetAttackableUnits( unit => context.ControlledUnits.Contains( unit ) );
         if ( interactables.Count() > 0 )
             defaultSelected = sys.Menu.AddButton( "Attack", () => StartAttacking( interactables ) );
 

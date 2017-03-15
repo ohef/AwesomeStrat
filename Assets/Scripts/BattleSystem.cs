@@ -30,7 +30,10 @@ public class BattleSystem : MonoBehaviour
     {
         instance = this;
 
-        TurnOrder = new LinkedList<TurnState>( new TurnState[] { new PlayerTurnState( unit => unit.tag == "Player" ) } );
+        TurnOrder = new LinkedList<TurnState>( new TurnState[] {
+            new PlayerTurnState( unit => unit.tag == "Player" ),
+            new PlayerTurnState( unit => unit.tag == "Unit" ),
+        } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
     }

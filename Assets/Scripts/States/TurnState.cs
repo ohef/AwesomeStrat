@@ -90,13 +90,13 @@ public abstract class TurnState : ISystemState
     {
         State = ChoosingUnitState.Instance;
         State.Enter( this );
-        RefreshTurn();
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
     public virtual void Exit( BattleSystem sys )
     {
         State.Exit( this );
+        RefreshTurn();
         ClearManagementHistory();
     }
 
