@@ -29,10 +29,10 @@ public class WhereToMoveState : BattleState
 
     public override void Update( BattleSystem sys )
     {
-        RenderForPath( TilesToPass );
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
+        RenderForPath();
         if ( Input.GetButtonDown( "Submit" ) )
         {
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
@@ -52,7 +52,8 @@ public class WhereToMoveState : BattleState
         TilesToPass = new LinkedList<GameTile>();
         TilesToPass.AddFirst( InitialUnitTile );
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
-        Camera.main.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
+        //Camera.main.AddCommandBuffer( CameraEvent.BeforeForwardAlpha, buf );
+        Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, buf );
     }
 
     public override void Exit( BattleSystem sys )
@@ -96,15 +97,31 @@ public class WhereToMoveState : BattleState
         if ( withinMoveRange )
         {
             AttemptToLengthenPath( sys.Cursor.CurrentTile );
+            RenderForPath();
         }
     }
 
-    public void RenderForPath( IEnumerable<GameTile> tilesToPass )
+    public void RenderForPath()
     {
         buf.Clear();
-        foreach ( var tile in tilesToPass )
+        foreach ( var tile in TilesToPass )
         {
-            buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
+            Graphics.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+                tile.transform.localToWorldMatrix,
+                sys.Map.SelectionMat, 0 );
+            //buf.ClearRenderTarget( true, false, Color.black );
+            //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+            //     Matrix4x4.TRS( new Vector3( 0, 1f, 0 ), Quaternion.identity, Vector3.one ) * tile.transform.localToWorldMatrix,
+            //    //tile.transform.localToWorldMatrix,
+            //    sys.Map.SelectionMat );
+
+            //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+            //    sys.Map.transform.localToWorldMatrix *
+            //    Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
+            //    Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ),
+            //    sys.Map.SelectionMat );
+
+            //buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
         }
     }
 

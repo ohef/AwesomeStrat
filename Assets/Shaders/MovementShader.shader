@@ -5,32 +5,27 @@
 		SubShader{
 			Tags {}
 			Pass {
-			Blend SrcAlpha OneMinusSrcAlpha
-			//ZWrite Off
-			//ZTest Always
-				GLSLPROGRAM
-		#ifdef VERTEX // here begins the vertex shader
+				Fog{ Mode Off }
+				ZWrite Off
+				//Blend One One
 
-			uniform vec4 _Color;
+				CGPROGRAM
+				#pragma target 3.0
+				#pragma vertex vert
+				#pragma fragment frag
+				#pragma exclude_renderers nomrt
+				half4 _Color;
 
-			void main()
+				float4 vert(float4 vertex : POSITION) : SV_POSITION
 			{
-				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+				return mul(UNITY_MATRIX_MVP, vertex);
 			}
 
-	#endif // here ends the vertex shader
-
-	#ifdef FRAGMENT // here begins the fragment shader
-
-			uniform vec4 _Color;
-
-			void main() {
-				gl_FragColor = _Color;
+				half4 frag() : SV_Target
+			{
+				return half4(_Color.rgb, 1);
 			}
-
-	#endif // here ends the fragment shader
-
-			ENDGLSL
+				ENDCG
 		}
 	}
 	FallBack "Diffuse"
