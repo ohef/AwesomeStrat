@@ -6,7 +6,7 @@ using UnityEngine;
 
 public class PlayerTurnState : TurnState
 {
-    public PlayerTurnState( Func<Unit, bool> unitPredicate )
+    public PlayerTurnState( Func<Unit, bool> unitPredicate, Color color )
     {
         State = ChoosingUnitState.Instance;
         var controlledUnits = sys.UnitLayer.GetComponentsInChildren<Unit>()
@@ -14,13 +14,9 @@ public class PlayerTurnState : TurnState
 
         foreach ( var unit in controlledUnits )
         {
-            foreach ( Transform obj in unit.transform )
-            {
-                if ( obj.name == "ControlIndicator" )
-                {
-                    obj.GetComponent<MeshRenderer>().material.color = new Color( 0.25f, 0.25f, 0.75f );
-                }
-            }
+            unit.GetComponent<UnitGraphics>()
+                .UnitIndicator.material.color =
+                color;
         }
 
         ControlledUnits = new HashSet<Unit>( controlledUnits

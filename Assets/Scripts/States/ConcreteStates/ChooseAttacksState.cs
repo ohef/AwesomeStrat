@@ -47,8 +47,14 @@ public class ChooseAttacksState : BattleState
 
     public void AttackUnit( Unit attackingUnit, Unit otherUnit )
     {
+        attackingUnit.GetComponent<UnitGraphics>().Model.transform.LookAt( 
+            otherUnit.GetComponent<UnitGraphics>().Model.transform );
+        otherUnit.GetComponent<UnitGraphics>().Model.transform.LookAt( 
+            attackingUnit.GetComponent<UnitGraphics>().Model.transform );
+
         otherUnit.GetComponentInChildren<Animator>().SetTrigger( "Damaged" );
         attackingUnit.GetComponentInChildren<Animator>().SetTrigger( "Attack" );
+
         otherUnit.HP -= attackingUnit.Attack - otherUnit.Defense;
     }
 

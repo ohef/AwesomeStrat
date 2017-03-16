@@ -22,8 +22,6 @@ public class ChoosingUnitState : BattleState
                 && context.ControlledUnits.Contains( unitAtTile )
                 && context.HasNotActed.Contains( unitAtTile ) )
             {
-                Animator unitAnimator = unitAtTile.GetComponentInChildren<Animator>();
-                unitAnimator.SetTrigger( "Selected" );
                 StartMoving( unitAtTile );
             }
             else

@@ -31,8 +31,8 @@ public class BattleSystem : MonoBehaviour
         instance = this;
 
         TurnOrder = new LinkedList<TurnState>( new TurnState[] {
-            new PlayerTurnState( unit => unit.tag == "Player" ),
-            new PlayerTurnState( unit => unit.tag == "Unit" ),
+            new PlayerTurnState( unit => unit.tag == "Player", new Color(1.0f, 0.5f, 0.5f) ),
+            new PlayerTurnState( unit => unit.tag == "Unit" ,new Color(0.5f, 1.0f, 0.5f) )
         } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
