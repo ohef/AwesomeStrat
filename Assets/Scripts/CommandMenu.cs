@@ -16,7 +16,7 @@ public class CommandMenu : MonoBehaviour {
         toadd.name = text;
         m_Buttons.Add( toadd );
 
-        LinkButtonNavigation();
+        //LinkButtonNavigation();
         return toadd;
     }
 
