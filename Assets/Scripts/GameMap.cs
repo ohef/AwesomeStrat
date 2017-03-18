@@ -143,35 +143,6 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
             this[ tile ].GetComponent<Renderer>().material = AttackRangeMat;
     }
 
-    //public Action ShowUnitMovement( Unit unit, GameTile tileOfUnit )
-    //{
-    //    return RenderUnitMovement( unit, tileOfUnit, MovementMat, AttackRangeMat, DefaultMat );
-    //}
-
-    //private Action RenderUnitMovement( Unit unit, GameTile tileOfUnit, Material movem, Material attackm, Material defaultm )
-    //{
-    //    List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, tileOfUnit ).ToList();
-
-    //    Action<Material, Material> setMaterials = ( m1, m2 ) =>
-    //    {
-    //        foreach ( var tile in validMovementTiles )
-    //            this[ tile ].GetComponent<Renderer>().material = m1;
-
-    //        foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
-    //            this[ tile ].GetComponent<Renderer>().material = m2;
-    //    };
-
-    //    setMaterials( movem, attackm );
-
-    //    //The caller now is given a function that it can use to undo what was done by this function
-    //    return () => setMaterials( defaultm, defaultm );
-    //}
-
-    //public void RenderSelection( IEnumerable<Vector2Int> tiles )
-    //{
-    //    m_MapMesh.SetTriangles( tiles.SelectMany( tile => TrianglesForPosition( tile.x, tile.y ) ).ToList(), 3 );
-    //}
-
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
     {
         var temp = GetFringeAttackTiles( movementTiles, attackRange );

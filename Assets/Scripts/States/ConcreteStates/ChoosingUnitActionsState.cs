@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ChoosingUnitActionsState : MenuState
+public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
 {
     private Unit SelectedUnit;
     private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
@@ -23,47 +23,38 @@ public class ChoosingUnitActionsState : MenuState
 
     public override void Enter( TurnState context )
     {
-        Button defaultSelected = null;
-        Button waitButton = sys.Menu.AddButton( "Wait", () => Wait( context ) );
-
-        defaultSelected = defaultSelected == null ? waitButton : defaultSelected;
-
-        var interactables = GetAttackableUnits( unit => context.ControlledUnits.Contains( unit ) );
-        if ( interactables.Count() > 0 )
-            defaultSelected = sys.Menu.AddButton( "Attack", () => StartAttacking( interactables ) );
-
-        EventSystem.current.SetSelectedGameObject( defaultSelected.gameObject );
-    }
-
-    private IEnumerable<Unit> GetAttackableUnits( Predicate<Unit> unitPredicate )
-    {
-        foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange( SelectedTile.Position, SelectedUnit.AttackRange ) )
+        IEnumerable<Button> buttons = GetButtons( SelectedUnit.Abilities, context );
+        foreach ( var button in buttons )
         {
-            //You can't interact with yourself =)
-            if ( tile == SelectedTile.Position )
-                continue;
-
-            Unit unitToCheck = null;
-            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitToCheck ) )
-            {
-                if ( unitPredicate( unitToCheck ) )
-                    continue;
-                else
-                    yield return unitToCheck;
-            }
+            sys.Menu.AddButton( button );
         }
-        yield break;
+
+        EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
     }
 
-    private void Wait(TurnState context)
+    private IEnumerable<Button> GetButtons( IEnumerable<Ability> abilities, TurnState context )
+    {
+        foreach ( Ability ability in abilities )
+        {
+            Button button = AbilityButtonFactory.instance.Create( ability );
+            button.onClick.AddListener( () => ability.Accept( this, context ) );
+            yield return button;
+        }
+    }
+
+    public void CreateState( TargetAbility ability, TurnState context )
+    {
+        sys.TurnState = ChooseTargetsState.Create( ability );
+    }
+
+    public void CreateState( WaitAbility ability, TurnState context )
     {
         context.GoToStateAndForget( ChoosingUnitState.Instance );
         context.UnitFinished( SelectedUnit );
     }
 
-    private void StartAttacking( IEnumerable<Unit> interactables )
+    public void CreateState( AreaOfEffectAbility ability, TurnState context )
     {
-        sys.TurnState = ChooseAttacksState.Create( SelectedUnit, interactables );
+        throw new NotImplementedException();
     }
 }
-

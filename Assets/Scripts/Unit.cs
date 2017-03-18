@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
@@ -43,12 +44,19 @@ public class Unit : MonoBehaviour
     public int MovementRange;
     public int AttackRange;
 
+    public Ability[] Abilities;
+
     public UnityEvent UnitChanged;
 
     void Awake()
     {
         if ( UnitChanged == null )
             UnitChanged = new UnityEvent();
+
+        Abilities = new Ability[] {
+            new WaitAbility { Name = "Wait", Owner = this },
+            new AttackAbility { Name = "Attack", Owner = this, Range = AttackRange }
+        };
     }
 
     void Start()

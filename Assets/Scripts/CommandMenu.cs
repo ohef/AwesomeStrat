@@ -7,13 +7,19 @@ public class CommandMenu : MonoBehaviour {
     public Button DefaultButton;
     private List<Button> m_Buttons = new List<Button>();
 
+    public void AddButton( Button button )
+    {
+        button.transform.SetParent( transform );
+        m_Buttons.Add( button );
+    }
+
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {
         Button toadd = Instantiate( DefaultButton );
         toadd.GetComponentInChildren<Text>().text = text;
         toadd.onClick.AddListener( onClick );
-        toadd.transform.SetParent( transform );
         toadd.name = text;
+        toadd.transform.SetParent( transform );
         m_Buttons.Add( toadd );
 
         //LinkButtonNavigation();
