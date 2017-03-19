@@ -11,6 +11,12 @@ public class CommandMenu : MonoBehaviour {
         button.transform.SetParent( transform );
         m_Buttons.Add( button );
     }
+    
+    public void AddButtons( IEnumerable<Button> buttons )
+    {
+        foreach ( var button in buttons )
+            this.AddButton( button );
+    }
 
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {

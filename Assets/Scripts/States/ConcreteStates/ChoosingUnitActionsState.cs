@@ -9,14 +9,13 @@ using UnityEngine.UI;
 public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
 {
     private Unit SelectedUnit;
-    private GameTile SelectedTile { get { return sys.Map.UnitGametileMap[ SelectedUnit ]; } }
 
-    public static BattleState Create( Unit selectedUnit)
+    public static BattleState Create( Unit selectedUnit )
     {
         return new CancelableState( new ChoosingUnitActionsState( selectedUnit ) );
     }
 
-    private ChoosingUnitActionsState( Unit selectedUnit)
+    private ChoosingUnitActionsState( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
     }
@@ -24,11 +23,7 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
     public override void Enter( TurnState context )
     {
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, context ).ToList();
-        foreach ( var button in buttons )
-        {
-            sys.Menu.AddButton( button );
-        }
-
+        sys.Menu.AddButtons( buttons );
         EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
     }
 
