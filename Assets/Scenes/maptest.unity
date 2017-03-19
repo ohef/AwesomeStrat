@@ -24321,7 +24321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
     m_SelectOnLeft: {fileID: 0}
@@ -29062,7 +29062,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 38edb33af40c9f54ebb076f167492d42, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  DefaultButton: {fileID: 11419274, guid: a1ec970e08adf614ca702386bb61ac80, type: 2}
 --- !u!1 &872614611
 GameObject:
   m_ObjectHideFlags: 0

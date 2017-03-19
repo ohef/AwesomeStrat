@@ -8,7 +8,7 @@ using UnityEngine;
 
 class ChooseTargetsState : BattleState
 {
-    private LinkedList<Unit> ToAttack;
+    private LinkedList<Unit> EligibleTargets;
     private LinkedListNode<Unit> CurrentlySelected;
     private TargetAbility SelectedAbility;
 
@@ -24,9 +24,26 @@ class ChooseTargetsState : BattleState
 
     public override void Enter( TurnState context )
     {
-        Predicate<Unit> predicate = unit => !context.ControlledUnits.Contains( unit );
-        ToAttack = new LinkedList<Unit>( GetInteractableUnits( SelectedAbility, predicate ) );
-        CurrentlySelected = ToAttack.First;
+
+        Predicate<Unit> predicate = unit => true;
+        if ( SelectedAbility.Targets == AbilityTargets.Enemy )
+        {
+            predicate = unit => !context.ControlledUnits.Contains( unit );
+        }
+        else if ( SelectedAbility.Targets == AbilityTargets.Friendly )
+        {
+            predicate = unit => context.ControlledUnits.Contains( unit ) && unit != SelectedAbility.Owner;
+        }
+
+        EligibleTargets = new LinkedList<Unit>( GetInteractableUnits( SelectedAbility, predicate ) );
+
+        if ( EligibleTargets.Count == 0 )
+        {
+            context.GoToPreviousState();
+            return;
+        }
+
+        CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
 
@@ -50,7 +67,7 @@ class ChooseTargetsState : BattleState
     private void HandleChoosing()
     {
         Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
-        if ( ToAttack.Count > 0 )
+        if ( EligibleTargets.Count > 0 )
         {
             HandleInput( input );
         }
@@ -61,7 +78,7 @@ class ChooseTargetsState : BattleState
         if ( input.x == 1 )
         {
             if ( CurrentlySelected.Next == null )
-                CurrentlySelected = ToAttack.First;
+                CurrentlySelected = EligibleTargets.First;
             else
                 CurrentlySelected = CurrentlySelected.Next;
 
@@ -70,7 +87,7 @@ class ChooseTargetsState : BattleState
         else if ( input.x == -1 )
         {
             if ( CurrentlySelected.Previous == null )
-                CurrentlySelected = ToAttack.Last;
+                CurrentlySelected = EligibleTargets.Last;
             else
                 CurrentlySelected = CurrentlySelected.Previous;
 

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System;
 
 public class CommandMenu : MonoBehaviour {
-    public Button DefaultButton;
     private List<Button> m_Buttons = new List<Button>();
 
     public void AddButton( Button button )
@@ -15,7 +14,7 @@ public class CommandMenu : MonoBehaviour {
 
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {
-        Button toadd = Instantiate( DefaultButton );
+        Button toadd = Instantiate( AbilityButtonFactory.instance.DefaultButton );
         toadd.GetComponentInChildren<Text>().text = text;
         toadd.onClick.AddListener( onClick );
         toadd.name = text;

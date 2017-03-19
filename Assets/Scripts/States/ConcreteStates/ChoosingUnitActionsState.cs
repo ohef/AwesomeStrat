@@ -23,7 +23,7 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
 
     public override void Enter( TurnState context )
     {
-        IEnumerable<Button> buttons = GetButtons( SelectedUnit.Abilities, context );
+        List<Button> buttons = GetButtons( SelectedUnit.Abilities, context ).ToList();
         foreach ( var button in buttons )
         {
             sys.Menu.AddButton( button );

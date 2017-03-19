@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.General;
+using Assets.General.UnityExtensions;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -72,7 +74,7 @@ public class AttackAbility : TargetAbility
 {
     public AttackAbility()
     {
-        Targets = AbilityTargets.All;
+        Targets = AbilityTargets.Enemy;
     }
 
     public override void ExecuteOnTarget( Unit target )
@@ -80,3 +82,23 @@ public class AttackAbility : TargetAbility
         target.HP -= Mathf.Min( Owner.Attack - target.Defense );
     }
 }
+
+public class PushAbility : TargetAbility
+{
+    public PushAbility()
+    {
+        Targets = AbilityTargets.All;
+        Range = 1; 
+    }
+
+    public override void ExecuteOnTarget( Unit target )
+    {
+        var sys = BattleSystem.Instance;
+        var direction = sys.Map.UnitGametileMap[ target ].Position - sys.Map.UnitGametileMap[ Owner ].Position;
+        var finalPoint = sys.Map[ sys.Map.UnitGametileMap[ target ].Position + direction ];
+
+        sys.Map.PlaceUnit( target, finalPoint );
+        target.StartCoroutine( CustomAnimation.MotionTweenLinear( target.transform, finalPoint.Position.ToVector3(), 0.11f ) );
+    }
+}
+

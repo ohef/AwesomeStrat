@@ -55,7 +55,8 @@ public class Unit : MonoBehaviour
 
         Abilities = new Ability[] {
             new WaitAbility { Name = "Wait", Owner = this },
-            new AttackAbility { Name = "Attack", Owner = this, Range = AttackRange }
+            new AttackAbility { Name = "Attack", Owner = this, Range = AttackRange },
+            new PushAbility { Name = "Push", Owner = this, Range = 1 }
         };
     }
 
