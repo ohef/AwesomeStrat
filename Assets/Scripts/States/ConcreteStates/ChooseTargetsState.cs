@@ -24,11 +24,10 @@ class ChooseTargetsState : BattleState
 
     public override void Enter( TurnState context )
     {
-
         Predicate<Unit> predicate = unit => true;
         if ( SelectedAbility.Targets == AbilityTargets.Enemy )
         {
-            predicate = unit => !context.ControlledUnits.Contains( unit );
+            predicate = unit => !context.ControlledUnits.Contains( unit ) && unit != SelectedAbility.Owner;
         }
         else if ( SelectedAbility.Targets == AbilityTargets.Friendly )
         {
@@ -36,13 +35,6 @@ class ChooseTargetsState : BattleState
         }
 
         EligibleTargets = new LinkedList<Unit>( GetInteractableUnits( SelectedAbility, predicate ) );
-
-        if ( EligibleTargets.Count == 0 )
-        {
-            context.GoToPreviousState();
-            return;
-        }
-
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
