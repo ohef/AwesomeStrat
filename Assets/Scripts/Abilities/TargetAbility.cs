@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,4 +9,37 @@ public abstract partial class TargetAbility : Ability
     public int Range = 0;
 
     public abstract void ExecuteOnTarget( Unit target );
+
+    public IEnumerable<Unit> GetInteractableUnits( 
+        Predicate<Unit> UseableOn, GameMap map )
+    {
+        foreach ( var tile in map.GetTilesWithinAbsoluteRange(
+            map.UnitGametileMap[ this.Owner ].Position, this.Range ) )
+        {
+            Unit unitToCheck = null;
+            if ( map.UnitGametileMap.TryGetValue( map[ tile ], out unitToCheck ) )
+            {
+                if ( UseableOn( unitToCheck ) )
+                    yield return unitToCheck;
+                else
+                    continue;
+            }
+        }
+        yield break;
+    }
+
+    public Predicate<Unit> GetTargetPredicate( TurnState context )
+    {
+        Predicate<Unit> predicate = unit => true;
+        if ( this.Targets == AbilityTargets.Enemy )
+        {
+            predicate = unit => !context.ControlledUnits.Contains( unit ) && unit != this.Owner;
+        }
+        else if ( this.Targets == AbilityTargets.Friendly )
+        {
+            predicate = unit => context.ControlledUnits.Contains( unit ) && unit != this.Owner;
+        }
+
+        return predicate;
+    }
 }

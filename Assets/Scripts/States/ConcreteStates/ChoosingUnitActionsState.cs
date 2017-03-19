@@ -44,7 +44,10 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
 
     public void CreateState( TargetAbility ability, TurnState context )
     {
-        sys.TurnState = ChooseTargetsState.Create( ability );
+        if ( ability.GetInteractableUnits(
+            ability.GetTargetPredicate( context ), sys.Map )
+            .Count() > 0 )
+            sys.TurnState = ChooseTargetsState.Create( ability );
     }
 
     public void CreateState( WaitAbility ability, TurnState context )

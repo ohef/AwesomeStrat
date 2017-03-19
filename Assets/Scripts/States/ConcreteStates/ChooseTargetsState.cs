@@ -24,17 +24,9 @@ class ChooseTargetsState : BattleState
 
     public override void Enter( TurnState context )
     {
-        Predicate<Unit> predicate = unit => true;
-        if ( SelectedAbility.Targets == AbilityTargets.Enemy )
-        {
-            predicate = unit => !context.ControlledUnits.Contains( unit ) && unit != SelectedAbility.Owner;
-        }
-        else if ( SelectedAbility.Targets == AbilityTargets.Friendly )
-        {
-            predicate = unit => context.ControlledUnits.Contains( unit ) && unit != SelectedAbility.Owner;
-        }
-
-        EligibleTargets = new LinkedList<Unit>( GetInteractableUnits( SelectedAbility, predicate ) );
+        EligibleTargets = new LinkedList<Unit>( 
+            SelectedAbility.GetInteractableUnits( 
+                SelectedAbility.GetTargetPredicate( context ), sys.Map ) );
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
@@ -85,23 +77,5 @@ class ChooseTargetsState : BattleState
 
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
         }
-    }
-
-    private IEnumerable<Unit> 
-        GetInteractableUnits( TargetAbility ability, Predicate<Unit> UseableOn )
-    {
-        foreach ( var tile in sys.Map.GetTilesWithinAbsoluteRange(
-            sys.Map.UnitGametileMap[ ability.Owner ].Position, ability.Range ) )
-        {
-            Unit unitToCheck = null;
-            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Map[ tile ], out unitToCheck ) )
-            {
-                if ( UseableOn( unitToCheck ) )
-                    yield return unitToCheck;
-                else
-                    continue;
-            }
-        }
-        yield break;
     }
 }
