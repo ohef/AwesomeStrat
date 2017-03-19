@@ -53,13 +53,14 @@ class ChooseTargetsState : BattleState
         Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
         if ( EligibleTargets.Count > 0 )
         {
-            HandleInput( input );
+            HandleInput( input.x );
+            HandleInput( input.y );
         }
     }
 
-    private void HandleInput( Vector2Int input )
+    private void HandleInput( int input )
     {
-        if ( input.x == 1 )
+        if ( input == 1 )
         {
             if ( CurrentlySelected.Next == null )
                 CurrentlySelected = EligibleTargets.First;
@@ -68,7 +69,7 @@ class ChooseTargetsState : BattleState
 
             sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
         }
-        else if ( input.x == -1 )
+        else if ( input == -1 )
         {
             if ( CurrentlySelected.Previous == null )
                 CurrentlySelected = EligibleTargets.Last;
