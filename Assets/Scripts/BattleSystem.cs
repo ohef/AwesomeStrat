@@ -13,11 +13,11 @@ public class BattleSystem : MonoBehaviour
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
 
-    public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
-
     private LinkedList<TurnState> TurnOrder;
     private LinkedListNode<TurnState> currentTurn;
-    private TurnState CurrentTurn { get { return currentTurn.Value; } }
+
+    public TurnState CurrentTurn { get { return currentTurn.Value; } }
+    public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
 
     public GameMap Map;
     public CursorControl Cursor;
@@ -31,8 +31,8 @@ public class BattleSystem : MonoBehaviour
         instance = this;
 
         TurnOrder = new LinkedList<TurnState>( new TurnState[] {
-            new PlayerTurnState( unit => unit.tag == "Player", new Color(1.0f, 0.5f, 0.5f) ),
-            new PlayerTurnState( unit => unit.tag == "Unit" ,new Color(0.5f, 1.0f, 0.5f) )
+            new PlayerTurnState( unit => unit.PlayerOwner == 0, new Color(1.0f, 0.5f, 0.5f) ),
+            new PlayerTurnState( unit => unit.PlayerOwner == 1, new Color(0.5f, 1.0f, 0.5f) )
         } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
