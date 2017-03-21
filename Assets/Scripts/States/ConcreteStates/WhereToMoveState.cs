@@ -52,7 +52,6 @@ public class WhereToMoveState : BattleState
         TilesToPass = new LinkedList<GameTile>();
         TilesToPass.AddFirst( InitialUnitTile );
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
-        //Camera.main.AddCommandBuffer( CameraEvent.BeforeForwardAlpha, buf );
         Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, buf );
     }
 
@@ -106,36 +105,25 @@ public class WhereToMoveState : BattleState
         buf.Clear();
         foreach ( var tile in TilesToPass )
         {
-            Graphics.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+            buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
                 sys.Map.SelectionMat, 0 );
+            //Graphics.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+            //    tile.transform.localToWorldMatrix,
+            //    sys.Map.SelectionMat, 0 );
             //buf.ClearRenderTarget( true, false, Color.black );
             //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
             //     Matrix4x4.TRS( new Vector3( 0, 1f, 0 ), Quaternion.identity, Vector3.one ) * tile.transform.localToWorldMatrix,
             //    //tile.transform.localToWorldMatrix,
             //    sys.Map.SelectionMat );
-
             //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
             //    sys.Map.transform.localToWorldMatrix *
             //    Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
             //    Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ),
             //    sys.Map.SelectionMat );
-
             //buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
         }
     }
-
-    //public void RenderForPath( IEnumerable<GameTile> tilesToPass )
-    //{
-    //    foreach ( var tile in tilesToPass )
-    //    {
-    //        sys.Map.DefaultMat.SetPass( -1 );
-    //        Graphics.DrawMeshNow( tile.GetComponent<MeshFilter>().sharedMesh,
-    //            sys.Map.transform.localToWorldMatrix *
-    //            Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
-    //            Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ) );
-    //    }
-    //}
 
     private void AttemptToLengthenPath( GameTile to )
     {

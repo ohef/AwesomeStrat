@@ -6,8 +6,10 @@
 			Tags {}
 			Pass {
 				Fog{ Mode Off }
+
 				ZWrite Off
-				//Blend One One
+				ZTest Always
+				Blend One One
 
 				CGPROGRAM
 				#pragma target 3.0

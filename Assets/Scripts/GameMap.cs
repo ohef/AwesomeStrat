@@ -35,13 +35,6 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         {
             this[ tile.Position ] = tile;
         }
-
-        //Actual transforms tell you were they are in the array, might be bad but oh well
-        foreach ( Unit unit in GameObject.FindObjectsOfType<Unit>() )
-        {
-            var unitPosition = unit.transform.localPosition;
-            UnitGametileMap.Add( unit, GameTiles[ ( int )unitPosition.x, ( int )unitPosition.z ] );
-        }
     }
     #endregion
 
@@ -259,11 +252,10 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         for ( int i = 0 ; i < width ; i++ )
             for ( int j = 0 ; j < height ; j++ )
             {
-                var gameTile = Instantiate( TilePrefab );
+                var gameTile = Instantiate( TilePrefab, TileLayer.transform, false );
                 gameTile.Position.x = i;
                 gameTile.Position.y = j;
                 this[ gameTile.Position ] = gameTile;
-                gameTile.transform.SetParent( TileLayer.transform );
                 gameTile.transform.localPosition = gameTile.Position.ToVector3();
                 gameTile.name = gameTile.Position.ToString();
             }
