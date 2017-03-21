@@ -60,19 +60,25 @@ public class MapEditorScene : Editor
 {
     static GameMap Map;
     static GameTile lastHitTile;
-    static List<MonoBehaviour> Units;
-    static Texture2D[] UnitPreviews;
     static Vector2 scrollPosition = Vector2.zero;
 
-    static int unitSelectionIndex = 0;
+    static int ItemSelectionIndex = 0;
+    static int ModeSelectionIndex = 0;
 
-    static int toolSelectionIndex = 0;
+    static int UnitOwner = 1;
 
-    static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Remove Unit", "Reinitialize" };
+    static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Place Tile", "Remove Unit" };
 
     static GameObject UnitLayer;
+    static GameObject TileLayer;
     static CommandBuffer buf = new CommandBuffer();
     static Camera SceneCamera = null;
+
+    static Texture2D[] UnitPreviews;
+    static List<MonoBehaviour> UnitPrefabs;
+
+    static Texture2D[] TilePreviews;
+    static List<MonoBehaviour> TilePrefabs;
 
     static MapEditorScene()
     {
@@ -83,16 +89,21 @@ public class MapEditorScene : Editor
 
     public static void Initialize()
     {
-        var unitPaths = Directory.GetFileSystemEntries( Application.dataPath + "/Prefabs/Units", "*.prefab" )
+        SetUpItemList( "/Prefabs/Units", ref UnitPreviews, ref UnitPrefabs );
+        SetUpItemList( "/Prefabs/GameTiles", ref TilePreviews, ref TilePrefabs );
+    }
+
+    public static void SetUpItemList( string assetsPath, ref Texture2D[] ItemPreviews, ref List<MonoBehaviour> Items )
+    {
+        var paths = Directory.GetFileSystemEntries( Application.dataPath + assetsPath, "*.prefab" )
             .Select( path => "Assets" + path.Replace( Application.dataPath, "" ) ).ToList();
 
-        UnitPreviews = unitPaths
+        ItemPreviews = paths
             .Select( path => AssetDatabase.LoadAssetAtPath<UnityEngine.Object>( path ) )
             .Select( unit => AssetPreview.GetAssetPreview( unit ) ).ToArray();
 
-        Units = unitPaths
+        Items = paths
             .Select( path => AssetDatabase.LoadAssetAtPath<MonoBehaviour>( path ) ).ToList();
-
     }
 
     private static void OnSceneGUI( SceneView sceneView )
@@ -104,25 +115,41 @@ public class MapEditorScene : Editor
         }
 
         UnitLayer = UnitLayer == null ? GameObject.Find( "UnitLayer" ) : UnitLayer;
+        TileLayer = TileLayer == null ? GameObject.Find( "TileLayer" ) : TileLayer;
         Map = Map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : Map;
 
         Handles.BeginGUI();
-        toolSelectionIndex = GUILayout.SelectionGrid( toolSelectionIndex, ToolLabels, ToolLabels.Length );
-        Handles.EndGUI();
 
-        switch ( toolSelectionIndex )
+        ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );
+        if ( GUILayout.Button( "Reinitialize" ) )
+            Initialize();
+
+        switch ( ModeSelectionIndex )
         {
             case 1:
-                DrawUnitSelectorGUI( sceneView.position );
+                DrawUnitSelectorGUI();
                 HandleFoundTile( sceneView, PlaceUnitAt );
                 break;
             case 2:
-                HandleFoundTile( sceneView, RemoveUnitAt );
+                DrawSelectorGUI( TilePreviews );
+                HandleFoundTile( sceneView, PlaceTileAt );
                 break;
             case 3:
-                Initialize();
+                HandleFoundTile( sceneView, RemoveUnitAt );
                 break;
         }
+        Handles.EndGUI();
+    }
+
+    private static void PlaceTileAt( GameTile tile )
+    {
+        var obj = GameObject.Instantiate( TilePrefabs[ ItemSelectionIndex ], TileLayer.transform, false );
+        var prefabTile = obj.GetComponent<GameTile>();
+        prefabTile.transform.localPosition = tile.Position.ToVector3();
+        prefabTile.name = tile.name;
+        prefabTile.Position = tile.Position;
+        GameObject.DestroyImmediate( tile.gameObject );
+        EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
     }
 
     private static bool JustMouseDown()
@@ -208,9 +235,9 @@ public class MapEditorScene : Editor
     {
         if ( GetUnit( tile ) == null )
         {
-            var unit = Instantiate( Units[ unitSelectionIndex ]);
-            unit.transform.SetParent( UnitLayer.transform, false );
+            var unit = Instantiate( UnitPrefabs[ ItemSelectionIndex ], UnitLayer.transform, false );
             unit.transform.localPosition = tile.Position.ToVector3();
+            unit.GetComponent<UnitMapHelper>().PlayerOwner = UnitOwner;
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
     }
@@ -238,20 +265,27 @@ public class MapEditorScene : Editor
         }
     }
 
-    private static void DrawUnitSelectorGUI( Rect position )
+    private static void DrawSelectorGUI( Texture2D[] previews )
     {
-        Handles.BeginGUI();
-
         scrollPosition = GUILayout.BeginScrollView( scrollPosition, EditorStyles.label );
 
         GUILayout.BeginVertical();
 
-        unitSelectionIndex = GUILayout.SelectionGrid( unitSelectionIndex, UnitPreviews, 1 );
-
-        GUILayout.EndVertical();
+        ItemSelectionIndex = GUILayout.SelectionGrid( ItemSelectionIndex, previews, 1 );
 
         GUI.EndScrollView();
 
-        Handles.EndGUI();
+        GUILayout.EndVertical();
+    }
+
+    private static void DrawUnitSelectorGUI()
+    {
+        DrawSelectorGUI(UnitPreviews);
+        GUI.BeginGroup( new Rect( new Vector2( Screen.width - 120, Screen.height - 300 ), new Vector2( 110, 300 ) ) );
+        GUILayout.BeginVertical();
+        GUILayout.Label( "Unit Ownership" );
+        UnitOwner = GUILayout.SelectionGrid( UnitOwner, new string[] { "1", "2", "3" }, 1 );
+        GUILayout.EndVertical();
+        GUI.EndGroup();
     }
 }
