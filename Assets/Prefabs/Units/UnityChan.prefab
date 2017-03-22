@@ -614,6 +614,7 @@ GameObject:
   - component: {fileID: 4771840202809484}
   - component: {fileID: 114356018098386830}
   - component: {fileID: 114538622908467642}
+  - component: {fileID: 114916258643324768}
   m_Layer: 0
   m_Name: UnityChan
   m_TagString: Unit
@@ -5399,6 +5400,18 @@ MonoBehaviour:
   Bar: {fileID: 114454058581977260}
   HPText: {fileID: 114354959174702452}
   Model: {fileID: 1603718010338360}
+--- !u!114 &114916258643324768
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 1180107684298908}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15ceea6989eb8ae43930b74421c453a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PlayerOwner: 0
 --- !u!137 &137047391233986674
 SkinnedMeshRenderer:
   m_ObjectHideFlags: 1

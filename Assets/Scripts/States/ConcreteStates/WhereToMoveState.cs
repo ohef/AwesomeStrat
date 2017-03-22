@@ -86,7 +86,8 @@ public class WhereToMoveState : BattleState
                 SelectedUnit.transform.position = initialTile.transform.position;
 
                 sys.Cursor.MoveCursor( initialTile.Position );
-                sys.Map.ShowUnitMovement( SelectedUnit );
+                //sys.Map.ShowUnitMovement( SelectedUnit );
+                MapDecorator.Instance.ShowUnitMovement( SelectedUnit );
             } );
     }
 
@@ -108,6 +109,7 @@ public class WhereToMoveState : BattleState
             buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
                 sys.Map.SelectionMat, 0 );
+        }
             //Graphics.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
             //    tile.transform.localToWorldMatrix,
             //    sys.Map.SelectionMat, 0 );
@@ -122,7 +124,6 @@ public class WhereToMoveState : BattleState
             //    Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ),
             //    sys.Map.SelectionMat );
             //buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
-        }
     }
 
     private void AttemptToLengthenPath( GameTile to )

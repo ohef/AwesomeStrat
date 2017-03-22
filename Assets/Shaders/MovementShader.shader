@@ -9,7 +9,7 @@
 
 				ZWrite Off
 				ZTest Always
-				Blend One One
+				//Blend One One
 
 				CGPROGRAM
 				#pragma target 3.0
@@ -19,14 +19,14 @@
 				half4 _Color;
 
 				float4 vert(float4 vertex : POSITION) : SV_POSITION
-			{
-				return mul(UNITY_MATRIX_MVP, vertex);
-			}
+				{
+					return mul(UNITY_MATRIX_MVP, vertex);
+				}
 
 				half4 frag() : SV_Target
-			{
-				return half4(_Color.rgb, 1);
-			}
+				{
+					return half4(_Color.rgb, 0.33f);
+				}
 				ENDCG
 		}
 	}

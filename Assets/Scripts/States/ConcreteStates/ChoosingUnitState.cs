@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -48,7 +49,7 @@ public class ChoosingUnitState : BattleState
 
     public void CursorMoved()
     {
-        sys.Map.ShowUnitMovementIfHere( sys.Cursor.CurrentTile );
+        MapDecorator.Instance.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
     }
 }
 

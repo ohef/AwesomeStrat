@@ -25,9 +25,6 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 
     public DoubleDictionary<Unit, GameTile> UnitGametileMap = new DoubleDictionary<Unit, GameTile>();
 
-    private Mesh m_MapMesh; //OLD: Using gametiles to do drawing on the mesh
-
-    #region Monobehaviour Functions
     void Awake()
     {
         GameTiles = new GameTile[ Width, Height ];
@@ -36,9 +33,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
             this[ tile.Position ] = tile;
         }
     }
-    #endregion
 
-    #region Member Functions
     private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
     {
         return TrianglesForPosition( pos.x, pos.y );
@@ -91,49 +86,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
     {
         return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
-            .Where( position => MapSearcher.Search( unitsTile, this[ position ], this, unit.MovementRange ) != null );
-    }
-
-    public void ShowUnitMovementIfHere( GameTile tile )
-    {
-        Unit unitThere;
-        UnitGametileMap.TryGetValue( tile, out unitThere );
-        ShowUnitMovement( unitThere );
-    }
-
-    public void ShowStandingAttackRange( Unit unit )
-    {
-        foreach ( GameTile tile in this )
-        {
-            this[ tile.Position ].GetComponent<Renderer>().material = DefaultMat;
-        }
-
-        if ( unit == null )
-            return;
-
-        foreach ( Vector2Int v in GetTilesWithinAbsoluteRange( UnitGametileMap[ unit ].Position, unit.AttackRange ) )
-        {
-            this[ v ].GetComponent<Renderer>().material = AttackRangeMat;
-        }
-    }
-
-    public void ShowUnitMovement( Unit unit )
-    {
-        foreach ( GameTile tile in this )
-        {
-            this[ tile.Position ].GetComponent<Renderer>().material = DefaultMat;
-        }
-
-        if ( unit == null )
-            return;
-
-        List<Vector2Int> validMovementTiles = GetValidMovementPositions( unit, UnitGametileMap[ unit ] ).ToList();
-
-        foreach ( var tile in validMovementTiles )
-            this[ tile ].GetComponent<Renderer>().material = MovementMat;
-
-        foreach ( var tile in GetFringeAttackTiles( new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange ) )
-            this[ tile ].GetComponent<Renderer>().material = AttackRangeMat;
+            .Where( tile => MapSearcher.Search( unitsTile, this[ tile ], this, unit.MovementRange ) != null );
     }
 
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
@@ -241,7 +194,6 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 
         return mesh;
     }
-    #endregion
 
     public void InitializeMap( int width, int height )
     {

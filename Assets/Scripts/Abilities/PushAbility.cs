@@ -8,6 +8,8 @@ using System;
 
 public class PushAbility : TargetAbility
 {
+    public int PushRange = 1;
+
     public PushAbility()
     {
         Targets = AbilityTargets.Friendly;
@@ -23,7 +25,6 @@ public class PushAbility : TargetAbility
             return finalPoint == null ? false :
             BattleSystem.Instance.Map.Occupied( finalPoint ) == false 
             && base.GetTargetPredicate( context )( target );
-            //return BattleSystem.Instance.Map.Occupied( finalPoint ) == false && base.GetTargetPredicate( context )( target );
         };
     }
 
