@@ -36,8 +36,6 @@ public class CursorControl : MonoBehaviour
 
     public UnityEvent CursorMoved;
 
-    #region UnityMonoBehaviourFunctions
-
     void Awake()
     {
         if ( CursorMoved == null )
@@ -52,8 +50,13 @@ public class CursorControl : MonoBehaviour
         CurrentTile = CurrentTile == null ? Map[ 0, 0 ] : CurrentTile;
         MoveCursor( CurrentTile.Position );
     }
-
-    #endregion
+    
+    public Unit GetCurrentUnit()
+    {
+        Unit unitThere;
+        Map.UnitGametileMap.TryGetValue( this.CurrentTile, out unitThere );
+        return unitThere;
+    }
 
     public void UpdateAction()
     {

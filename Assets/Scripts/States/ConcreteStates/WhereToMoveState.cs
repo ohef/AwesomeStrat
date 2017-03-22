@@ -59,7 +59,7 @@ public class WhereToMoveState : BattleState
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        Camera.main.RemoveAllCommandBuffers();
+        Camera.main.RemoveCommandBuffer( CameraEvent.AfterGBuffer, buf );
     }
 
     private UndoCommandAction CreateMoveCommand( GameTile targetTile, GameTile initialTile )
@@ -86,7 +86,6 @@ public class WhereToMoveState : BattleState
                 SelectedUnit.transform.position = initialTile.transform.position;
 
                 sys.Cursor.MoveCursor( initialTile.Position );
-                //sys.Map.ShowUnitMovement( SelectedUnit );
                 MapDecorator.Instance.ShowUnitMovement( SelectedUnit );
             } );
     }

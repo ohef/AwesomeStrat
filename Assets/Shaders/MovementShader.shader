@@ -7,7 +7,7 @@
 			Pass {
 				Fog{ Mode Off }
 
-				ZWrite Off
+				//ZWrite Off
 				ZTest Always
 				//Blend One One
 
