@@ -11,7 +11,6 @@ public class MapDecorator : MonoBehaviour
     private static MapDecorator instance;
     public static MapDecorator Instance { get { return instance; } }
 
-    private GameMap Map;
     private CommandBuffer UnitMovementBuffer;
 
     public void Awake()
@@ -23,13 +22,12 @@ public class MapDecorator : MonoBehaviour
 
     public void Start()
     {
-        Map = BattleSystem.Instance.Map;
     }
 
     public void ShowUnitMovementIfHere( GameTile tile )
     {
         Unit unitThere;
-        Map.UnitGametileMap.TryGetValue( tile, out unitThere );
+        BattleSystem.Instance.Map.UnitGametileMap.TryGetValue( tile, out unitThere );
         if ( unitThere != null )
             ShowUnitMovement( unitThere );
     }
@@ -41,23 +39,23 @@ public class MapDecorator : MonoBehaviour
             return;
 
         List<Vector2Int> validMovementTiles =
-            Map.GetValidMovementPositions( unit, Map.UnitGametileMap[ unit ] ).ToList();
+            BattleSystem.Instance.Map.GetValidMovementPositions( unit, BattleSystem.Instance.Map.UnitGametileMap[ unit ] ).ToList();
 
-        foreach ( var tile in validMovementTiles.Select( tile => Map[ tile ] ) )
+        foreach ( var tile in validMovementTiles.Select( tile => BattleSystem.Instance.Map[ tile ] ) )
         {
             UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
-                Map.MovementMat, 0 );
+                BattleSystem.Instance.Map.MovementMat, 0 );
         }
 
         foreach ( var tile in
-            Map.GetFringeAttackTiles(
+            BattleSystem.Instance.Map.GetFringeAttackTiles(
                 new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
-            .Select( tile => Map[ tile ] ) )
+            .Select( tile => BattleSystem.Instance.Map[ tile ] ) )
         {
             UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
-                Map.AttackRangeMat, 0 );
+                BattleSystem.Instance.Map.AttackRangeMat, 0 );
         }
     }
 }
