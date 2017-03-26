@@ -6,10 +6,13 @@
 		_Metallic ("Metallic", Range(0,1)) = 0.0
 		_GradientScale ("Gradient Scale", Range(0.0,10.0)) = 1.0 
 	}
+
 	SubShader {
-		Tags { "RenderType" = "TransparentCutout" }
+		ZWrite On
+		ZTest Always
 		LOD 200
 		
+		Tags { "Queue" = "Transparent"  "PreviewType" = "Plane" }
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types
 		#pragma surface surf Standard fullforwardshadows

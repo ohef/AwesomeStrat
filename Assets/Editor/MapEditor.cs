@@ -19,7 +19,7 @@ public class MapEditor : EditorWindow
     private static GameObject CameraToFocus;
     private static GameObject CursorFocusedOn;
 
-    [MenuItem("Window/MapEditor")]
+    [MenuItem( "Window/MapEditor" )]
     public static void Init()
     {
         map = GameObject.FindObjectOfType<GameMap>();
@@ -59,7 +59,6 @@ public class MapEditor : EditorWindow
 public class MapEditorScene : Editor
 {
     static GameMap Map;
-    static GameTile lastHitTile;
     static Vector2 scrollPosition = Vector2.zero;
 
     static int ItemSelectionIndex = 0;
@@ -127,11 +126,9 @@ public class MapEditorScene : Editor
         switch ( ModeSelectionIndex )
         {
             case 1:
-                DrawUnitSelectorGUI();
                 HandleFoundTile( sceneView, PlaceUnitAt );
                 break;
             case 2:
-                DrawSelectorGUI( TilePreviews );
                 HandleFoundTile( sceneView, PlaceTileAt );
                 break;
             case 3:
@@ -139,17 +136,6 @@ public class MapEditorScene : Editor
                 break;
         }
         Handles.EndGUI();
-    }
-
-    private static void PlaceTileAt( GameTile tile )
-    {
-        var obj = GameObject.Instantiate( TilePrefabs[ ItemSelectionIndex ], TileLayer.transform, false );
-        var prefabTile = obj.GetComponent<GameTile>();
-        prefabTile.transform.localPosition = tile.Position.ToVector3();
-        prefabTile.name = tile.name;
-        prefabTile.Position = tile.Position;
-        GameObject.DestroyImmediate( tile.gameObject );
-        EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
     }
 
     private static bool JustMouseDown()
@@ -231,11 +217,28 @@ public class MapEditorScene : Editor
         //HandleUtility.Repaint();
     }
 
+    private static void PlaceTileAt( GameTile tile )
+    {
+        GameTile prefabTile = Selection.activeGameObject.GetComponent<GameTile>();
+        if ( prefabTile == null )
+            return;
+
+        GameTile Tile = GameObject.Instantiate<GameTile>( prefabTile, TileLayer.transform, false );
+        Tile.transform.localPosition = tile.Position.ToVector3();
+        Tile.name = tile.name;
+        Tile.Position = tile.Position;
+        GameObject.DestroyImmediate( tile.gameObject );
+        EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
+    }
+
     private static void PlaceUnitAt( GameTile tile )
     {
         if ( GetUnit( tile ) == null )
         {
-            var unit = Instantiate( UnitPrefabs[ ItemSelectionIndex ], UnitLayer.transform, false );
+            Unit prefabUnit = Selection.activeGameObject.GetComponent<Unit>();
+            if ( prefabUnit == null )
+                return;
+            var unit = Instantiate( prefabUnit, UnitLayer.transform, false );
             unit.transform.localPosition = tile.Position.ToVector3();
             unit.GetComponent<UnitMapHelper>().PlayerOwner = UnitOwner;
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
@@ -263,29 +266,5 @@ public class MapEditorScene : Editor
             GameObject.DestroyImmediate( hitUnit.gameObject );
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
-    }
-
-    private static void DrawSelectorGUI( Texture2D[] previews )
-    {
-        scrollPosition = GUILayout.BeginScrollView( scrollPosition, EditorStyles.label );
-
-        GUILayout.BeginVertical();
-
-        ItemSelectionIndex = GUILayout.SelectionGrid( ItemSelectionIndex, previews, 1 );
-
-        GUI.EndScrollView();
-
-        GUILayout.EndVertical();
-    }
-
-    private static void DrawUnitSelectorGUI()
-    {
-        DrawSelectorGUI(UnitPreviews);
-        GUI.BeginGroup( new Rect( new Vector2( Screen.width - 120, Screen.height - 300 ), new Vector2( 110, 300 ) ) );
-        GUILayout.BeginVertical();
-        GUILayout.Label( "Unit Ownership" );
-        UnitOwner = GUILayout.SelectionGrid( UnitOwner, new string[] { "1", "2", "3" }, 1 );
-        GUILayout.EndVertical();
-        GUI.EndGroup();
     }
 }
