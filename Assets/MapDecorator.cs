@@ -8,26 +8,23 @@ using UnityEngine.Rendering;
 [RequireComponent( typeof( GameMap ) )]
 public class MapDecorator : MonoBehaviour
 {
-    private static MapDecorator instance;
-    public static MapDecorator Instance { get { return instance; } }
-
     private CommandBuffer UnitMovementBuffer;
+    private GameMap Map;
 
     public void Awake()
     {
-        instance = this;
         UnitMovementBuffer = new CommandBuffer();
+        UnitMovementBuffer.name = "Unit Movement Path";
+        Map = GetComponent<GameMap>();
         Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, UnitMovementBuffer );
     }
 
-    public void Start()
-    {
-    }
+    public void Start() { }
 
     public void ShowUnitMovementIfHere( GameTile tile )
     {
         Unit unitThere;
-        BattleSystem.Instance.Map.UnitGametileMap.TryGetValue( tile, out unitThere );
+        Map.UnitGametileMap.TryGetValue( tile, out unitThere );
         if ( unitThere != null )
             ShowUnitMovement( unitThere );
     }
@@ -39,23 +36,23 @@ public class MapDecorator : MonoBehaviour
             return;
 
         List<Vector2Int> validMovementTiles =
-            BattleSystem.Instance.Map.GetValidMovementPositions( unit, BattleSystem.Instance.Map.UnitGametileMap[ unit ] ).ToList();
+            Map.GetValidMovementPositions( unit, Map.UnitGametileMap[ unit ] ).ToList();
 
-        foreach ( var tile in validMovementTiles.Select( tile => BattleSystem.Instance.Map[ tile ] ) )
+        foreach ( var tile in validMovementTiles.Select( tile => Map[ tile ] ) )
         {
             UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
-                BattleSystem.Instance.Map.MovementMat, 0 );
+                Map.MovementMat, 0 );
         }
 
         foreach ( var tile in
-            BattleSystem.Instance.Map.GetFringeAttackTiles(
+            Map.GetFringeAttackTiles(
                 new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
-            .Select( tile => BattleSystem.Instance.Map[ tile ] ) )
+            .Select( tile => Map[ tile ] ) )
         {
             UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
-                BattleSystem.Instance.Map.AttackRangeMat, 0 );
+                Map.AttackRangeMat, 0 );
         }
     }
 }
