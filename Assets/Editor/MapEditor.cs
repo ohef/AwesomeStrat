@@ -61,10 +61,8 @@ public class MapEditorScene : Editor
     static GameMap Map;
     static Vector2 scrollPosition = Vector2.zero;
 
-    static int ItemSelectionIndex = 0;
+    static int TeamSelectionIndex = 0;
     static int ModeSelectionIndex = 0;
-
-    static int UnitOwner = 1;
 
     static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Place Tile", "Remove Unit" };
 
@@ -81,28 +79,8 @@ public class MapEditorScene : Editor
 
     static MapEditorScene()
     {
-        Initialize();
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.onSceneGUIDelegate += OnSceneGUI;
-    }
-
-    public static void Initialize()
-    {
-        SetUpItemList( "/Prefabs/Units", ref UnitPreviews, ref UnitPrefabs );
-        SetUpItemList( "/Prefabs/GameTiles", ref TilePreviews, ref TilePrefabs );
-    }
-
-    public static void SetUpItemList( string assetsPath, ref Texture2D[] ItemPreviews, ref List<MonoBehaviour> Items )
-    {
-        var paths = Directory.GetFileSystemEntries( Application.dataPath + assetsPath, "*.prefab" )
-            .Select( path => "Assets" + path.Replace( Application.dataPath, "" ) ).ToList();
-
-        ItemPreviews = paths
-            .Select( path => AssetDatabase.LoadAssetAtPath<UnityEngine.Object>( path ) )
-            .Select( unit => AssetPreview.GetAssetPreview( unit ) ).ToArray();
-
-        Items = paths
-            .Select( path => AssetDatabase.LoadAssetAtPath<MonoBehaviour>( path ) ).ToList();
     }
 
     private static void OnSceneGUI( SceneView sceneView )
@@ -118,14 +96,12 @@ public class MapEditorScene : Editor
         Map = Map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : Map;
 
         Handles.BeginGUI();
-
         ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );
-        if ( GUILayout.Button( "Reinitialize" ) )
-            Initialize();
 
         switch ( ModeSelectionIndex )
         {
             case 1:
+                DrawTeamSelector( sceneView );
                 HandleFoundTile( sceneView, PlaceUnitAt );
                 break;
             case 2:
@@ -136,6 +112,14 @@ public class MapEditorScene : Editor
                 break;
         }
         Handles.EndGUI();
+    }
+
+    private static void DrawTeamSelector( SceneView sceneView )
+    {
+        GUILayout.BeginArea( new Rect( 5, 50, 150, sceneView.position.height ) );
+        GUILayout.Label( "Team membership" );
+        TeamSelectionIndex = GUILayout.SelectionGrid( TeamSelectionIndex, new string[] { "1", "2", "3", "4" }, 1 );
+        GUILayout.EndArea();
     }
 
     private static bool JustMouseDown()
@@ -155,7 +139,6 @@ public class MapEditorScene : Editor
         RaycastHit rayHitInfo;
         if ( Physics.Raycast( ray, out rayHitInfo ) )
         {
-            //DrawUnitMeshOverMap( scene, rayHitInfo );
             if ( JustMouseDown() )
             {
                 GameTile tile = rayHitInfo.collider.GetComponent<GameTile>();
@@ -167,54 +150,15 @@ public class MapEditorScene : Editor
         HandleUtility.AddDefaultControl( controlId );
     }
 
-    private static void DrawUnitMeshOverMap( SceneView scene, RaycastHit rayHitInfo )
+    private static Unit GetUnit( GameTile tile )
     {
-        //MonoBehaviour selectedUnit = Units[ unitSelectionIndex ];
+        Unit hitUnit =
+        FindObjectsOfType<Unit>().FirstOrDefault( unit =>
+        Mathf.Floor( unit.transform.localPosition.x ) == tile.Position.x &&
+        Mathf.Floor( unit.transform.localPosition.z ) == tile.Position.y
+        );
 
-        ////buf.Clear();
-        ////foreach ( var ren in selectedUnit.GetComponentsInChildren<Renderer>() )
-        ////{
-        ////    buf.DrawRenderer( ren, ren.sharedMaterial );
-        ////}
-
-        //Vector3 newp = UnitLayer.transform.worldToLocalMatrix * rayHitInfo.point;
-        //Matrix4x4 rescaleHit = Matrix4x4.TRS(
-        //    rayHitInfo.point,
-        //    Quaternion.identity,
-        //    Map.transform.localScale );
-
-        //MonoBehaviour selectedUnit = Units[ unitSelectionIndex ];
-        //foreach ( var skinnedMeshR in selectedUnit.GetComponentsInChildren<SkinnedMeshRenderer>() )
-        //{
-        //    Graphics.DrawMesh(
-        //        skinnedMeshR.sharedMesh,
-        //        rescaleHit,
-        //        skinnedMeshR.sharedMaterial,
-        //        0,
-        //        scene.camera );
-        //}
-
-        //foreach ( var meshfilter in selectedUnit.GetComponentsInChildren<MeshFilter>() )
-        //{
-        //    foreach ( var meshrenderer in selectedUnit.GetComponentsInChildren<MeshRenderer>() )
-        //    {
-        //        //buf.DrawMesh( meshfilter.sharedMesh,
-        //        //    rescaleHit, meshrenderer.sharedMaterial,
-        //        //    0 );
-        //        Graphics.DrawMesh( meshfilter.sharedMesh,
-        //            rescaleHit, meshrenderer.sharedMaterial,
-        //            0, scene.camera );
-        //    }
-        //}
-
-        //Graphics.DrawMesh(
-        //    Units[ unitSelectionIndex ].GetComponent<MeshFilter>().sharedMesh,
-        //    rescaleHit,
-        //    Units[ unitSelectionIndex ].GetComponent<MeshRenderer>().sharedMaterial,
-        //    0,
-        //    scene.camera );
-
-        //HandleUtility.Repaint();
+        return hitUnit;
     }
 
     private static void PlaceTileAt( GameTile tile )
@@ -240,20 +184,9 @@ public class MapEditorScene : Editor
                 return;
             var unit = Instantiate( prefabUnit, UnitLayer.transform, false );
             unit.transform.localPosition = tile.Position.ToVector3();
-            unit.GetComponent<UnitMapHelper>().PlayerOwner = UnitOwner;
+            unit.GetComponent<UnitMapHelper>().PlayerOwner = TeamSelectionIndex;
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
-    }
-
-    private static Unit GetUnit( GameTile tile )
-    {
-        Unit hitUnit =
-        FindObjectsOfType<Unit>().FirstOrDefault( unit =>
-        Mathf.Floor( unit.transform.localPosition.x ) == tile.Position.x &&
-        Mathf.Floor( unit.transform.localPosition.z ) == tile.Position.y
-        );
-
-        return hitUnit;
     }
 
     private static void RemoveUnitAt( GameTile tile )
