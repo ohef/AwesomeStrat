@@ -16,7 +16,7 @@ public class MapDecorator : MonoBehaviour
         UnitMovementBuffer = new CommandBuffer();
         UnitMovementBuffer.name = "Unit Movement Path";
         Map = GetComponent<GameMap>();
-        Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, UnitMovementBuffer );
+        Camera.main.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, UnitMovementBuffer );
     }
 
     public void Start() { }
