@@ -36,6 +36,8 @@ public class CursorControl : MonoBehaviour
 
     public UnityEvent CursorMoved;
 
+    private bool IsMoving = false;
+
     void Awake()
     {
         if ( CursorMoved == null )
@@ -64,6 +66,14 @@ public class CursorControl : MonoBehaviour
         ShiftCursor( inputVector );
     }
 
+    public void Update()
+    {
+        if ( MoveCommands.Count == 0 == false && IsMoving == false )
+        {
+            MoveCommands.Dequeue()();
+        }
+
+    }
     /// <summary>
     /// Shifts the cursor according to directional vector, returns the updated position if successful
     /// else, returns the unmodified position.
@@ -75,9 +85,11 @@ public class CursorControl : MonoBehaviour
         if ( direction.AbsoluteNormal() != 0 )
         {
             Vector2Int updatedPosition = CurrentTile.Position + direction;
-            MoveCursor( updatedPosition );
+            MoveCommands.Enqueue( () => MoveCursor( updatedPosition ) );
         }
     }
+
+    public Queue<Action> MoveCommands = new Queue<Action>();
 
     /// <summary>
     /// Moves the cursor to a position on the map, if successful, returns true; else false. 
@@ -90,7 +102,14 @@ public class CursorControl : MonoBehaviour
         if ( Map.IsOutOfBounds( to ) == false )
         {
             CurrentTile = Map[ to ];
-            StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.15f ) );
+            StartCoroutine( CursorMotion( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.08f ) ) );
         }
+    }
+
+    private IEnumerator CursorMotion( IEnumerator tweener )
+    {
+        IsMoving = true;
+        yield return tweener;
+        IsMoving = false;
     }
 }
