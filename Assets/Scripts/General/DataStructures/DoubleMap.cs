@@ -22,6 +22,7 @@ public class DoubleDictionary<A, B> : IEnumerable<A>
         BtoA = new Dictionary<B, A>();
     }
 
+    //TODO: This code could be erroneous, no testing gotta go go go
     public void Add( A a, B b )
     {
         A removeA = default(A);
@@ -32,6 +33,14 @@ public class DoubleDictionary<A, B> : IEnumerable<A>
             AtoB.Remove( a );
             if ( BtoA.TryGetValue( removeB, out removeA ) )
                 BtoA.Remove( removeB );
+            else { throw new System.Exception( "Whoah Dictionary was not updated correctly" ); }
+        }
+
+        if ( BtoA.TryGetValue( b, out removeA ) )
+        {
+            BtoA.Remove( b );
+            if ( AtoB.TryGetValue( removeA, out removeB ) )
+                AtoB.Remove( removeA );
             else { throw new System.Exception( "Whoah Dictionary was not updated correctly" ); }
         }
 
