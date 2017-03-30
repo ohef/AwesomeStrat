@@ -9,17 +9,33 @@ using UnityEngine.Rendering;
 public class MapDecorator : MonoBehaviour
 {
     private CommandBuffer UnitMovementBuffer;
+    private CommandBuffer PointsBuffer;
     private GameMap Map;
 
     public void Awake()
     {
         UnitMovementBuffer = new CommandBuffer();
         UnitMovementBuffer.name = "Unit Movement Path";
+        PointsBuffer = new CommandBuffer();
+        PointsBuffer.name = "Points";
+
         Map = GetComponent<GameMap>();
         Camera.main.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, UnitMovementBuffer );
+        Camera.main.AddCommandBuffer( CameraEvent.BeforeImageEffectsOpaque, PointsBuffer );
     }
 
     public void Start() { }
+
+    public void RenderForPath( IEnumerable<GameTile> path )
+    {
+        PointsBuffer.Clear();
+        foreach ( var tile in path )
+        {
+            PointsBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+                tile.transform.localToWorldMatrix,
+                Map.SelectionMat, 0 );
+        }
+    }
 
     public void ShowUnitMovementIfHere( GameTile tile )
     {

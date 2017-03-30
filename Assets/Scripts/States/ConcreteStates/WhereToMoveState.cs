@@ -12,9 +12,9 @@ public class WhereToMoveState : BattleState
 {
     private Unit SelectedUnit;
     private GameTile InitialUnitTile;
+    private MapDecorator Decorator;
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<GameTile> TilesToPass;
-    private CommandBuffer buf = new CommandBuffer();
 
     public static BattleState Create( Unit selectedUnit )
     {
@@ -25,6 +25,7 @@ public class WhereToMoveState : BattleState
     {
         SelectedUnit = selectedUnit;
         InitialUnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
+        Decorator = sys.Map.GetComponent<MapDecorator>();
     }
 
     public override void Update( TurnState context )
@@ -32,7 +33,7 @@ public class WhereToMoveState : BattleState
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
 
-        RenderForPath();
+        Decorator.RenderForPath( TilesToPass );
         if ( Input.GetButtonDown( "Submit" ) )
         {
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
@@ -52,14 +53,14 @@ public class WhereToMoveState : BattleState
         TilesToPass = new LinkedList<GameTile>();
         TilesToPass.AddFirst( InitialUnitTile );
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
-        Camera.main.AddCommandBuffer( CameraEvent.AfterGBuffer, buf );
     }
 
     public override void Exit( TurnState context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        Camera.main.RemoveCommandBuffer( CameraEvent.AfterGBuffer, buf );
+        TilesToPass.Clear();
+        Decorator.RenderForPath( TilesToPass );
     }
 
     private UndoCommandAction CreateMoveCommand( GameTile targetTile, GameTile initialTile )
@@ -86,7 +87,7 @@ public class WhereToMoveState : BattleState
                 SelectedUnit.transform.position = initialTile.transform.position;
 
                 sys.Cursor.MoveCursor( initialTile.Position );
-                MapDecorator.Instance.ShowUnitMovement( SelectedUnit );
+                sys.Map.GetComponent<MapDecorator>().ShowUnitMovement( SelectedUnit );
             } );
     }
 
@@ -96,33 +97,8 @@ public class WhereToMoveState : BattleState
         if ( withinMoveRange )
         {
             AttemptToLengthenPath( sys.Cursor.CurrentTile );
-            RenderForPath();
+            Decorator.RenderForPath( TilesToPass );
         }
-    }
-
-    public void RenderForPath()
-    {
-        buf.Clear();
-        foreach ( var tile in TilesToPass )
-        {
-            buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-                tile.transform.localToWorldMatrix,
-                sys.Map.SelectionMat, 0 );
-        }
-            //Graphics.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-            //    tile.transform.localToWorldMatrix,
-            //    sys.Map.SelectionMat, 0 );
-            //buf.ClearRenderTarget( true, false, Color.black );
-            //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-            //     Matrix4x4.TRS( new Vector3( 0, 1f, 0 ), Quaternion.identity, Vector3.one ) * tile.transform.localToWorldMatrix,
-            //    //tile.transform.localToWorldMatrix,
-            //    sys.Map.SelectionMat );
-            //buf.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-            //    sys.Map.transform.localToWorldMatrix *
-            //    Matrix4x4.TRS( new Vector3( 0.5f, 0f, 0.5f ), Quaternion.identity, Vector3.one ) *
-            //    Matrix4x4.TRS( tile.transform.localPosition, Quaternion.identity, tile.transform.localScale ),
-            //    sys.Map.SelectionMat );
-            //buf.DrawRenderer( tile.GetComponent<Renderer>(), sys.Map.SelectionMat );
     }
 
     private void AttemptToLengthenPath( GameTile to )

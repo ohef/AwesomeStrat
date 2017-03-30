@@ -13,7 +13,6 @@ public class PushAbility : TargetAbility
     public PushAbility()
     {
         Targets = AbilityTargets.Friendly;
-        Range = 1; 
     }
 
     public override Predicate<Unit> GetTargetPredicate( TurnState context )
@@ -22,8 +21,9 @@ public class PushAbility : TargetAbility
         delegate ( Unit target )
         {
             GameTile finalPoint = GetComputedPushTile( target );
-            return finalPoint == null ? false :
-            BattleSystem.Instance.Map.Occupied( finalPoint ) == false 
+            return finalPoint == null 
+            ? false 
+            : BattleSystem.Instance.Map.Occupied( finalPoint ) == false 
             && base.GetTargetPredicate( context )( target );
         };
     }
