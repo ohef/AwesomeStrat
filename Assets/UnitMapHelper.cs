@@ -8,9 +8,6 @@ public class UnitMapHelper : MonoBehaviour {
 
     public void Start()
     {
-        var unit = this.GetComponent<Unit>();
-        var unitPosition = unit.transform.localPosition;
-        BattleSystem.Instance.Map.UnitGametileMap.Add( unit,
-        BattleSystem.Instance.Map[ ( int )unitPosition.x, ( int )unitPosition.z ] );
+        BattleSystem.Instance.Map.AddUnit( this.GetComponent<Unit>() );
     }
 }

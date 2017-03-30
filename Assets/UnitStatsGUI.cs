@@ -8,11 +8,6 @@ public class UnitStatsGUI : MonoBehaviour {
     public ValueLabel Defense;
     public ValueLabel Movement;
 
-    public void Start()
-    {
-        BattleSystem.Instance.Cursor.CursorMoved.AddListener( UpdateForUnit );
-    }
-
     public void UpdateForUnit()
     {
         Unit unit;

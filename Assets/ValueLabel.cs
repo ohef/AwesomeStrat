@@ -7,7 +7,7 @@ public class ValueLabel : MonoBehaviour {
     private Text TextLabel;
     private Text TextValue;
 
-    public void Start()
+    public void Awake()
     {
         TextLabel = this.transform.Find( "Label" ).GetComponent<Text>();
         TextValue = this.transform.Find( "Value" ).GetComponent<Text>();
