@@ -32,7 +32,8 @@ public class BattleSystem : MonoBehaviour
 
         TurnOrder = new LinkedList<TurnState>( new TurnState[] {
             new PlayerTurnState( unit => unit.PlayerOwner == 0, new Color(1.0f, 0.5f, 0.5f) ),
-            new PlayerTurnState( unit => unit.PlayerOwner == 1, new Color(0.5f, 1.0f, 0.5f) )
+            new PlayerTurnState( unit => unit.PlayerOwner == 1, new Color(0.5f, 1.0f, 0.5f) ),
+            new PlayerTurnState( unit => unit.PlayerOwner == 2, new Color(0.5f, 0.5f, 1.0f) )
         } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
@@ -55,51 +56,5 @@ public class BattleSystem : MonoBehaviour
             currentTurn = nextTurn;
 
         CurrentTurn.Enter( this );
-    }
-}
-
-public interface ITurnState
-{
-    void Update( TurnState context );
-    void Enter( TurnState context );
-    void Exit( TurnState context );
-}
-
-public interface ISystemState
-{
-    void Update( BattleSystem state );
-    void Enter( BattleSystem state );
-    void Exit( BattleSystem state );
-}
-
-public interface ICommand
-{
-    void Execute();
-}
-
-public interface IUndoCommand : ICommand
-{
-    void Undo();
-}
-
-public struct UndoCommandAction : IUndoCommand
-{
-    private Action execute;
-    private Action undo;
-
-    public UndoCommandAction( Action execute, Action undo )
-    {
-        this.execute = execute;
-        this.undo = undo;
-    }
-
-    public void Execute()
-    {
-        execute();
-    }
-
-    public void Undo()
-    {
-        undo();
     }
 }
