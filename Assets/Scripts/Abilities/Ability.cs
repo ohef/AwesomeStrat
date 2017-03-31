@@ -1,10 +1,18 @@
-﻿using UnityEngine.UI;
+﻿using UnityEngine;
+using UnityEngine.UI;
 
-public abstract partial class Ability
+[RequireComponent( typeof( Unit ) )]
+public abstract partial class Ability : MonoBehaviour
 {
+    [HideInInspector]
     public Unit Owner;
     public string Name;
     public Image AbliityImage;
+
+    public virtual void Awake()
+    {
+        Owner = this.GetComponent<Unit>();
+    }
 }
 
 public enum AbilityTargets

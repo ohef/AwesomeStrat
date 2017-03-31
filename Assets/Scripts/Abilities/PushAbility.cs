@@ -10,11 +10,6 @@ public class PushAbility : TargetAbility
 {
     public int PushRange = 1;
 
-    public PushAbility()
-    {
-        Targets = AbilityTargets.Friendly;
-    }
-
     public override Predicate<Unit> GetTargetPredicate( TurnState context )
     {
         return

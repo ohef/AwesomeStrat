@@ -6,7 +6,7 @@ using UnityEngine.Events;
 
 public class IntChangedEvent : UnityEvent<int> { }
 
-[Serializable]
+[RequireComponent( typeof( WaitAbility ) )]
 public class Unit : MonoBehaviour
 {
     [SerializeField]
@@ -40,12 +40,10 @@ public class Unit : MonoBehaviour
     }
 
     public int Defense;
-    public int Attack;
     public int MovementRange;
-    public int AttackRange;
 
-    public AbilityList CreateAbilities;
-    public List<Ability> Abilities;
+    [HideInInspector]
+    public List<Ability> Abilities = new List<Ability>(); 
 
     public UnityEvent UnitChanged;
 
@@ -54,17 +52,7 @@ public class Unit : MonoBehaviour
         if ( UnitChanged == null )
             UnitChanged = new UnityEvent();
 
-        Abilities = new List<Ability>();
-        Abilities.Add( new WaitAbility { Owner = this } );
-        Abilities.AddRange(
-            CreateAbilities.Abilities.Select( ConfigureAbility ) );
-    }
-
-    private Ability ConfigureAbility( AbilityItem abilityItem )
-    {
-        Ability toRet = AbilityItem.NamesToAbilities[ abilityItem.AbilityName ]();
-        toRet.Owner = this;
-        return toRet;
+        Abilities = GetComponents<Ability>().ToList();
     }
 
     void Start()

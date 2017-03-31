@@ -61,14 +61,14 @@ public class MapDecorator : MonoBehaviour
                 Map.MovementMat, 0 );
         }
 
-        foreach ( var tile in
-            Map.GetFringeAttackTiles(
-                new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
-            .Select( tile => Map[ tile ] ) )
-        {
-            UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-                tile.transform.localToWorldMatrix,
-                Map.AttackRangeMat, 0 );
-        }
+        //foreach ( var tile in
+        //    Map.GetFringeAttackTiles(
+        //        new HashSet<Vector2Int>( validMovementTiles ), unit.AttackRange )
+        //    .Select( tile => Map[ tile ] ) )
+        //{
+        //    UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
+        //        tile.transform.localToWorldMatrix,
+        //        Map.AttackRangeMat, 0 );
+        //}
     }
 }

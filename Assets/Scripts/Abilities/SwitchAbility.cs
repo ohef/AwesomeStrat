@@ -1,17 +1,8 @@
 ﻿using Assets.General;
 using Assets.General.UnityExtensions;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 
 public class SwitchAbility : TargetAbility
 {
-    public SwitchAbility()
-    {
-        Targets = AbilityTargets.Friendly;
-    }
-
     public override void ExecuteOnTarget( Unit target )
     {
         var sys = BattleSystem.Instance;
