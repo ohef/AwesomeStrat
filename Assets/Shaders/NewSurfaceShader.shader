@@ -8,14 +8,14 @@
 	}
 
 	SubShader {
+		//ZTest Always
 		ZWrite On
-		ZTest Always
-		LOD 200
+		Offset -3, -3
 		
-		Tags { "Queue" = "Transparent"  "PreviewType" = "Plane" }
+		Tags { "Queue" = "Geometry" "PreviewType" = "Plane" }
 		CGPROGRAM
 		// Physically based Standard lighting model, and enable shadows on all light types
-		#pragma surface surf Standard fullforwardshadows
+		#pragma surface surf Standard fullforwardshadows 
 
 		// Use shader model 3.0 target, to get nicer looking lighting
 		#pragma target 3.0
@@ -45,16 +45,14 @@
 			//The gradient moves along the v direction in UV space
 			float t = abs(sin((uv.y + offset) * 3.14 * 2 * _GradientScale));
 
-			//Why doesn't clip discard a 0? Have to subtract then
-			clip(texAlph - 0.5);
-
 			//fixed4 c = lerp(tex2D(_MainTex, IN.uv_MainTex), _Color, t);
 			//fixed4 c = max(tex2D(_MainTex, IN.uv_MainTex), _Color * t);
 			//fixed4 c = tex2D(_MainTex, IN.uv_MainTex) * _Color * t;
 			fixed4 c = 1 - (1 - tex2D(_MainTex, IN.uv_MainTex)) * (1 - _Color * t);
 
-			//o.Albedo = fixed4(c.rgb, texAlph);
+			clip(texAlph - .5);
 			o.Albedo = c;
+			o.Alpha = texAlph;
 
 			// Metallic and smoothness come from slider variables
 			o.Metallic = _Metallic;

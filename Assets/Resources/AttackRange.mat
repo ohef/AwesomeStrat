@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 9d56d3bda6959be4384de357c6aa1da8, type: 3}
   m_ShaderKeywords: _EMISSION
   m_LightmapFlags: 1
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2000
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -100,6 +100,9 @@ Material:
     - first:
         name: _OcclusionStrength
       second: 1
+    - first:
+        name: _OffsetConstant
+      second: -1
     - first:
         name: _Parallax
       second: 0.02

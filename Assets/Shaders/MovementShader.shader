@@ -3,13 +3,13 @@
 		_Color("Color", Color) = (1,1,1,1)
 	}
 		SubShader{
-			Tags {}
+			Tags {"Queue" = "Geometry"}
 			Pass {
 				Fog{ Mode Off }
 
-				//ZWrite Off
-				ZTest Always
-				//Blend One One
+				ZWrite Off
+				Blend SrcAlpha OneMinusSrcAlpha
+				Offset -1, -1
 
 				CGPROGRAM
 				#pragma target 3.0
@@ -25,7 +25,7 @@
 
 				half4 frag() : SV_Target
 				{
-					return half4(_Color.rgb, 0.33f);
+					return half4(_Color.rgb, 0.77f);
 				}
 				ENDCG
 		}
