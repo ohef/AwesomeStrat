@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-internal class AbilityButtonFactory : MonoBehaviour
+public class AbilityButtonFactory : MonoBehaviour
 {
     public static AbilityButtonFactory instance;
     public Button DefaultButton;

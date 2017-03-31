@@ -44,7 +44,8 @@ public class Unit : MonoBehaviour
     public int MovementRange;
     public int AttackRange;
 
-    public Ability[] Abilities;
+    public AbilityList CreateAbilities;
+    public List<Ability> Abilities;
 
     public UnityEvent UnitChanged;
 
@@ -53,11 +54,17 @@ public class Unit : MonoBehaviour
         if ( UnitChanged == null )
             UnitChanged = new UnityEvent();
 
-        Abilities = new Ability[] {
-            new WaitAbility { Name = "Wait", Owner = this },
-            new AttackAbility { Name = "Attack", Owner = this, Range = AttackRange },
-            new PushAbility { Name = "Push", Owner = this, Range = 1 }
-        };
+        Abilities = new List<Ability>();
+        Abilities.Add( new WaitAbility { Owner = this } );
+        Abilities.AddRange(
+            CreateAbilities.Abilities.Select( ConfigureAbility ) );
+    }
+
+    private Ability ConfigureAbility( AbilityItem abilityItem )
+    {
+        Ability toRet = AbilityItem.NamesToAbilities[ abilityItem.AbilityName ]();
+        toRet.Owner = this;
+        return toRet;
     }
 
     void Start()
