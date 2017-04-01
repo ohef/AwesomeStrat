@@ -7,6 +7,7 @@ using System.Linq;
 using Assets.General;
 using System.Collections;
 using UnityEngine.Rendering;
+using UnityEngine.EventSystems;
 
 public class GameMap : MonoBehaviour, IEnumerable<GameTile>
 {
@@ -32,6 +33,13 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         {
             this[ tile.Position ] = tile;
         }
+    }
+
+    public void AddUnit( Unit unit )
+    {
+        var unitPosition = unit.transform.localPosition;
+        UnitGametileMap.Add( unit,
+        this[ ( int )unitPosition.x, ( int )unitPosition.z ] );
     }
 
     private IEnumerable<int> TrianglesForPosition( Vector2Int pos )

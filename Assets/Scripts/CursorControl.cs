@@ -14,6 +14,8 @@ public class CursorControl : MonoBehaviour
 {
     public GameMap Map;
     public Camera CursorCamera;
+    public Queue<Action> MoveCommands = new Queue<Action>();
+    public UnityEvent CursorMoved;
 
     private GameTile m_CurrentTile;
     public GameTile CurrentTile
@@ -33,8 +35,6 @@ public class CursorControl : MonoBehaviour
             }
         }
     }
-
-    public UnityEvent CursorMoved;
 
     private bool IsMoving = false;
 
@@ -72,8 +72,8 @@ public class CursorControl : MonoBehaviour
         {
             MoveCommands.Dequeue()();
         }
-
     }
+
     /// <summary>
     /// Shifts the cursor according to directional vector, returns the updated position if successful
     /// else, returns the unmodified position.
@@ -88,8 +88,6 @@ public class CursorControl : MonoBehaviour
             MoveCommands.Enqueue( () => MoveCursor( updatedPosition ) );
         }
     }
-
-    public Queue<Action> MoveCommands = new Queue<Action>();
 
     /// <summary>
     /// Moves the cursor to a position on the map, if successful, returns true; else false. 

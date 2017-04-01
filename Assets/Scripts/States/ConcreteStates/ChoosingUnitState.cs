@@ -23,18 +23,13 @@ public class ChoosingUnitState : BattleState
                 && context.ControlledUnits.Contains( unitAtTile )
                 && context.HasNotActed.Contains( unitAtTile ) )
             {
-                StartMoving( unitAtTile );
+                sys.TurnState = WhereToMoveState.Create( unitAtTile );
             }
             else
             {
                 sys.TurnState = TurnMenuState.Create();
             }
         }
-    }
-
-    private void StartMoving( Unit unit )
-    {
-        sys.TurnState = WhereToMoveState.Create( unit );
     }
 
     public override void Enter( TurnState context )
@@ -49,7 +44,7 @@ public class ChoosingUnitState : BattleState
 
     public void CursorMoved()
     {
-        MapDecorator.Instance.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
+        sys.Map.GetComponent<MapDecorator>().ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
     }
 }
 
