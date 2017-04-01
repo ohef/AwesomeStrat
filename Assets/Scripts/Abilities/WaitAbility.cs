@@ -9,7 +9,7 @@ public class WaitAbility : Ability
         Name = "Wait";
     }
 
-    public override void Accept( IAbilityCreateState visitor, TurnState context )
+    public override void Accept( IAbilityCreateState visitor, PlayerTurnController context )
     {
         visitor.CreateState( this, context );
     }

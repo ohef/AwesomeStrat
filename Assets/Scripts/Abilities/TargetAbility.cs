@@ -28,7 +28,7 @@ public abstract partial class TargetAbility : Ability
         yield break;
     }
 
-    public virtual Predicate<Unit> GetTargetPredicate( TurnState context )
+    public virtual Predicate<Unit> GetTargetPredicate( PlayerTurnController context )
     {
         Predicate<Unit> predicate = unit => true;
         if ( this.Targets == AbilityTargets.Enemy )

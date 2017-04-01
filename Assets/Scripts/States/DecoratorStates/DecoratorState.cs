@@ -12,17 +12,17 @@ public abstract class DecoratorState : BattleState, ITurnState
         this.wrappee = wrappee;
     }
 
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         wrappee.Update( context );
     }
 
-    public override void Enter( TurnState context )
+    public override void Enter( PlayerTurnController context )
     {
         wrappee.Enter( context );
     }
 
-    public override void Exit( TurnState context )
+    public override void Exit( PlayerTurnController context )
     {
         wrappee.Exit( context );
     }

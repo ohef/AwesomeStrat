@@ -12,7 +12,7 @@ public class CancelableState : DecoratorState
     }
 
     // Update is called once per frame
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         if ( Input.GetButtonDown( "Cancel" ) )
         {

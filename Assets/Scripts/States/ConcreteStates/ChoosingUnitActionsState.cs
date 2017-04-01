@@ -20,14 +20,14 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
         SelectedUnit = selectedUnit;
     }
 
-    public override void Enter( TurnState context )
+    public override void Enter( PlayerTurnController context )
     {
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, context ).ToList();
         sys.Menu.AddButtons( buttons );
         EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
     }
 
-    private IEnumerable<Button> GetButtons( IEnumerable<Ability> abilities, TurnState context )
+    private IEnumerable<Button> GetButtons( IEnumerable<Ability> abilities, PlayerTurnController context )
     {
         foreach ( Ability ability in abilities )
         {
@@ -37,7 +37,7 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
         }
     }
 
-    public void CreateState( TargetAbility ability, TurnState context )
+    public void CreateState( TargetAbility ability, PlayerTurnController context )
     {
         if ( ability.GetInteractableUnits(
             ability.GetTargetPredicate( context ), sys.Map )
@@ -45,13 +45,13 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
             sys.TurnState = ChooseTargetsState.Create( ability );
     }
 
-    public void CreateState( WaitAbility ability, TurnState context )
+    public void CreateState( WaitAbility ability, PlayerTurnController context )
     {
         context.GoToStateAndForget( ChoosingUnitState.Instance );
         context.UnitFinished( SelectedUnit );
     }
 
-    public void CreateState( AreaOfEffectAbility ability, TurnState context )
+    public void CreateState( AreaOfEffectAbility ability, PlayerTurnController context )
     {
         throw new NotImplementedException();
     }

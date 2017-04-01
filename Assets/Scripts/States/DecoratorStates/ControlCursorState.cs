@@ -6,7 +6,7 @@ public class ControlCursorState : DecoratorState
 {
     public ControlCursorState( ITurnState wrappee ) : base( wrappee ) { }
 
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         sys.Cursor.UpdateAction();
         base.Update( context );

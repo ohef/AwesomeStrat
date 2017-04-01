@@ -28,7 +28,7 @@ public class WhereToMoveState : BattleState
         Decorator = sys.Map.GetComponent<MapDecorator>();
     }
 
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         Unit unitUnderCursor = null;
         sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
@@ -46,7 +46,7 @@ public class WhereToMoveState : BattleState
         }
     }
 
-    public override void Enter( TurnState context )
+    public override void Enter( PlayerTurnController context )
     {
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
 
@@ -55,7 +55,7 @@ public class WhereToMoveState : BattleState
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
     }
 
-    public override void Exit( TurnState context )
+    public override void Exit( PlayerTurnController context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );

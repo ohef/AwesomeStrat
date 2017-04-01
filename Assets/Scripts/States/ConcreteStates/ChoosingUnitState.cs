@@ -14,7 +14,7 @@ public class ChoosingUnitState : BattleState
         }
     }
 
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         if ( Input.GetButtonDown( "Submit" ) )
         {
@@ -32,12 +32,12 @@ public class ChoosingUnitState : BattleState
         }
     }
 
-    public override void Enter( TurnState context )
+    public override void Enter( PlayerTurnController context )
     {
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
     }
 
-    public override void Exit( TurnState context )
+    public override void Exit( PlayerTurnController context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
     }

@@ -22,7 +22,7 @@ class ChooseTargetsState : BattleState
         SelectedAbility = ability;
     }
 
-    public override void Enter( TurnState context )
+    public override void Enter( PlayerTurnController context )
     {
         EligibleTargets = new LinkedList<Unit>( 
             SelectedAbility.GetInteractableUnits( 
@@ -31,7 +31,7 @@ class ChooseTargetsState : BattleState
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }
 
-    public override void Update( TurnState context )
+    public override void Update( PlayerTurnController context )
     {
         HandleChoosing();
 
@@ -43,7 +43,7 @@ class ChooseTargetsState : BattleState
         }
     }
 
-    public override void Exit( TurnState context )
+    public override void Exit( PlayerTurnController context )
     {
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedAbility.Owner ].Position );
     }
