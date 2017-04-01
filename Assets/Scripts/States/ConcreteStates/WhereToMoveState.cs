@@ -41,7 +41,7 @@ public class WhereToMoveState : BattleState
             {
                 context.DoCommand( 
                     CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
-                sys.TurnState = ChoosingUnitActionsState.Create( SelectedUnit );
+                context.State = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
     }

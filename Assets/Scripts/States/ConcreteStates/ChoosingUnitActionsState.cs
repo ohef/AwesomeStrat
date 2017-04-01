@@ -42,7 +42,7 @@ public class ChoosingUnitActionsState : MenuState, IAbilityCreateState
         if ( ability.GetInteractableUnits(
             ability.GetTargetPredicate( context ), sys.Map )
             .Count() > 0 )
-            sys.TurnState = ChooseTargetsState.Create( ability );
+            context.State = ChooseTargetsState.Create( ability );
     }
 
     public void CreateState( WaitAbility ability, PlayerTurnController context )

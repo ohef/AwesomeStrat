@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class PlayerTurnController : ISystemState
+public class PlayerTurnController : TurnController
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
 
-    public HashSet<Unit> ControlledUnits;
-    public HashSet<Unit> HasNotActed;
+    //public HashSet<Unit> ControlledUnits;
+    //public HashSet<Unit> HasNotActed;
 
     private Stack<BattleState> StateStack = new Stack<BattleState>();
     public BattleState State
@@ -26,23 +26,9 @@ public class PlayerTurnController : ISystemState
         }
     }
 
-    public PlayerTurnController( Func<UnitMapHelper, bool> unitPredicate, Color color )
+    public PlayerTurnController( int PlayerNumber, Color color ) : base( PlayerNumber, color )
     {
         State = ChoosingUnitState.Instance;
-        var controlledUnits = sys.UnitLayer.GetComponentsInChildren<UnitMapHelper>()
-           .Where( unitPredicate ).ToList();
-
-        foreach ( var unit in controlledUnits )
-        {
-            unit.GetComponent<UnitGraphics>()
-                .UnitIndicator.material.color = color;
-        }
-
-        ControlledUnits = new HashSet<Unit>( controlledUnits
-            .Select( obj => obj.GetComponent<Unit>() )
-            .ToList() );
-        HasNotActed = new HashSet<Unit>( ControlledUnits );
-
         State.Enter( this );
     }
 
@@ -108,21 +94,21 @@ public class PlayerTurnController : ISystemState
         CommandsForReEnter.Clear();
     }
 
-    public virtual void Enter( BattleSystem sys )
+    public override void Enter( BattleSystem sys )
     {
         State = ChoosingUnitState.Instance;
         State.Enter( this );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
-    public virtual void Exit( BattleSystem sys )
+    public override void Exit( BattleSystem sys )
     {
         State.Exit( this );
         RefreshTurn();
         ClearManagementHistory();
     }
 
-    public virtual void Update( BattleSystem sys )
+    public override void Update( BattleSystem sys )
     {
         State.Update( this );
     }

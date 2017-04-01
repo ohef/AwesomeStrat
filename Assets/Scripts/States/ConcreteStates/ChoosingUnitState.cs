@@ -23,11 +23,11 @@ public class ChoosingUnitState : BattleState
                 && context.ControlledUnits.Contains( unitAtTile )
                 && context.HasNotActed.Contains( unitAtTile ) )
             {
-                sys.TurnState = WhereToMoveState.Create( unitAtTile );
+                context.State = WhereToMoveState.Create( unitAtTile );
             }
             else
             {
-                sys.TurnState = TurnMenuState.Create();
+                context.State = TurnMenuState.Create();
             }
         }
     }

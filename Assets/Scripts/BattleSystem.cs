@@ -13,11 +13,10 @@ public class BattleSystem : MonoBehaviour
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
 
-    private LinkedList<PlayerTurnController> TurnOrder;
-    private LinkedListNode<PlayerTurnController> currentTurn;
+    private LinkedList<TurnController> TurnOrder;
+    private LinkedListNode<TurnController> currentTurn;
 
-    public PlayerTurnController CurrentTurn { get { return currentTurn.Value; } }
-    public BattleState TurnState { get { return CurrentTurn.State; } set { CurrentTurn.State = value; } }
+    public TurnController CurrentTurn { get { return currentTurn.Value; } }
 
     public GameMap Map;
     public CursorControl Cursor;
@@ -30,10 +29,9 @@ public class BattleSystem : MonoBehaviour
     {
         instance = this;
 
-        TurnOrder = new LinkedList<PlayerTurnController>( new PlayerTurnController[] {
-            new PlayerTurnController( unit => unit.PlayerOwner == 0, new Color(1.0f, 0.5f, 0.5f) ),
-            new PlayerTurnController( unit => unit.PlayerOwner == 1, new Color(0.5f, 1.0f, 0.5f) ),
-            new PlayerTurnController( unit => unit.PlayerOwner == 2, new Color(0.5f, 0.5f, 1.0f) )
+        TurnOrder = new LinkedList<TurnController>( new TurnController[] {
+            new PlayerTurnController( 0, new Color(1.0f, 0.5f, 0.5f) ),
+            new AIController( 1, new Color(0.5f, 1.0f, 0.5f) )
         } );
         currentTurn = TurnOrder.First;
         currentTurn.Value.Enter( this );
@@ -49,7 +47,7 @@ public class BattleSystem : MonoBehaviour
     {
         CurrentTurn.Exit( this );
 
-        LinkedListNode<PlayerTurnController> nextTurn = currentTurn.Next;
+        LinkedListNode<TurnController> nextTurn = currentTurn.Next;
         if ( nextTurn == null )
             currentTurn = TurnOrder.First;
         else
