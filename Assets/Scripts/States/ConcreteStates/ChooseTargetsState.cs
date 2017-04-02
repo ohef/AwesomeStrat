@@ -24,9 +24,13 @@ class ChooseTargetsState : BattleState
 
     public override void Enter( PlayerTurnController context )
     {
-        EligibleTargets = new LinkedList<Unit>( 
-            SelectedAbility.GetInteractableUnits( 
-                SelectedAbility.GetTargetPredicate( context ), sys.Map ) );
+        var unitsInRange = sys.Map.GetUnitsWithinRange( 
+            sys.Map.UnitGametileMap[ SelectedAbility.Owner ].Position,
+            SelectedAbility.Range );
+
+        EligibleTargets = new LinkedList<Unit>(
+            SelectedAbility.GetInteractableUnits( unitsInRange,
+                SelectedAbility.GetTargetPredicate( context ) ) );
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
     }

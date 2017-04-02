@@ -2,30 +2,38 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IAbilityCreateState
+public interface IAbilityGeneric<T>
 {
-    void CreateState( TargetAbility ability, PlayerTurnController context );
-    void CreateState( AreaOfEffectAbility ability, PlayerTurnController context );
-    void CreateState( WaitAbility ability, PlayerTurnController context );
+    T Visit( TargetAbility ability);
+    T Visit( AreaOfEffectAbility ability );
+    T Visit( WaitAbility ability );
 }
 
 public abstract partial class Ability
 {
-    public abstract void Accept( IAbilityCreateState visitor, PlayerTurnController context );
+    public abstract T Accept<T>( IAbilityGeneric<T> visitor );
 }
 
 public abstract partial class TargetAbility : Ability
 {
-    public override void Accept( IAbilityCreateState visitor, PlayerTurnController context )
+    public override T Accept<T>( IAbilityGeneric<T> visitor )
     {
-        visitor.CreateState( this, context );
+        return visitor.Visit( this );
     }
 }
 
 public abstract partial class AreaOfEffectAbility : Ability
 {
-    public override void Accept( IAbilityCreateState visitor, PlayerTurnController context )
+    public override T Accept<T>( IAbilityGeneric<T> visitor )
     {
-        visitor.CreateState( this, context );
+        return visitor.Visit( this );
+    }
+}
+
+public partial class WaitAbility : Ability
+{
+    public override T Accept<T>( IAbilityGeneric<T> visitor )
+    {
+        return visitor.Visit( this );
     }
 }

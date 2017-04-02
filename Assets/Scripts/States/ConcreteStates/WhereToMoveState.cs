@@ -39,8 +39,8 @@ public class WhereToMoveState : BattleState
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
             if ( canMoveHere )
             {
-                context.DoCommand( 
-                    CreateMoveCommand( sys.Cursor.CurrentTile, InitialUnitTile ) );
+                context.DoCommand(
+                    sys.CreateMoveCommand( new LinkedList<GameTile>( Enumerable.Reverse( TilesToPass ) ), SelectedUnit ) );
                 context.State = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
@@ -61,34 +61,6 @@ public class WhereToMoveState : BattleState
         sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
         TilesToPass.Clear();
         Decorator.RenderForPath( TilesToPass );
-    }
-
-    private UndoCommandAction CreateMoveCommand( GameTile targetTile, GameTile initialTile )
-    {
-        return new UndoCommandAction(
-            delegate
-            {
-                SelectedUnit.StartCoroutine(
-                    CoroutineHelper.AddActions( 
-                        CustomAnimation.InterpolateBetweenPointsDecoupled( SelectedUnit.transform,
-                        SelectedUnit.transform.FindChild( "Model" ),
-                        TilesToPass.Select( x => x.GetComponent<Transform>().localPosition ).Reverse().ToList(), 0.22f ),
-                        () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", true ),
-                        () => SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
-
-                sys.Map.PlaceUnit( SelectedUnit, targetTile );
-            },
-            delegate
-            {
-                SelectedUnit.GetComponentInChildren<Animator>().SetBool( "Moving", false );
-                SelectedUnit.StopAllCoroutines();
-
-                sys.Map.PlaceUnit( SelectedUnit, initialTile );
-                SelectedUnit.transform.position = initialTile.transform.position;
-
-                sys.Cursor.MoveCursor( initialTile.Position );
-                sys.Map.GetComponent<MapDecorator>().ShowUnitMovement( SelectedUnit );
-            } );
     }
 
     private void CursorMoved()

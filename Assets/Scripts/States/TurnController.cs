@@ -11,16 +11,16 @@ public abstract class TurnController : ISystemState
     public HashSet<Unit> HasNotActed;
     public int PlayerNo;
 
-    public bool DoesControl( UnitMapHelper unit )
+    public bool DoesControl( UnitMapHelper unit, int PlayerNumber )
     {
-        return unit.PlayerOwner == 0;
+        return unit.PlayerOwner == PlayerNumber;
     }
 
     public TurnController( int PlayerNumber, Color color )
     {
         PlayerNo = PlayerNumber;
         var controlledUnits = BattleSystem.Instance.UnitLayer.GetComponentsInChildren<UnitMapHelper>()
-           .Where( DoesControl ).ToList();
+           .Where( unit => DoesControl( unit, PlayerNumber ) ).ToList();
 
         foreach ( var unit in controlledUnits )
         {

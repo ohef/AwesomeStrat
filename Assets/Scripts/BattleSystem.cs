@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine.EventSystems;
 using UnityEngine.Events;
 using Assets.General.UnityExtensions;
+using Assets.General;
 
 public class BattleSystem : MonoBehaviour
 {
@@ -55,4 +56,35 @@ public class BattleSystem : MonoBehaviour
 
         CurrentTurn.Enter( this );
     }
+
+    public UndoCommandAction CreateMoveCommand( LinkedList<GameTile> path, Unit unit )
+    {
+        return new UndoCommandAction(
+            delegate
+            {
+                GameTile targetTile = path.Last.Value;
+                unit.StartCoroutine(
+                    CoroutineHelper.AddActions( 
+                        CustomAnimation.InterpolateBetweenPointsDecoupled( unit.transform,
+                        unit.transform.FindChild( "Model" ),
+                        path.Select( x => x.GetComponent<Transform>().localPosition ).ToList(), 0.22f ),
+                        () => unit.GetComponentInChildren<Animator>().SetBool( "Moving", true ),
+                        () => unit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
+
+                Map.PlaceUnit( unit, targetTile );
+            },
+            delegate
+            {
+                GameTile initialTile = path.First.Value;
+                unit.GetComponentInChildren<Animator>().SetBool( "Moving", false );
+                unit.StopAllCoroutines();
+
+                Map.PlaceUnit( unit, initialTile );
+                unit.transform.position = initialTile.transform.position;
+
+                Cursor.MoveCursor( initialTile.Position );
+                Map.GetComponent<MapDecorator>().ShowUnitMovement( unit );
+            } );
+    }
+
 }

@@ -10,36 +10,29 @@ public abstract partial class TargetAbility : Ability
 
     public abstract void ExecuteOnTarget( Unit target );
 
-    public IEnumerable<Unit> GetInteractableUnits( 
-        Predicate<Unit> UseableOn, GameMap map )
+    public IEnumerable<Unit> GetInteractableUnits(
+    IEnumerable<Unit> Units, Predicate<Unit> UseableOn )
     {
-        foreach ( var tile in map.GetTilesWithinAbsoluteRange(
-            map.UnitGametileMap[ this.Owner ].Position, this.Range ) )
-        {
-            Unit unitToCheck = null;
-            if ( map.UnitGametileMap.TryGetValue( map[ tile ], out unitToCheck ) )
-            {
-                if ( UseableOn( unitToCheck ) )
-                    yield return unitToCheck;
-                else
-                    continue;
-            }
-        }
+        foreach ( var unitToCheck in Units )
+            if ( UseableOn( unitToCheck ) )
+                yield return unitToCheck;
+            else
+                continue;
         yield break;
     }
 
-    public virtual Predicate<Unit> GetTargetPredicate( PlayerTurnController context )
+    public virtual Predicate<Unit> GetTargetPredicate( TurnController context )
     {
         Predicate<Unit> predicate = unit => true;
-        if ( this.Targets == AbilityTargets.Enemy )
+        switch ( this.Targets )
         {
-            predicate = unit => !context.ControlledUnits.Contains( unit ) && unit != this.Owner;
+            case AbilityTargets.Enemy:
+                predicate = unit => !context.ControlledUnits.Contains( unit ) && unit != this.Owner;
+                break;
+            case AbilityTargets.Friendly:
+                predicate = unit => context.ControlledUnits.Contains( unit ) && unit != this.Owner;
+                break;
         }
-        else if ( this.Targets == AbilityTargets.Friendly )
-        {
-            predicate = unit => context.ControlledUnits.Contains( unit ) && unit != this.Owner;
-        }
-
         return predicate;
     }
 }

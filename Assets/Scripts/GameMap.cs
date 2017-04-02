@@ -91,6 +91,19 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
             }
     }
 
+    public IEnumerable<Unit> GetUnitsWithinRange( Vector2Int startingPos, int range )
+    {
+        foreach ( Vector2Int pos in GetTilesWithinAbsoluteRange( startingPos, range ) )
+        {
+            Unit unit;
+            if ( UnitGametileMap.TryGetValue( this[ pos ], out unit ) )
+            {
+                yield return unit;
+            }
+        }
+        yield break;
+    }
+
     public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
     {
         return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )

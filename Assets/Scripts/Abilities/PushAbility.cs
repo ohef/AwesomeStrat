@@ -10,7 +10,7 @@ public class PushAbility : TargetAbility
 {
     public int PushRange = 1;
 
-    public override Predicate<Unit> GetTargetPredicate( PlayerTurnController context )
+    public override Predicate<Unit> GetTargetPredicate( TurnController context )
     {
         return
         delegate ( Unit target )
