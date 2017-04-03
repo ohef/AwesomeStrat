@@ -50,7 +50,7 @@ internal class AIController : TurnController
                     AIAbilityScorer scorer = new AIAbilityScorer { PositionForCheck = pos, Context = this };
                     return new { Score = myUnit.Abilities.Select( ability => ability.Accept( scorer ) ).OrderByDescending( i => i ).First(), Position = pos };
                 } ).OrderBy( item => item.Score ).First().Position;
-            BattleSystem.Instance.CreateMoveCommand( new LinkedList<GameTile>( MapSearcher.Search( map.UnitGametileMap[ myUnit ], map[ bestPosition ], map ).Reverse<GameTile>() ), myUnit ).Execute();
+            BattleSystem.Instance.CreateMoveCommand( new LinkedList<GameTile>( MapSearcher.Search( map.UnitGametileMap[ myUnit ], map[ bestPosition ], map ) ), myUnit ).Execute();
         }
         BattleSystem.Instance.EndTurn();
     }
