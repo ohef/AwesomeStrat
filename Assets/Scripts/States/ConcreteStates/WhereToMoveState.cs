@@ -40,7 +40,7 @@ public class WhereToMoveState : BattleState
             if ( canMoveHere )
             {
                 context.DoCommand(
-                    sys.CreateMoveCommand( new LinkedList<GameTile>( Enumerable.Reverse( TilesToPass ) ), SelectedUnit ) );
+                    sys.CreateMoveCommand( new LinkedList<GameTile>( TilesToPass ), SelectedUnit ) );
                 context.State = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
@@ -68,16 +68,16 @@ public class WhereToMoveState : BattleState
         bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
         if ( withinMoveRange )
         {
-            AttemptToLengthenPath( sys.Cursor.CurrentTile );
+            LengthenMovementPath( sys.Cursor.CurrentTile );
             Decorator.RenderForPath( TilesToPass );
         }
     }
 
-    private void AttemptToLengthenPath( GameTile to )
+    private void LengthenMovementPath( GameTile to )
     {
         bool tooFarFromLast = false;
         if ( TilesToPass.Count > 0 )
-            tooFarFromLast = TilesToPass.First.Value.Position
+            tooFarFromLast = TilesToPass.Last.Value.Position
                 .ManhattanDistance( to.Position ) > 1;
 
         if ( TilesToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
@@ -89,13 +89,13 @@ public class WhereToMoveState : BattleState
         LinkedListNode<GameTile> alreadyPresent = TilesToPass.Find( to );
         if ( alreadyPresent == null )
         {
-            TilesToPass.AddFirst( to );
+            TilesToPass.AddLast( to );
         }
         else
         {
-            while ( TilesToPass.First != alreadyPresent )
+            while ( TilesToPass.Last != alreadyPresent )
             {
-                TilesToPass.RemoveFirst();
+                TilesToPass.RemoveLast();
             }
         }
     }
