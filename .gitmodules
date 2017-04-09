@@ -1,0 +1,3 @@
+[submodule "Assets/Plugins/SerializableDictionary"]
+	path = Assets/Plugins/SerializableDictionary
+	url = https://github.com/neuecc/SerializableDictionary.git
