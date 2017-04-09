@@ -15,7 +15,7 @@ namespace TacticsGame
 
         private void Start()
         {
-            foreach ( Unit unit in BattleSystem.Instance.Map.UnitGametileMap )
+            foreach ( Unit unit in BattleSystem.Instance.Map.UnitPos )
             {
                 unit.transform.GetChild( 0 ).rotation = MapCamera.transform.rotation;
             } 

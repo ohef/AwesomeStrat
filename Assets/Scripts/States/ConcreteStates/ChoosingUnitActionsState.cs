@@ -30,7 +30,7 @@ public class ChoosingUnitActionsState : MenuState
         public object Visit( TargetAbility ability )
         {
             var map = BattleSystem.Instance.Map;
-            var unitPos = map.UnitGametileMap[ Container.SelectedUnit ].Position;
+            var unitPos = map.UnitPos[ Container.SelectedUnit ];
             if ( ability.GetInteractableUnits(
                  map.GetUnitsWithinRange( unitPos, ability.Range ),
                  ability.GetTargetPredicate( Context ) )

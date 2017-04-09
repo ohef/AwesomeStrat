@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System;
 using System.Collections;
+using SerializableCollections;
 
 /// <summary>
 /// Just a simple one to one map with two dictionaries, probably 
@@ -10,16 +11,29 @@ using System.Collections;
 /// <typeparam name="A"></typeparam>
 /// <typeparam name="B"></typeparam>
 
-[System.Serializable]
+[Serializable]
 public class DoubleDictionary<A, B> : IEnumerable<A>
 {
-    public Dictionary<A, B> AtoB; //A -> B Don't ever set this, should be used to enumerate
-    public Dictionary<B, A> BtoA; //B -> A Don't ever set this, should be used to enumerate
+
+    [Serializable]
+    public class AtoB : SerializableDictionary<A, B>
+    {
+        public AtoB() { }
+    }
+
+    [Serializable]
+    public class BtoA : SerializableDictionary<B, A>
+    {
+        public BtoA() { }
+    }
+
+    public AtoB AtoBDict; //A -> B Don't ever set this, should be used to enumerate
+    public BtoA BtoADict; //B -> A Don't ever set this, should be used to enumerate
 
     public DoubleDictionary()
     {
-        AtoB = new Dictionary<A, B>();
-        BtoA = new Dictionary<B, A>();
+        AtoBDict = new AtoB();
+        BtoADict = new BtoA();
     }
 
     //TODO: This code could be erroneous, no testing gotta go go go
@@ -28,67 +42,73 @@ public class DoubleDictionary<A, B> : IEnumerable<A>
         A removeA = default(A);
         B removeB = default(B);
 
-        if ( AtoB.TryGetValue( a, out removeB ) )
+        if ( AtoBDict.TryGetValue( a, out removeB ) )
         {
-            AtoB.Remove( a );
-            if ( BtoA.TryGetValue( removeB, out removeA ) )
-                BtoA.Remove( removeB );
+            AtoBDict.Remove( a );
+            if ( BtoADict.TryGetValue( removeB, out removeA ) )
+                BtoADict.Remove( removeB );
             else { throw new System.Exception( "Whoah Dictionary was not updated correctly" ); }
         }
 
-        if ( BtoA.TryGetValue( b, out removeA ) )
+        if ( BtoADict.TryGetValue( b, out removeA ) )
         {
-            BtoA.Remove( b );
-            if ( AtoB.TryGetValue( removeA, out removeB ) )
-                AtoB.Remove( removeA );
+            BtoADict.Remove( b );
+            if ( AtoBDict.TryGetValue( removeA, out removeB ) )
+                AtoBDict.Remove( removeA );
             else { throw new System.Exception( "Whoah Dictionary was not updated correctly" ); }
         }
 
-        AtoB[ a ] = b;
-        BtoA[ b ] = a;
+        AtoBDict[ a ] = b;
+        BtoADict[ b ] = a;
     }
 
     public void Remove( A a )
     {
-        var b = AtoB[ a ];
-        AtoB.Remove( a );
-        BtoA.Remove( b );
+        var b = AtoBDict[ a ];
+        AtoBDict.Remove( a );
+        BtoADict.Remove( b );
     }
     
     public void Remove(B b)
     {
-        var a = BtoA[ b ];
-        BtoA.Remove( b );
-        AtoB.Remove( a );
+        var a = BtoADict[ b ];
+        BtoADict.Remove( b );
+        AtoBDict.Remove( a );
+    }
+
+    public void Clear()
+    {
+        AtoBDict.Clear();
+        BtoADict.Clear();
     }
 
     public B this[ A a ]
     {
-        get { return AtoB[ a ]; }
+        get { return AtoBDict[ a ]; }
     }
 
     public A this[ B b ]
     {
-        get { return BtoA[ b ]; }
+        get { return BtoADict[ b ]; }
     }
 
     public bool TryGetValue( A a, out B b )
     {
-        return AtoB.TryGetValue( a, out b );
+        return AtoBDict.TryGetValue( a, out b );
     }
 
     public bool TryGetValue( B b, out A a )
     {
-        return BtoA.TryGetValue( b, out a );
+        return BtoADict.TryGetValue( b, out a );
     }
 
     public IEnumerator<A> GetEnumerator()
     {
-        return AtoB.Keys.GetEnumerator();
+        return AtoBDict.Keys.GetEnumerator();
     }
 
     IEnumerator IEnumerable.GetEnumerator()
     {
-        return AtoB.Keys.GetEnumerator();
+        return AtoBDict.Keys.GetEnumerator();
     }
 }

@@ -8,15 +8,26 @@ using Assets.General;
 using System.Collections;
 using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
+using SerializableCollections;
 
-public class GameMap : MonoBehaviour, IEnumerable<GameTile>
+//[Serializable]
+//public class UnitToVector2Int : SerializableDictionary<Vector2Int, Unit> { }
+
+//[Serializable]
+//public class TileToVector2Int : SerializableDictionary<Vector2Int, GameTile> { }
+
+[Serializable]
+public class UnitToVector2Int : DoubleDictionary<Unit, Vector2Int> { }
+
+[Serializable]
+public class TileToVector2Int : DoubleDictionary<GameTile, Vector2Int> { }
+
+public class GameMap : MonoBehaviour
 {
     public int Width;
     public int Height;
 
-    public GameTile TilePrefab;
-
-    public GameTile[,] GameTiles;
+    public MapData Data;
 
     public Material NormalMat;
     public Material MovementMat;
@@ -24,22 +35,41 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     public Material DefaultMat;
     public Material SelectionMat;
 
-    public DoubleDictionary<Unit, GameTile> UnitGametileMap = new DoubleDictionary<Unit, GameTile>();
+    public UnitToVector2Int UnitPos;
+    public TileToVector2Int TilePos;
+
+    //public DoubleDictionary<Unit, Vector2Int> UnitPos = new DoubleDictionary<Unit, Vector2Int>();
+    //public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
 
     void Awake()
     {
-        GameTiles = new GameTile[ Width, Height ];
-        foreach ( GameTile tile in GameObject.FindObjectsOfType<GameTile>() )
-        {
-            this[ tile.Position ] = tile;
-        }
+        //foreach ( var pos in AllMapPositions() )
+        //{
+        //    //Unit unitHere = Data.GetUnitAtPosition( pos.x, pos.y );
+        //    //if ( unitHere != null )
+        //    //{
+        //    //    unitHere = Instantiate<Unit>( unitHere, transform.FindChild( "Offset" ), false );
+        //    //    unitHere.transform.localPosition = pos.ToVector3();
+        //    //    UnitPos.Add( unitHere, pos );
+        //    //}
+
+        //    ////There needs to be a tile everywhere...
+        //    //GameTile tileHere = Data.GetTileAtPosition( pos.x, pos.y );
+        //    //tileHere = Instantiate<GameTile>( tileHere, transform.FindChild( "Offset" ), false );
+        //    //tileHere.transform.localPosition = pos.ToVector3();
+        //    //TilePos.Add( tileHere, pos);
+        //}
     }
 
-    public void AddUnit( Unit unit )
+    public IEnumerable<Vector2Int> AllMapPositions()
     {
-        var unitPosition = unit.transform.localPosition;
-        UnitGametileMap.Add( unit,
-        this[ ( int )unitPosition.x, ( int )unitPosition.z ] );
+        for ( int i = 0 ; i < Width ; i++ )
+        {
+            for ( int j = 0 ; j < Height ; j++ )
+            {
+                yield return new Vector2Int( i, j );
+            }
+        }
     }
 
     private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
@@ -96,7 +126,7 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         foreach ( Vector2Int pos in GetTilesWithinAbsoluteRange( startingPos, range ) )
         {
             Unit unit;
-            if ( UnitGametileMap.TryGetValue( this[ pos ], out unit ) )
+            if ( UnitPos.TryGetValue( pos, out unit ) )
             {
                 yield return unit;
             }
@@ -104,10 +134,11 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         yield break;
     }
 
-    public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit, GameTile unitsTile )
+    public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
     {
-        return GetTilesWithinAbsoluteRange( unitsTile.Position, unit.MovementRange )
-            .Where( tile => MapSearcher.Search( unitsTile, this[ tile ], this, unit.MovementRange ) != null );
+        Vector2Int unitPosition = UnitPos[ unit ];
+        return GetTilesWithinAbsoluteRange( unitPosition, unit.MovementRange )
+            .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, this, unit.MovementRange ) != null );
     }
 
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
@@ -216,55 +247,46 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
         return mesh;
     }
 
-    public void InitializeMap( int width, int height )
+    public void InitializeMap( int width, int height, GameTile prefabTile )
     {
         Width = width;
         Height = height;
-        GameTiles = new GameTile[ width, height ];
+        //GameTiles = new GameTile[ width, height ];
+        //Data = MapData.CreateMapData( width, height );
         GameObject TileLayer = GameObject.Find( "TileLayer" );
-        for ( int i = 0 ; i < width ; i++ )
-            for ( int j = 0 ; j < height ; j++ )
-            {
-                var gameTile = Instantiate( TilePrefab, TileLayer.transform, false );
-                gameTile.Position.x = i;
-                gameTile.Position.y = j;
-                this[ gameTile.Position ] = gameTile;
-                gameTile.transform.localPosition = gameTile.Position.ToVector3();
-                gameTile.name = gameTile.Position.ToString();
-            }
+        foreach ( var pos in AllMapPositions() )
+        {
+            //Data.SetTileAtPosition( pos.x, pos.y, prefabTile );
+            var gameTile = Instantiate( prefabTile, TileLayer.transform, false );
+            TilePos.Add( gameTile, pos );
+            gameTile.transform.localPosition = pos.ToVector3();
+            gameTile.name = pos.ToString();
+        }
     }
 
-    public void ReInitializeMap( int width, int height )
+    public void ReInitializeMap( int width, int height, GameTile prefabTile )
     {
         foreach ( var tile in GameObject.FindObjectsOfType<GameTile>() )
-        {
             GameObject.DestroyImmediate( tile.gameObject );
-        }
-        InitializeMap( width, height );
+
+        foreach ( var unit in GameObject.FindObjectsOfType<Unit>() )
+            GameObject.DestroyImmediate( unit.gameObject );
+
+        UnitPos.Clear();
+        TilePos.Clear();
+        InitializeMap( width, height, prefabTile );
     }
 
-    public GameTile this[ int x, int y ]
-    {
-        get { return GameTiles[ x, y ]; }
-        set { GameTiles[ x, y ] = value; }
-    }
-
-    public GameTile this[ Vector2Int v ]
-    {
-        get { return GameTiles[ v.x, v.y ]; }
-        set { GameTiles[ v.x, v.y ] = value; }
-    }
-
-    public bool Occupied( GameTile tile )
+    public bool Occupied( Vector2Int pos )
     {
         Unit u;
-        return UnitGametileMap.TryGetValue( tile, out u );
+        return UnitPos.TryGetValue( pos, out u );
     }
 
-    public void PlaceUnit( Unit unit, GameTile b )
+    public void PlaceUnit( Unit unit, Vector2Int pos )
     {
-        if ( Occupied( b ) == false )
-            UnitGametileMap.Add( unit, b );
+        if ( Occupied( pos ) == false )
+            UnitPos.Add( unit, pos );
     }
 
     private static bool IsOverBound( int i, int lowerBound, int upperBound )
@@ -296,15 +318,5 @@ public class GameMap : MonoBehaviour, IEnumerable<GameTile>
     public bool IsOutOfBounds( Vector2Int v )
     {
         return IsOverBound( v.x, 0, Width - 1 ) || IsOverBound( v.y, 0, Height - 1 );
-    }
-
-    public IEnumerator<GameTile> GetEnumerator()
-    {
-        return GameTiles.Cast<GameTile>().GetEnumerator();
-    }
-
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GameTiles.GetEnumerator();
     }
 }

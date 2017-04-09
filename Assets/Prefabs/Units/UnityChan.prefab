@@ -5222,7 +5222,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15ceea6989eb8ae43930b74421c453a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerOwner: 1
+  PlayerOwner: 0
 --- !u!114 &114227424166097596
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5274,9 +5274,7 @@ MonoBehaviour:
   m_HP: 20
   m_MaxHP: 20
   Defense: 2
-  Attack: 5
   MovementRange: 5
-  AttackRange: 2
   Abilities: []
   UnitChanged:
     m_PersistentCalls:
@@ -5429,7 +5427,8 @@ MonoBehaviour:
   Name: Attack
   AbliityImage: {fileID: 0}
   Targets: 1
-  Range: 1
+  Range: 2
+  AttackPower: 10
 --- !u!114 &114963195565895736
 MonoBehaviour:
   m_ObjectHideFlags: 1

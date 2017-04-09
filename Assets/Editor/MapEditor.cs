@@ -1,18 +1,17 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Linq;
 using System.Collections.Generic;
-using System.IO;
 using UnityEditor.SceneManagement;
 using System;
-using UnityEngine.SceneManagement;
 using UnityEngine.Rendering;
 using Assets.General.UnityExtensions;
+using Assets.General.DataStructures;
 
 [ExecuteInEditMode]
 public class MapEditor : EditorWindow
 {
     public static GameMap map = null;
+    public static GameTile InitTile;
     public int Width = 0;
     public int Height = 0;
 
@@ -34,6 +33,7 @@ public class MapEditor : EditorWindow
         EditorGUILayout.BeginVertical();
 
         map = EditorGUILayout.ObjectField( map, typeof( GameMap ), true ) as GameMap;
+        InitTile = EditorGUILayout.ObjectField( InitTile, typeof( GameTile ), true ) as GameTile;
 
         EditorGUILayout.BeginHorizontal();
         Width = EditorGUILayout.IntField( "Width", Width );
@@ -42,7 +42,7 @@ public class MapEditor : EditorWindow
 
         if ( GUILayout.Button( "Create Map" ) )
         {
-            map.ReInitializeMap( Width, Height );
+            map.ReInitializeMap( Width, Height, InitTile );
             EditorSceneManager.MarkAllScenesDirty();
         }
 
@@ -131,7 +131,7 @@ public class MapEditorScene : Editor
                Event.current.control == false;
     }
 
-    private static void HandleFoundTile( SceneView scene, Action<GameTile> handler )
+    private static void HandleFoundTile( SceneView scene, Action<Vector2Int> handler )
     {
         int controlId = GUIUtility.GetControlID( FocusType.Passive );
         Ray ray = HandleUtility.GUIPointToWorldRay( Event.current.mousePosition );
@@ -142,61 +142,69 @@ public class MapEditorScene : Editor
             if ( JustMouseDown() )
             {
                 GameTile tile = rayHitInfo.collider.GetComponent<GameTile>();
+                var pos =
+                new Vector2Int(
+                    ( int )Mathf.Floor( rayHitInfo.transform.localPosition.x ),
+                    ( int )Mathf.Floor( rayHitInfo.transform.localPosition.z ) );
                 if ( tile != null )
-                    handler( tile );
+                    handler( pos );
             }
         }
 
         HandleUtility.AddDefaultControl( controlId );
     }
 
-    private static Unit GetUnit( GameTile tile )
-    {
-        Unit hitUnit =
-        FindObjectsOfType<Unit>().FirstOrDefault( unit =>
-        Mathf.Floor( unit.transform.localPosition.x ) == tile.Position.x &&
-        Mathf.Floor( unit.transform.localPosition.z ) == tile.Position.y
-        );
+    //private static Unit GetUnit( Vector2Int pos )
+    //{
+    //    Unit hitUnit =
+    //    FindObjectsOfType<Unit>().FirstOrDefault( unit =>
+    //    Mathf.Floor( unit.transform.localPosition.x ) == pos.x &&
+    //    Mathf.Floor( unit.transform.localPosition.z ) == pos.y
+    //    );
 
-        return hitUnit;
-    }
+    //    return hitUnit;
+    //}
 
-    private static void PlaceTileAt( GameTile tile )
+    private static void PlaceTileAt( Vector2Int pos )
     {
         GameTile prefabTile = Selection.activeGameObject.GetComponent<GameTile>();
         if ( prefabTile == null )
             return;
 
         GameTile Tile = GameObject.Instantiate<GameTile>( prefabTile, TileLayer.transform, false );
-        Tile.transform.localPosition = tile.Position.ToVector3();
-        Tile.name = tile.name;
-        Tile.Position = tile.Position;
-        GameObject.DestroyImmediate( tile.gameObject );
+        Tile.transform.localPosition = pos.ToVector3();
+        var TileAtPos = Map.TilePos[ pos ];
+        Tile.name = TileAtPos.name;
+        GameObject.DestroyImmediate( TileAtPos.gameObject );
         EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
     }
 
-    private static void PlaceUnitAt( GameTile tile )
+    private static void PlaceUnitAt( Vector2Int pos )
     {
-        if ( GetUnit( tile ) == null )
+        Unit unitAtPos;
+        Map.UnitPos.TryGetValue( pos, out unitAtPos );
+        if ( unitAtPos == null )
         {
             Unit prefabUnit = Selection.activeGameObject.GetComponent<Unit>();
             if ( prefabUnit == null )
                 return;
+            //Map.Data.SetUnitAtPosition( pos.x, pos.y, prefabUnit );
             var unit = Instantiate( prefabUnit, UnitLayer.transform, false );
-            unit.transform.localPosition = tile.Position.ToVector3();
+            Map.UnitPos.Add( unit, pos );
+            unit.transform.localPosition = pos.ToVector3();
             unit.GetComponent<UnitMapHelper>().PlayerOwner = TeamSelectionIndex;
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
     }
 
-    private static void RemoveUnitAt( GameTile tile )
+    private static void RemoveUnitAt( Vector2Int pos )
     {
-        Unit hitUnit = GetUnit( tile );
-        if ( hitUnit == null )
+        Unit unitAtPos = Map.Data.GetUnitAtPosition( pos.x, pos.y );
+        if ( unitAtPos == null )
             return;
         else
         {
-            GameObject.DestroyImmediate( hitUnit.gameObject );
+            GameObject.DestroyImmediate( unitAtPos.gameObject );
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
     }

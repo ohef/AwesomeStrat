@@ -17,26 +17,46 @@ public class CursorControl : MonoBehaviour
     public Queue<Action> MoveCommands = new Queue<Action>();
     public UnityEvent CursorMoved;
 
-    private GameTile m_CurrentTile;
-    public GameTile CurrentTile
+    private Vector2Int m_CurrentPosition;
+    public Vector2Int CurrentPosition
     {
         get
         {
-            return m_CurrentTile;
+            return m_CurrentPosition;
         }
 
         set
         {
-            if ( value != m_CurrentTile )
+            if ( value != m_CurrentPosition )
             {
-                m_CurrentTile = value;
+                m_CurrentPosition = value;
                 if ( CursorMoved != null )
                     CursorMoved.Invoke();
             }
         }
     }
 
+    //private GameTile m_CurrentTile;
+    //public GameTile CurrentTile
+    //{
+    //    get
+    //    {
+    //        return m_CurrentTile;
+    //    }
+
+    //    set
+    //    {
+    //        if ( value != m_CurrentTile )
+    //        {
+    //            m_CurrentTile = value;
+    //            if ( CursorMoved != null )
+    //                CursorMoved.Invoke();
+    //        }
+    //    }
+    //}
+
     private bool IsMoving = false;
+
 
     void Awake()
     {
@@ -48,15 +68,14 @@ public class CursorControl : MonoBehaviour
     {
         CursorCamera.transform.LookAt( this.transform );
         Unit firstunit = default( Unit );
-        CurrentTile = Map.FirstOrDefault( tile => Map.UnitGametileMap.TryGetValue( tile, out firstunit ) );
-        CurrentTile = CurrentTile == null ? Map[ 0, 0 ] : CurrentTile;
-        MoveCursor( CurrentTile.Position );
+        CurrentPosition = Map.UnitPos[ Map.UnitPos.First() ];
+        MoveCursor( CurrentPosition );
     }
-    
+
     public Unit GetCurrentUnit()
     {
         Unit unitThere;
-        Map.UnitGametileMap.TryGetValue( this.CurrentTile, out unitThere );
+        Map.UnitPos.TryGetValue( this.CurrentPosition, out unitThere );
         return unitThere;
     }
 
@@ -84,7 +103,7 @@ public class CursorControl : MonoBehaviour
     {
         if ( direction.AbsoluteNormal() != 0 )
         {
-            Vector2Int updatedPosition = CurrentTile.Position + direction;
+            Vector2Int updatedPosition = CurrentPosition + direction;
             MoveCommands.Enqueue( () => MoveCursor( updatedPosition ) );
         }
     }
@@ -99,7 +118,7 @@ public class CursorControl : MonoBehaviour
     {
         if ( Map.IsOutOfBounds( to ) == false )
         {
-            CurrentTile = Map[ to ];
+            CurrentPosition = to;
             StartCoroutine( CursorMotion( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.08f ) ) );
         }
     }

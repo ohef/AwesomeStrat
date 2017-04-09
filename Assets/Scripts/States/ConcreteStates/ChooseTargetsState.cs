@@ -25,14 +25,14 @@ class ChooseTargetsState : BattleState
     public override void Enter( PlayerTurnController context )
     {
         var unitsInRange = sys.Map.GetUnitsWithinRange( 
-            sys.Map.UnitGametileMap[ SelectedAbility.Owner ].Position,
+            sys.Map.UnitPos[ SelectedAbility.Owner ],
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
             SelectedAbility.GetInteractableUnits( unitsInRange,
                 SelectedAbility.GetTargetPredicate( context ) ) );
         CurrentlySelected = EligibleTargets.First;
-        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
     }
 
     public override void Update( PlayerTurnController context )
@@ -49,7 +49,7 @@ class ChooseTargetsState : BattleState
 
     public override void Exit( PlayerTurnController context )
     {
-        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedAbility.Owner ].Position );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedAbility.Owner ] );
     }
 
     private void HandleChoosing()
@@ -71,7 +71,7 @@ class ChooseTargetsState : BattleState
             else
                 CurrentlySelected = CurrentlySelected.Next;
 
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+            sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
         }
         else if ( input == -1 )
         {
@@ -80,7 +80,7 @@ class ChooseTargetsState : BattleState
             else
                 CurrentlySelected = CurrentlySelected.Previous;
 
-            sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ CurrentlySelected.Value ].Position );
+            sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
         }
     }
 }

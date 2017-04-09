@@ -7,7 +7,6 @@ using System;
 
 public class GameTile : MonoBehaviour
 {
-    public Vector2Int Position;
     public int CostOfTraversal;
 
     public void OnDrawGizmos()

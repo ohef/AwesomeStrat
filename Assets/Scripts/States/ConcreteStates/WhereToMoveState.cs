@@ -11,10 +11,10 @@ using UnityEngine.Rendering;
 public class WhereToMoveState : BattleState
 {
     private Unit SelectedUnit;
-    private GameTile InitialUnitTile;
+    private Vector2Int InitialUnitPosition;
     private MapDecorator Decorator;
     private HashSet<Vector2Int> MovementTiles;
-    private LinkedList<GameTile> TilesToPass;
+    private LinkedList<Vector2Int> PointsToPass;
 
     public static BattleState Create( Unit selectedUnit )
     {
@@ -24,23 +24,23 @@ public class WhereToMoveState : BattleState
     private WhereToMoveState( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
-        InitialUnitTile = sys.Map.UnitGametileMap[ SelectedUnit ];
+        InitialUnitPosition = sys.Map.UnitPos[ SelectedUnit ];
         Decorator = sys.Map.GetComponent<MapDecorator>();
     }
 
     public override void Update( PlayerTurnController context )
     {
         Unit unitUnderCursor = null;
-        sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitUnderCursor );
+        sys.Map.UnitPos.TryGetValue( sys.Cursor.CurrentPosition, out unitUnderCursor );
 
-        Decorator.RenderForPath( TilesToPass );
+        Decorator.RenderForPath( PointsToPass );
         if ( Input.GetButtonDown( "Submit" ) )
         {
-            bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
+            bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentPosition );
             if ( canMoveHere )
             {
                 context.DoCommand(
-                    sys.CreateMoveCommand( new LinkedList<GameTile>( TilesToPass ), SelectedUnit ) );
+                    sys.CreateMoveCommand( new LinkedList<Vector2Int>( PointsToPass ), SelectedUnit ) );
                 context.State = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }
@@ -50,52 +50,52 @@ public class WhereToMoveState : BattleState
     {
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
 
-        TilesToPass = new LinkedList<GameTile>();
-        TilesToPass.AddFirst( InitialUnitTile );
-        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit, InitialUnitTile ) );
+        PointsToPass = new LinkedList<Vector2Int>();
+        PointsToPass.AddFirst( InitialUnitPosition );
+        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
     }
 
     public override void Exit( PlayerTurnController context )
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
-        sys.Cursor.MoveCursor( sys.Map.UnitGametileMap[ SelectedUnit ].Position );
-        TilesToPass.Clear();
-        Decorator.RenderForPath( TilesToPass );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
+        PointsToPass.Clear();
+        Decorator.RenderForPath( PointsToPass );
     }
 
     private void CursorMoved()
     {
-        bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentTile.Position );
+        bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentPosition );
         if ( withinMoveRange )
         {
-            LengthenMovementPath( sys.Cursor.CurrentTile );
-            Decorator.RenderForPath( TilesToPass );
+            LengthenMovementPath( sys.Cursor.CurrentPosition );
+            Decorator.RenderForPath( PointsToPass );
         }
     }
 
-    private void LengthenMovementPath( GameTile to )
+    private void LengthenMovementPath( Vector2Int to )
     {
         bool tooFarFromLast = false;
-        if ( TilesToPass.Count > 0 )
-            tooFarFromLast = TilesToPass.Last.Value.Position
-                .ManhattanDistance( to.Position ) > 1;
+        if ( PointsToPass.Count > 0 )
+            tooFarFromLast = PointsToPass.Last.Value
+                .ManhattanDistance( to ) > 1;
 
-        if ( TilesToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
+        if ( PointsToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
         {
-            TilesToPass = new LinkedList<GameTile>( MapSearcher.Search( InitialUnitTile, to, sys.Map, SelectedUnit.MovementRange ) );
+            PointsToPass = new LinkedList<Vector2Int>( MapSearcher.Search( InitialUnitPosition, to, sys.Map, SelectedUnit.MovementRange ) );
             return;
         }
 
-        LinkedListNode<GameTile> alreadyPresent = TilesToPass.Find( to );
+        LinkedListNode<Vector2Int> alreadyPresent = PointsToPass.Find( to );
         if ( alreadyPresent == null )
         {
-            TilesToPass.AddLast( to );
+            PointsToPass.AddLast( to );
         }
         else
         {
-            while ( TilesToPass.Last != alreadyPresent )
+            while ( PointsToPass.Last != alreadyPresent )
             {
-                TilesToPass.RemoveLast();
+                PointsToPass.RemoveLast();
             }
         }
     }

@@ -26,21 +26,22 @@ public class MapDecorator : MonoBehaviour
 
     public void Start() { }
 
-    public void RenderForPath( IEnumerable<GameTile> path )
+    public void RenderForPath( IEnumerable<Vector2Int> path )
     {
         PointsBuffer.Clear();
-        foreach ( var tile in path )
+        foreach ( var pos in path )
         {
-            PointsBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
-                tile.transform.localToWorldMatrix,
+            GameTile foundTile = Map.TilePos[ pos ];
+            PointsBuffer.DrawMesh( foundTile.GetComponent<MeshFilter>().mesh,
+                foundTile.transform.localToWorldMatrix,
                 Map.SelectionMat, 0 );
         }
     }
 
-    public void ShowUnitMovementIfHere( GameTile tile )
+    public void ShowUnitMovementIfHere( Vector2Int pos )
     {
         Unit unitThere;
-        Map.UnitGametileMap.TryGetValue( tile, out unitThere );
+        Map.UnitPos.TryGetValue( pos, out unitThere );
         if ( unitThere != null )
             ShowUnitMovement( unitThere );
     }
@@ -52,9 +53,9 @@ public class MapDecorator : MonoBehaviour
             return;
 
         List<Vector2Int> validMovementTiles =
-            Map.GetValidMovementPositions( unit, Map.UnitGametileMap[ unit ] ).ToList();
+            Map.GetValidMovementPositions( unit ).ToList();
 
-        foreach ( var tile in validMovementTiles.Select( tile => Map[ tile ] ) )
+        foreach ( var tile in validMovementTiles.Select( pos => Map.TilePos[ pos ] ) )
         {
             UnitMovementBuffer.DrawMesh( tile.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,

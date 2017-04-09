@@ -1,6 +1,7 @@
 ﻿Shader "Custom/MovementShader" {
 	Properties{
 		_Color("Color", Color) = (1,1,1,1)
+		_Alpha("Alpha", Range(0.0,1.0)) = 1.0
 	}
 		SubShader{
 			Tags {"Queue" = "Geometry"}
@@ -17,6 +18,7 @@
 				#pragma fragment frag
 				#pragma exclude_renderers nomrt
 				half4 _Color;
+				float _Alpha;
 
 				float4 vert(float4 vertex : POSITION) : SV_POSITION
 				{
@@ -25,7 +27,7 @@
 
 				half4 frag() : SV_Target
 				{
-					return half4(_Color.rgb, 0.77f);
+					return half4(_Color.rgb, _Alpha);
 				}
 				ENDCG
 		}

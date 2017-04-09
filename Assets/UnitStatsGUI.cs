@@ -12,8 +12,8 @@ public class UnitStatsGUI : MonoBehaviour {
     {
         Unit unit;
         if(
-        BattleSystem.Instance.Map.UnitGametileMap.TryGetValue(
-        BattleSystem.Instance.Cursor.CurrentTile,
+        BattleSystem.Instance.Map.UnitPos.TryGetValue(
+        BattleSystem.Instance.Cursor.CurrentPosition,
         out unit ) )
         {
             HP.UpdateValue( unit.HP );

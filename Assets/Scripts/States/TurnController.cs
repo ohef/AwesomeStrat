@@ -6,7 +6,6 @@ using UnityEngine;
 
 public abstract class TurnController : ISystemState
 {
-
     public HashSet<Unit> ControlledUnits;
     public HashSet<Unit> HasNotActed;
     public int PlayerNo;
@@ -19,8 +18,9 @@ public abstract class TurnController : ISystemState
     public TurnController( int PlayerNumber, Color color )
     {
         PlayerNo = PlayerNumber;
-        var controlledUnits = BattleSystem.Instance.UnitLayer.GetComponentsInChildren<UnitMapHelper>()
-           .Where( unit => DoesControl( unit, PlayerNumber ) ).ToList();
+        var controlledUnits = BattleSystem.Instance.Map.UnitPos
+            .Select<Unit, UnitMapHelper>( unit => unit.GetComponent<UnitMapHelper>() )
+            .Where( unit => DoesControl( unit, PlayerNumber ) ).ToList();
 
         foreach ( var unit in controlledUnits )
         {

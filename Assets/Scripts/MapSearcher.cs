@@ -16,9 +16,10 @@ public class MapSearcher
         for ( int i = 0 ; i < map.Width ; i++ )
             for ( int j = 0 ; j < map.Height ; j++ )
             {
-                gridNodeMap[ i, j ] = new GridNode( map[ i, j ] );
+                Vector2Int pos = new Vector2Int( i, j );
+                gridNodeMap[ i, j ] = new GridNode( map.TilePos[ pos ], pos );
 
-                if ( map.Occupied( map[ i, j ] ) )
+                if ( map.Occupied( pos ) )
                     //So we set the cost to be half of a max int because it WRAPS AROUND to negative when added to pCost. 
                     //It's probably better to have a unit or impassable terrain logic somewhere else and leave the searcher simple;
                     //Lest we populate a general class.
@@ -26,10 +27,10 @@ public class MapSearcher
             }
     }
 
-    public static List<GameTile> Search( GameTile start, GameTile goal, GameMap map, int bound = int.MaxValue )
+    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound = int.MaxValue )
     {
         if ( start == goal )
-            return new List<GameTile> { goal };
+            return new List<Vector2Int> { goal };
 
         HashSet<GridNode> closedSet = new HashSet<GridNode>();
         ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();
@@ -37,8 +38,8 @@ public class MapSearcher
         GridNode[,] gridNodeMap = new GridNode[ map.Width, map.Height ];
         CalculateNodeMap( map, gridNodeMap );
 
-        GridNode startNode = gridNodeMap[ start.Position.x, start.Position.y ];
-        GridNode goalNode = gridNodeMap[ goal.Position.x, goal.Position.y ];
+        GridNode startNode = gridNodeMap[ start.x, start.y ];
+        GridNode goalNode = gridNodeMap[ goal.x, goal.y ];
 
         startNode.pCost = 0;
         startNode.hCost = GridNode.CalculateHeuristic( startNode, goalNode );
@@ -77,19 +78,19 @@ public class MapSearcher
         return null;
     }
 
-    public static List<GameTile> ReconstructPath( GridNode finalNode, GridNode startNode, GameMap map )
+    public static List<Vector2Int> ReconstructPath( GridNode finalNode, GridNode startNode, GameMap map )
     {
-        var path = new List<GameTile>();
+        var path = new List<Vector2Int>();
         GridNode temp = finalNode;
         while ( true )
         {
             if ( temp == startNode )
                 break;
-            path.Add( map[ temp.Location ] );
+            path.Add( temp.Location );
             temp = temp.Parent;
         }
 
-        path.Add( map[ temp.Location ] );
+        path.Add( temp.Location );
         path.Reverse();
         return path;
     }
@@ -151,9 +152,9 @@ public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
     public int pCost = 0;
     public int hCost = 0;
 
-    public GridNode( GameTile tile )
+    public GridNode( GameTile tile, Vector2Int location )
     {
-        Location = tile.Position;
+        Location = location;
         Cost = tile.CostOfTraversal;
     }
 

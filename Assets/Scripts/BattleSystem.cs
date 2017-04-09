@@ -29,7 +29,10 @@ public class BattleSystem : MonoBehaviour
     void Awake()
     {
         instance = this;
+    }
 
+    public void Start()
+    {
         TurnOrder = new LinkedList<TurnController>( new TurnController[] {
             new PlayerTurnController( 0, new Color(1.0f, 0.5f, 0.5f) ),
             new AIController( 1, new Color(0.5f, 1.0f, 0.5f) )
@@ -57,34 +60,33 @@ public class BattleSystem : MonoBehaviour
         CurrentTurn.Enter( this );
     }
 
-    public UndoCommandAction CreateMoveCommand( LinkedList<GameTile> path, Unit unit )
+    public UndoCommandAction CreateMoveCommand( LinkedList<Vector2Int> path, Unit unit )
     {
         return new UndoCommandAction(
             delegate
             {
-                GameTile targetTile = path.Last.Value;
+                Vector2Int targetPosition = path.Last.Value;
                 unit.StartCoroutine(
                     CoroutineHelper.AddActions( 
                         CustomAnimation.InterpolateBetweenPointsDecoupled( unit.transform,
                         unit.transform.FindChild( "Model" ),
-                        path.Select( x => x.GetComponent<Transform>().localPosition ).ToList(), 0.22f ),
+                        path.Select( x => Map.TilePos[ x ].GetComponent<Transform>().localPosition ).ToList(), 0.22f ),
                         () => unit.GetComponentInChildren<Animator>().SetBool( "Moving", true ),
                         () => unit.GetComponentInChildren<Animator>().SetBool( "Moving", false ) ) );
 
-                Map.PlaceUnit( unit, targetTile );
+                Map.PlaceUnit( unit, targetPosition );
             },
             delegate
             {
-                GameTile initialTile = path.First.Value;
+                Vector2Int initialPosition = path.First.Value;
                 unit.GetComponentInChildren<Animator>().SetBool( "Moving", false );
                 unit.StopAllCoroutines();
 
-                Map.PlaceUnit( unit, initialTile );
-                unit.transform.position = initialTile.transform.position;
+                Map.PlaceUnit( unit, initialPosition );
+                unit.transform.position = Map.TilePos[ initialPosition ].transform.position;
 
-                Cursor.MoveCursor( initialTile.Position );
+                Cursor.MoveCursor( initialPosition);
                 Map.GetComponent<MapDecorator>().ShowUnitMovement( unit );
             } );
     }
-
 }

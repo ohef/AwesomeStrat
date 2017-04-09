@@ -7,6 +7,6 @@ public class TileInfo : MonoBehaviour {
 
     public void UpdateInfo()
     {
-        TileCost.UpdateValue( BattleSystem.Instance.Cursor.CurrentTile.CostOfTraversal );
+        TileCost.UpdateValue( BattleSystem.Instance.Map.TilePos[ BattleSystem.Instance.Cursor.CurrentPosition ].CostOfTraversal );
     }
 }

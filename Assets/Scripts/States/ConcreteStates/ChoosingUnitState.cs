@@ -19,7 +19,7 @@ public class ChoosingUnitState : BattleState
         if ( Input.GetButtonDown( "Submit" ) )
         {
             Unit unitAtTile;
-            if ( sys.Map.UnitGametileMap.TryGetValue( sys.Cursor.CurrentTile, out unitAtTile ) 
+            if ( sys.Map.UnitPos.TryGetValue( sys.Cursor.CurrentPosition, out unitAtTile )
                 && context.ControlledUnits.Contains( unitAtTile )
                 && context.HasNotActed.Contains( unitAtTile ) )
             {

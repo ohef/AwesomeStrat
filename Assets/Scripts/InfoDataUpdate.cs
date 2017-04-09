@@ -2,6 +2,7 @@
 using System.Collections;
 using System;
 using UnityEngine.UI;
+using Assets.General.DataStructures;
 
 /// <summary>
 /// TODO: Setting up the gui like this kinda sucks; is there a better way?
@@ -24,9 +25,9 @@ public class InfoDataUpdate : MonoBehaviour {
     }
 
     public void UpdateInfo() {
-        var currentTile = BattleSystem.Instance.Cursor.CurrentTile;
+        Vector2Int currentTile = BattleSystem.Instance.Cursor.CurrentPosition;
         Unit unitAtTile;
-        if ( BattleSystem.Instance.Map.UnitGametileMap.TryGetValue( currentTile, out unitAtTile ) == true )
+        if ( BattleSystem.Instance.Map.UnitPos.TryGetValue( currentTile, out unitAtTile ) == true )
         {
             HP.text = unitAtTile.HP.ToString();
             Move.text = unitAtTile.MovementRange.ToString();
