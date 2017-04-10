@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Assets.General.DataStructures;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -19,7 +20,7 @@ public abstract class TurnController : ISystemState
     {
         PlayerNo = PlayerNumber;
         var controlledUnits = BattleSystem.Instance.Map.UnitPos
-            .Select<Unit, UnitMapHelper>( unit => unit.GetComponent<UnitMapHelper>() )
+            .Select<KeyValuePair<Unit, Vector2Int>, UnitMapHelper>( kvp => kvp.Key.GetComponent<UnitMapHelper>() )
             .Where( unit => DoesControl( unit, PlayerNumber ) ).ToList();
 
         foreach ( var unit in controlledUnits )

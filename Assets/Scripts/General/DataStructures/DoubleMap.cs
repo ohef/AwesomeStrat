@@ -12,28 +12,15 @@ using SerializableCollections;
 /// <typeparam name="B"></typeparam>
 
 [Serializable]
-public class DoubleDictionary<A, B> : IEnumerable<A>
+public class DoubleDictionary<A, B> : IEnumerable<KeyValuePair<A, B>>
 {
-
-    [Serializable]
-    public class AtoB : SerializableDictionary<A, B>
-    {
-        public AtoB() { }
-    }
-
-    [Serializable]
-    public class BtoA : SerializableDictionary<B, A>
-    {
-        public BtoA() { }
-    }
-
-    public AtoB AtoBDict; //A -> B Don't ever set this, should be used to enumerate
-    public BtoA BtoADict; //B -> A Don't ever set this, should be used to enumerate
+    public Dictionary<A, B> AtoBDict; //A -> B Don't ever set this, should be used to enumerate
+    public Dictionary<B, A> BtoADict; //B -> A Don't ever set this, should be used to enumerate
 
     public DoubleDictionary()
     {
-        AtoBDict = new AtoB();
-        BtoADict = new BtoA();
+        AtoBDict = new Dictionary<A, B>();
+        BtoADict = new Dictionary<B, A>();
     }
 
     //TODO: This code could be erroneous, no testing gotta go go go
@@ -68,8 +55,8 @@ public class DoubleDictionary<A, B> : IEnumerable<A>
         AtoBDict.Remove( a );
         BtoADict.Remove( b );
     }
-    
-    public void Remove(B b)
+
+    public void Remove( B b )
     {
         var a = BtoADict[ b ];
         BtoADict.Remove( b );
@@ -102,13 +89,13 @@ public class DoubleDictionary<A, B> : IEnumerable<A>
         return BtoADict.TryGetValue( b, out a );
     }
 
-    public IEnumerator<A> GetEnumerator()
+    IEnumerator<KeyValuePair<A, B>> IEnumerable<KeyValuePair<A, B>>.GetEnumerator()
     {
-        return AtoBDict.Keys.GetEnumerator();
+        return AtoBDict.GetEnumerator();
     }
 
-    IEnumerator IEnumerable.GetEnumerator()
+    public IEnumerator GetEnumerator()
     {
-        return AtoBDict.Keys.GetEnumerator();
+        return AtoBDict.GetEnumerator();
     }
 }

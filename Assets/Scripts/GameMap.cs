@@ -4,25 +4,18 @@ using System.Collections.Generic;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using System.Linq;
-using Assets.General;
-using System.Collections;
-using UnityEngine.Rendering;
-using UnityEngine.EventSystems;
-using SerializableCollections;
+using UnityEditor;
 
-//[Serializable]
-//public class UnitToVector2Int : SerializableDictionary<Vector2Int, Unit> { }
+//[CustomPropertyDrawer(typeof(TileToVector2Int))]
+//public class TileToVector2IntEditor : PropertyDrawer
+//{
+//    public override void OnGUI( Rect position, SerializedProperty property, GUIContent label )
+//    {
+//        base.OnGUI( position, property, label );
+//    }
+//}
 
-//[Serializable]
-//public class TileToVector2Int : SerializableDictionary<Vector2Int, GameTile> { }
-
-[Serializable]
-public class UnitToVector2Int : DoubleDictionary<Unit, Vector2Int> { }
-
-[Serializable]
-public class TileToVector2Int : DoubleDictionary<GameTile, Vector2Int> { }
-
-public class GameMap : MonoBehaviour
+public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
 {
     public int Width;
     public int Height;
@@ -35,11 +28,63 @@ public class GameMap : MonoBehaviour
     public Material DefaultMat;
     public Material SelectionMat;
 
-    public UnitToVector2Int UnitPos;
-    public TileToVector2Int TilePos;
+    [Serializable]
+    public struct UnitToVector2Int
+    {
+        public Unit unit;
+        public int x;
+        public int y;
+    }
 
-    //public DoubleDictionary<Unit, Vector2Int> UnitPos = new DoubleDictionary<Unit, Vector2Int>();
-    //public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
+    [Serializable]
+    public struct TileToVector2Int
+    {
+        public GameTile tile;
+        public int x;
+        public int y;
+    }
+
+    [SerializeField]
+    private List<UnitToVector2Int> SerializeUnitPos = new List<UnitToVector2Int>();
+    [SerializeField]
+    private List<TileToVector2Int> SerializeTilePos = new List<TileToVector2Int>();
+
+    public void OnBeforeSerialize()
+    {
+        SerializeUnitPos.Clear();
+        SerializeTilePos.Clear();
+
+        foreach ( KeyValuePair<Unit,Vector2Int> kvp in UnitPos )
+        {
+            SerializeUnitPos.Add( new UnitToVector2Int { unit = kvp.Key, x = kvp.Value.x, y = kvp.Value.y } );
+        }
+
+        foreach ( KeyValuePair<GameTile,Vector2Int> kvp in TilePos )
+        {
+            SerializeTilePos.Add( new TileToVector2Int { tile = kvp.Key, x = kvp.Value.x, y = kvp.Value.y } );
+        }
+    }
+
+    public void OnAfterDeserialize()
+    {
+        foreach ( var kvp in SerializeTilePos )
+        {
+            TilePos.Add( kvp.tile, new Vector2Int( kvp.x, kvp.y ) );
+        }
+
+        foreach ( var kvp in SerializeUnitPos )
+        {
+            UnitPos.Add( kvp.unit, new Vector2Int( kvp.x, kvp.y ) );
+        }
+    }
+
+    //public DoubleDictionary<Unit, Vector2Int> UnitPos;
+    //public DoubleDictionary<GameTile, Vector2Int> TilePos;
+
+    [HideInInspector]
+    public DoubleDictionary<Unit, Vector2Int> UnitPos = new DoubleDictionary<Unit, Vector2Int>();
+    [HideInInspector]
+    public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
 
     void Awake()
     {
@@ -319,4 +364,5 @@ public class GameMap : MonoBehaviour
     {
         return IsOverBound( v.x, 0, Width - 1 ) || IsOverBound( v.y, 0, Height - 1 );
     }
+
 }

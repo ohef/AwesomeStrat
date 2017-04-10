@@ -1,5 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
+using Assets.General.DataStructures;
 
 namespace TacticsGame
 {
@@ -15,10 +17,10 @@ namespace TacticsGame
 
         private void Start()
         {
-            foreach ( Unit unit in BattleSystem.Instance.Map.UnitPos )
+            foreach ( KeyValuePair<Unit, Vector2Int> kvp in BattleSystem.Instance.Map.UnitPos )
             {
-                unit.transform.GetChild( 0 ).rotation = MapCamera.transform.rotation;
-            } 
+                kvp.Key.transform.GetChild( 0 ).rotation = MapCamera.transform.rotation;
+            }
         }
 
         public void RotateFortyFiveDegrees()

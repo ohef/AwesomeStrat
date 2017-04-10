@@ -199,11 +199,12 @@ public class MapEditorScene : Editor
 
     private static void RemoveUnitAt( Vector2Int pos )
     {
-        Unit unitAtPos = Map.Data.GetUnitAtPosition( pos.x, pos.y );
+        Unit unitAtPos = Map.UnitPos[ pos ];
         if ( unitAtPos == null )
             return;
         else
         {
+            Map.UnitPos.Remove( pos );
             GameObject.DestroyImmediate( unitAtPos.gameObject );
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
