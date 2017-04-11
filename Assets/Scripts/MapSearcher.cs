@@ -13,18 +13,15 @@ public class MapSearcher
 {
     public static void CalculateNodeMap( GameMap map, GridNode[,] gridNodeMap )
     {
-        for ( int i = 0 ; i < map.Width ; i++ )
-            for ( int j = 0 ; j < map.Height ; j++ )
-            {
-                Vector2Int pos = new Vector2Int( i, j );
-                gridNodeMap[ i, j ] = new GridNode( map.TilePos[ pos ], pos );
+        foreach ( var pos in map.AllMapPositions() )
+        {
+            gridNodeMap[ pos.x, pos.y ] = new GridNode( map.TilePos[ pos ], pos );
+        }
 
-                if ( map.Occupied( pos ) )
-                    //So we set the cost to be half of a max int because it WRAPS AROUND to negative when added to pCost. 
-                    //It's probably better to have a unit or impassable terrain logic somewhere else and leave the searcher simple;
-                    //Lest we populate a general class.
-                    gridNodeMap[ i, j ].Cost = 9999;
-            }
+        foreach ( var pos in map.AllMapPositions() )
+        {
+            gridNodeMap[ pos.x, pos.y ].Neighbours = GetNeighborsCross( pos, map, gridNodeMap );
+        }
     }
 
     public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound = int.MaxValue )
@@ -54,7 +51,7 @@ public class MapSearcher
 
             closedSet.Add( currentNode );
 
-            foreach ( GridNode neighbour in GetNeighborsCross( currentNode, gridNodeMap ) )
+            foreach ( GridNode neighbour in currentNode.Neighbours )
             {
                 if ( closedSet.Contains( neighbour ) )
                     continue;
@@ -95,21 +92,41 @@ public class MapSearcher
         return path;
     }
 
-    private static List<GridNode> GetNeighborsCross( GridNode pivotNode, GridNode[,] map )
+    //private static List<GridNode> GetNeighborsCross( GridNode pivotNode, GridNode[,] map )
+    //{
+    //    var nodesToReturn = new List<GridNode>( 4 );
+    //    Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
+    //    foreach ( var direction in directions )
+    //    {
+    //        if ( pivotNode.Location.x + direction.x > map.GetLength( 0 ) - 1 ||
+    //            pivotNode.Location.x + direction.x < 0 ||
+    //            pivotNode.Location.y + direction.y > map.GetLength( 1 ) - 1 ||
+    //            pivotNode.Location.y + direction.y < 0 )
+    //        {
+    //            continue;
+    //        }
+
+    //        var toAdd = map[ pivotNode.Location.x + direction.x, pivotNode.Location.y + direction.y ];
+    //        nodesToReturn.Add( toAdd );
+    //    }
+    //    return nodesToReturn;
+    //}
+
+    private static List<GridNode> GetNeighborsCross( Vector2Int pos, GameMap map, GridNode[,] graph )
     {
         var nodesToReturn = new List<GridNode>( 4 );
         Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
         foreach ( var direction in directions )
         {
-            if ( pivotNode.Location.x + direction.x > map.GetLength( 0 ) - 1 ||
-                pivotNode.Location.x + direction.x < 0 ||
-                pivotNode.Location.y + direction.y > map.GetLength( 1 ) - 1 ||
-                pivotNode.Location.y + direction.y < 0 )
+            Vector2Int updatedDirection = pos + direction;
+            bool outOfBounds = map.IsOutOfBounds( updatedDirection );
+            bool unitPresent = map.Occupied( updatedDirection );
+            if ( outOfBounds || unitPresent )
             {
                 continue;
             }
 
-            var toAdd = map[ pivotNode.Location.x + direction.x, pivotNode.Location.y + direction.y ];
+            GridNode toAdd = graph[ updatedDirection.x, updatedDirection.y ];
             nodesToReturn.Add( toAdd );
         }
         return nodesToReturn;
@@ -148,6 +165,8 @@ public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
     public GridNode Parent;
 
     public Vector2Int Location;
+
+    public IEnumerable<GridNode> Neighbours { get; set; }
 
     public int pCost = 0;
     public int hCost = 0;

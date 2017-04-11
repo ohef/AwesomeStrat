@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System;
 using System.Collections;
-using SerializableCollections;
 
 /// <summary>
 /// Just a simple one to one map with two dictionaries, probably 

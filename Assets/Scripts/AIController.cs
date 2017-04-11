@@ -50,8 +50,20 @@ internal class AIController : TurnController
             IEnumerable<Vector2Int> tilesAround = map.GetTilesWithinAbsoluteRange(
                 bestTargetPosition,
                 ( ( AttackAbility )myUnit.Abilities.First( ability => ability is AttackAbility ) ).Range );
-            Vector2Int attackPosition = tilesAround.First();
-            IEnumerable<Vector2Int> pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], attackPosition, map );
+
+            IEnumerable<Vector2Int> pathToAttackPosition = null;
+            foreach ( var pos in tilesAround )
+            {
+                pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], pos, map );
+                if ( pathToAttackPosition != null )
+                    break;
+            }
+
+            if ( pathToAttackPosition == null )
+                continue;
+
+            //Vector2Int attackPosition = tilesAround.First( pos => MapSearcher.Search( map.UnitPos[ myUnit ], pos, map ) != null );
+            //IEnumerable<Vector2Int> pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], attackPosition, map );
             int pathLength = pathToAttackPosition.Count();
 
             if ( pathLength > myUnit.MovementRange )
@@ -65,6 +77,8 @@ internal class AIController : TurnController
             //    } ).OrderBy( item => item.Score ).First().Position;
 
             BattleSystem.Instance.CreateMoveCommand( pathToAttackPosition, myUnit ).Execute();
+            AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
+            attackAbility.ExecuteOnTarget( bestTarget );
         }
         BattleSystem.Instance.EndTurn();
     }

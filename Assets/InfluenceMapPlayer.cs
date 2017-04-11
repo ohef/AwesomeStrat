@@ -11,6 +11,7 @@ public class InfluenceMapPlayer : MonoBehaviour
     public float[,] InfluenceMap;
     public Material InfluenceMaterial;
     public int Player;
+    public TextMesh textMeshPrefab;
 
     public float[,] CalculateInfluenceMap()
     {
