@@ -40,20 +40,45 @@ internal class AIController : TurnController
 
     public override void Enter( BattleSystem state )
     {
+        GameMap map = BattleSystem.Instance.Map;
+        //Get ordering for Units
         foreach ( var myUnit in ControlledUnits )
         {
-            GameMap map = BattleSystem.Instance.Map;
             IEnumerable<Vector2Int> unitMovement = map.GetValidMovementPositions( myUnit );
+            Unit bestTarget = GetBestTarget( GetEnemies() );
+            Vector2Int bestTargetPosition = map.UnitPos[ bestTarget ];
+            IEnumerable<Vector2Int> tilesAround = map.GetTilesWithinAbsoluteRange(
+                bestTargetPosition,
+                ( ( AttackAbility )myUnit.Abilities.First( ability => ability is AttackAbility ) ).Range );
+            Vector2Int attackPosition = tilesAround.First();
+            IEnumerable<Vector2Int> pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], attackPosition, map );
+            int pathLength = pathToAttackPosition.Count();
 
-            Vector2Int bestPosition = unitMovement.Select(
-                delegate ( Vector2Int pos )
-                {
-                    AIAbilityScorer scorer = new AIAbilityScorer { PositionForCheck = pos, Context = this };
-                    return new { Score = myUnit.Abilities.Select( ability => ability.Accept( scorer ) ).OrderByDescending( i => i ).First(), Position = pos };
-                } ).OrderBy( item => item.Score ).First().Position;
-            BattleSystem.Instance.CreateMoveCommand( new LinkedList<Vector2Int>( MapSearcher.Search( map.UnitPos[ myUnit ], bestPosition, map ) ), myUnit ).Execute();
+            if ( pathLength > myUnit.MovementRange )
+                pathToAttackPosition = pathToAttackPosition.Take( myUnit.MovementRange );
+
+            //Vector2Int bestPosition = unitMovement.Select(
+            //    delegate ( Vector2Int pos )
+            //    {
+            //        AIAbilityScorer scorer = new AIAbilityScorer { PositionForCheck = pos, Context = this };
+            //        return new { Score = myUnit.Abilities.Select( ability => ability.Accept( scorer ) ).OrderByDescending( i => i ).First(), Position = pos };
+            //    } ).OrderBy( item => item.Score ).First().Position;
+
+            BattleSystem.Instance.CreateMoveCommand( pathToAttackPosition, myUnit ).Execute();
         }
         BattleSystem.Instance.EndTurn();
+    }
+
+    private IEnumerable<Unit> GetEnemies()
+    {
+        return BattleSystem.Instance.Map.UnitPos
+            .Where( kvp => ControlledUnits.Contains( kvp.Key ) == false )
+            .Select( kvp => kvp.Key );
+    }
+
+    private Unit GetBestTarget( IEnumerable<Unit> enemyUnits )
+    {
+        return enemyUnits.OrderByDescending( unit => unit.HP ).First();
     }
 
     public override void Exit( BattleSystem state )

@@ -60,12 +60,12 @@ public class BattleSystem : MonoBehaviour
         CurrentTurn.Enter( this );
     }
 
-    public UndoCommandAction CreateMoveCommand( LinkedList<Vector2Int> path, Unit unit )
+    public UndoCommandAction CreateMoveCommand( IEnumerable<Vector2Int> path, Unit unit )
     {
         return new UndoCommandAction(
             delegate
             {
-                Vector2Int targetPosition = path.Last.Value;
+                Vector2Int targetPosition = path.Last();
                 unit.StartCoroutine(
                     CoroutineHelper.AddActions( 
                         CustomAnimation.InterpolateBetweenPointsDecoupled( unit.transform,
@@ -78,7 +78,7 @@ public class BattleSystem : MonoBehaviour
             },
             delegate
             {
-                Vector2Int initialPosition = path.First.Value;
+                Vector2Int initialPosition = path.First();
                 unit.GetComponentInChildren<Animator>().SetBool( "Moving", false );
                 unit.StopAllCoroutines();
 
