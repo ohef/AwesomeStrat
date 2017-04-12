@@ -13,6 +13,7 @@ public class ChoosingUnitState : BattleState
             return instance;
         }
     }
+    MapDecorator Decorator; 
 
     public override void Update( PlayerTurnController context )
     {
@@ -34,6 +35,7 @@ public class ChoosingUnitState : BattleState
 
     public override void Enter( PlayerTurnController context )
     {
+        Decorator = sys.Map.GetComponent<MapDecorator>();
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
     }
 
@@ -44,7 +46,7 @@ public class ChoosingUnitState : BattleState
 
     public void CursorMoved()
     {
-        sys.Map.GetComponent<MapDecorator>().ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
+        Decorator.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
     }
 }
 

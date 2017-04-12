@@ -20,8 +20,6 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public int Width;
     public int Height;
 
-    public MapData Data;
-
     public Material NormalMat;
     public Material MovementMat;
     public Material AttackRangeMat;
@@ -78,33 +76,12 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         }
     }
 
-    //public DoubleDictionary<Unit, Vector2Int> UnitPos;
-    //public DoubleDictionary<GameTile, Vector2Int> TilePos;
-
     [HideInInspector]
     public DoubleDictionary<Unit, Vector2Int> UnitPos = new DoubleDictionary<Unit, Vector2Int>();
     [HideInInspector]
     public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
 
-    void Awake()
-    {
-        //foreach ( var pos in AllMapPositions() )
-        //{
-        //    //Unit unitHere = Data.GetUnitAtPosition( pos.x, pos.y );
-        //    //if ( unitHere != null )
-        //    //{
-        //    //    unitHere = Instantiate<Unit>( unitHere, transform.FindChild( "Offset" ), false );
-        //    //    unitHere.transform.localPosition = pos.ToVector3();
-        //    //    UnitPos.Add( unitHere, pos );
-        //    //}
-
-        //    ////There needs to be a tile everywhere...
-        //    //GameTile tileHere = Data.GetTileAtPosition( pos.x, pos.y );
-        //    //tileHere = Instantiate<GameTile>( tileHere, transform.FindChild( "Offset" ), false );
-        //    //tileHere.transform.localPosition = pos.ToVector3();
-        //    //TilePos.Add( tileHere, pos);
-        //}
-    }
+    void Awake() { }
 
     public IEnumerable<Vector2Int> AllMapPositions()
     {
@@ -116,6 +93,11 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
     }
+
+    //public IEnumerable<Vector2Int> AllMapPositions()
+    //{
+    //    return TilePos.Select( kvp => kvp.Value );
+    //}
 
     private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
     {
@@ -182,8 +164,9 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
     {
         Vector2Int unitPosition = UnitPos[ unit ];
+        var nodeMap = MapSearcher.CalculateNodeMap( this, unitPosition, unit.MovementRange );
         return GetTilesWithinAbsoluteRange( unitPosition, unit.MovementRange )
-            .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, this, unit.MovementRange ) != null );
+            .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, nodeMap ) != null );
     }
 
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
@@ -296,12 +279,9 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     {
         Width = width;
         Height = height;
-        //GameTiles = new GameTile[ width, height ];
-        //Data = MapData.CreateMapData( width, height );
         GameObject TileLayer = GameObject.Find( "TileLayer" );
         foreach ( var pos in AllMapPositions() )
         {
-            //Data.SetTileAtPosition( pos.x, pos.y, prefabTile );
             var gameTile = Instantiate( prefabTile, TileLayer.transform, false );
             TilePos.Add( gameTile, pos );
             gameTile.transform.localPosition = pos.ToVector3();
@@ -364,5 +344,4 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     {
         return IsOverBound( v.x, 0, Width - 1 ) || IsOverBound( v.y, 0, Height - 1 );
     }
-
 }

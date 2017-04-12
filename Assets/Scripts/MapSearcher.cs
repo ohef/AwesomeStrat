@@ -11,20 +11,67 @@ public interface IHeuristic<TNode, THeurVal>
 
 public class MapSearcher
 {
-    public static void CalculateNodeMap( GameMap map, GridNode[,] gridNodeMap )
+    public static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map, Vector2Int startPosition, int bound )
     {
-        foreach ( var pos in map.AllMapPositions() )
+        var toRet = new Dictionary<Vector2Int, GridNode>();
+
+        foreach ( var pos in map.GetTilesWithinAbsoluteRange( startPosition, bound ) )
         {
-            gridNodeMap[ pos.x, pos.y ] = new GridNode( map.TilePos[ pos ], pos );
+            toRet.Add( pos, new GridNode( map.TilePos[ pos ], pos ) );
         }
 
-        foreach ( var pos in map.AllMapPositions() )
+        foreach ( var pos in map.GetTilesWithinAbsoluteRange( startPosition, bound ) )
         {
-            gridNodeMap[ pos.x, pos.y ].Neighbours = GetNeighborsCross( pos, map, gridNodeMap );
+            toRet[ pos ].Neighbours = GetNeighborsCross( pos, map, toRet );
         }
+
+        return toRet;
     }
 
-    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound = int.MaxValue )
+    public static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map )
+    {
+        var toRet = new Dictionary<Vector2Int, GridNode>();
+
+        foreach ( var pos in map.AllMapPositions() )
+        {
+            toRet.Add( pos, new GridNode( map.TilePos[ pos ], pos ) );
+        }
+
+        foreach ( var pos in map.AllMapPositions() )
+        {
+            toRet[ pos ].Neighbours = GetNeighborsCross( pos, map, toRet );
+        }
+        return toRet;
+    }
+
+    private static List<GridNode> GetNeighborsCross( Vector2Int pos, GameMap map, Dictionary<Vector2Int, GridNode> graph )
+    {
+        var nodesToReturn = new List<GridNode>( 4 );
+        Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
+        foreach ( var direction in directions )
+        {
+            Vector2Int updatedDirection = pos + direction;
+
+            GridNode val;
+            bool existsInGraph = graph.TryGetValue( updatedDirection, out val );
+            if ( existsInGraph == false ) continue;
+
+            bool unitPresent = map.Occupied( updatedDirection );
+            if ( unitPresent == true ) continue;
+
+            //Assuming that i tile with a cost of 9999 is impassable, probably bad to do this but it works for now
+            //It'll definitely need to be changed if you have different units that can cross or something
+            bool costWayHigh = map.TilePos[ updatedDirection ].CostOfTraversal > 1000;
+            if ( costWayHigh == true ) continue;
+
+            GridNode toAdd = graph[ updatedDirection ];
+            nodesToReturn.Add( toAdd );
+        }
+        return nodesToReturn;
+    }
+
+    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, Dictionary<Vector2Int, GridNode> gridNodeMap )
+    //public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound = int.MaxValue )
     {
         if ( start == goal )
             return new List<Vector2Int> { goal };
@@ -32,11 +79,8 @@ public class MapSearcher
         HashSet<GridNode> closedSet = new HashSet<GridNode>();
         ModifiableBinaryHeap<GridNode> frontier = new ModifiableBinaryHeap<GridNode>();
 
-        GridNode[,] gridNodeMap = new GridNode[ map.Width, map.Height ];
-        CalculateNodeMap( map, gridNodeMap );
-
-        GridNode startNode = gridNodeMap[ start.x, start.y ];
-        GridNode goalNode = gridNodeMap[ goal.x, goal.y ];
+        GridNode startNode = gridNodeMap[ start ];
+        GridNode goalNode = gridNodeMap[ goal ];
 
         startNode.pCost = 0;
         startNode.hCost = GridNode.CalculateHeuristic( startNode, goalNode );
@@ -47,7 +91,7 @@ public class MapSearcher
         {
             var currentNode = frontier.Pop();
             if ( currentNode == goalNode )
-                return ReconstructPath( currentNode, startNode, map );
+                return ReconstructPath( currentNode, startNode );
 
             closedSet.Add( currentNode );
 
@@ -56,8 +100,6 @@ public class MapSearcher
                 if ( closedSet.Contains( neighbour ) )
                     continue;
                 int tempPCost = currentNode.pCost + neighbour.Cost;
-                if ( tempPCost > bound )
-                    continue;
 
                 if ( !frontier.Contains( neighbour ) )
                     frontier.Push( neighbour );
@@ -75,7 +117,7 @@ public class MapSearcher
         return null;
     }
 
-    public static List<Vector2Int> ReconstructPath( GridNode finalNode, GridNode startNode, GameMap map )
+    public static List<Vector2Int> ReconstructPath( GridNode finalNode, GridNode startNode )
     {
         var path = new List<Vector2Int>();
         GridNode temp = finalNode;
@@ -92,66 +134,6 @@ public class MapSearcher
         return path;
     }
 
-    //private static List<GridNode> GetNeighborsCross( GridNode pivotNode, GridNode[,] map )
-    //{
-    //    var nodesToReturn = new List<GridNode>( 4 );
-    //    Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
-    //    foreach ( var direction in directions )
-    //    {
-    //        if ( pivotNode.Location.x + direction.x > map.GetLength( 0 ) - 1 ||
-    //            pivotNode.Location.x + direction.x < 0 ||
-    //            pivotNode.Location.y + direction.y > map.GetLength( 1 ) - 1 ||
-    //            pivotNode.Location.y + direction.y < 0 )
-    //        {
-    //            continue;
-    //        }
-
-    //        var toAdd = map[ pivotNode.Location.x + direction.x, pivotNode.Location.y + direction.y ];
-    //        nodesToReturn.Add( toAdd );
-    //    }
-    //    return nodesToReturn;
-    //}
-
-    private static List<GridNode> GetNeighborsCross( Vector2Int pos, GameMap map, GridNode[,] graph )
-    {
-        var nodesToReturn = new List<GridNode>( 4 );
-        Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
-        foreach ( var direction in directions )
-        {
-            Vector2Int updatedDirection = pos + direction;
-            bool outOfBounds = map.IsOutOfBounds( updatedDirection );
-            bool unitPresent = map.Occupied( updatedDirection );
-            if ( outOfBounds || unitPresent )
-            {
-                continue;
-            }
-
-            GridNode toAdd = graph[ updatedDirection.x, updatedDirection.y ];
-            nodesToReturn.Add( toAdd );
-        }
-        return nodesToReturn;
-    }
-
-    private static List<GridNode> GetNeighbors( GridNode pivotNode, GridNode[,] map )
-    {
-        var nodesToReturn = new List<GridNode>( 8 );
-        for ( int i = -1 ; i <= 1 ; i++ )
-            for ( int j = -1 ; j <= 1 ; j++ )
-            {
-                if ( i == 0 && j == 0 ||
-                    pivotNode.Location.x + i > map.GetLength( 0 ) ||
-                    pivotNode.Location.x + i < 0 ||
-                    pivotNode.Location.y + j > map.GetLength( 1 ) ||
-                    pivotNode.Location.y + j < 0 )
-                {
-                    continue;
-                }
-
-                var toAdd = map[ pivotNode.Location.x + i, pivotNode.Location.y + j ];
-                nodesToReturn.Add( toAdd );
-            }
-        return nodesToReturn;
-    }
 }
 
 public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
