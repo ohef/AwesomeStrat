@@ -200,6 +200,6 @@ public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
 
     public int GetHashCode( GridNode obj )
     {
-        return obj.Location.x + obj.Location.y * 1000;
+        return obj.Location.x + obj.Location.y << 16;
     }
 }
