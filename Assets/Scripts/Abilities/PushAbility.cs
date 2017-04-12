@@ -10,7 +10,7 @@ public class PushAbility : TargetAbility
 {
     public int PushRange = 1;
 
-    public override Predicate<Unit> GetTargetPredicate( TurnController context )
+    public override Func<Unit,bool> CanTargetFunction( TurnController context )
     {
         return
         delegate ( Unit target )
@@ -22,7 +22,7 @@ public class PushAbility : TargetAbility
             return
             occupied == false &&
             outOfBounds == false &&
-            base.GetTargetPredicate( context )( target );
+            base.CanTargetFunction( context )( target );
         };
     }
 

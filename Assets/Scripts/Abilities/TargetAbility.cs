@@ -10,20 +10,9 @@ public abstract partial class TargetAbility : Ability
 
     public abstract void ExecuteOnTarget( Unit target );
 
-    public IEnumerable<Unit> GetInteractableUnits(
-    IEnumerable<Unit> Units, Predicate<Unit> UseableOn )
+    public virtual Func<Unit, bool> CanTargetFunction( TurnController context )
     {
-        foreach ( var unitToCheck in Units )
-            if ( UseableOn( unitToCheck ) )
-                yield return unitToCheck;
-            else
-                continue;
-        yield break;
-    }
-
-    public virtual Predicate<Unit> GetTargetPredicate( TurnController context )
-    {
-        Predicate<Unit> predicate = unit => true;
+        Func<Unit, bool> predicate = unit => true;
         switch ( this.Targets )
         {
             case AbilityTargets.Enemy:

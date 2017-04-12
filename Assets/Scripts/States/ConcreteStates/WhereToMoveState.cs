@@ -40,7 +40,7 @@ public class WhereToMoveState : BattleState
             if ( canMoveHere )
             {
                 context.DoCommand(
-                    sys.CreateMoveCommand( new LinkedList<Vector2Int>( PointsToPass ), SelectedUnit ) );
+                    sys.CreateMoveCommand( PointsToPass.ToList(), SelectedUnit ) );
                 context.State = ChoosingUnitActionsState.Create( SelectedUnit );
             }
         }

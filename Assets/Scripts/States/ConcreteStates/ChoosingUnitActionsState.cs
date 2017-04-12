@@ -31,10 +31,10 @@ public class ChoosingUnitActionsState : MenuState
         {
             var map = BattleSystem.Instance.Map;
             var unitPos = map.UnitPos[ Container.SelectedUnit ];
-            if ( ability.GetInteractableUnits(
-                 map.GetUnitsWithinRange( unitPos, ability.Range ),
-                 ability.GetTargetPredicate( Context ) )
-                .Count() > 0 )
+            var targetableUnits = map.GetUnitsWithinRange( unitPos, ability.Range )
+                .Where( ability.CanTargetFunction( Context ) );
+
+            if ( targetableUnits.Count() > 0 )
                 Context.State = ChooseTargetsState.Create( ability );
             return null;
         }

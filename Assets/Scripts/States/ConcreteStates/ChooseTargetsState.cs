@@ -29,8 +29,8 @@ class ChooseTargetsState : BattleState
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            SelectedAbility.GetInteractableUnits( unitsInRange,
-                SelectedAbility.GetTargetPredicate( context ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( context ) ) );
+
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
     }
