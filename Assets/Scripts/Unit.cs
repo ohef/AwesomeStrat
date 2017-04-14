@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.EventSystems;
 
 public class IntChangedEvent : UnityEvent<int> { }
 
 [RequireComponent( typeof( WaitAbility ) )]
-public class Unit : MonoBehaviour, IUnitEventHandler
+public class Unit : MonoBehaviour, IUnitEventsHandler
 {
     [SerializeField]
     private int m_HP;
@@ -66,5 +67,18 @@ public class Unit : MonoBehaviour, IUnitEventHandler
     public void UnitDamaged( UnitEventData data, int preDamage )
     {
         animationController.SetTrigger( "Damaged" );
+        if ( HP <= 0 ) Die();
     }
+
+    public void Die()
+    {
+        var hey = ExecuteEvents.ExecuteHierarchy<IUnitDeathHandler>
+            ( this.gameObject, null, ( x, y ) => x.OnUnitDeath( this ) );
+        Debug.Log( hey );
+    }
+}
+
+interface IUnitDeathHandler : IEventSystemHandler
+{
+    void OnUnitDeath( Unit deadUnit );
 }

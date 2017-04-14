@@ -6,14 +6,14 @@ using System.Text;
 using UnityEngine;
 
 [ExecuteInEditMode]
-public abstract class TurnController : MonoBehaviour
+public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnitDeathHandler
 {
     public HashSet<Unit> ControlledUnits;
     public HashSet<Unit> HasNotActed;
     public int PlayerNo;
     public Material PlayerMaterial;
 
-    public void Awake()
+    public virtual void Awake()
     {
         ControlledUnits = new HashSet<Unit>( this.transform.GetComponentsInChildren<Unit>() );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
@@ -25,4 +25,16 @@ public abstract class TurnController : MonoBehaviour
                 .UnitIndicator.sharedMaterial = PlayerMaterial;
         }
     }
+
+    public void OnUnitDeath( Unit deadUnit )
+    {
+        ControlledUnits.Remove( deadUnit );
+        HasNotActed.Remove( deadUnit );
+        BattleSystem.Instance.Map.UnitPos.Remove( deadUnit );
+        GameObject.Destroy( deadUnit.gameObject );
+    }
+
+    public abstract void EnterState();
+    public abstract void ExitState();
+    public abstract void UpdateState();
 }

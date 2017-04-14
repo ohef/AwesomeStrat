@@ -12,9 +12,9 @@ public class UnitEventData : BaseEventData
     }
 }
 
-public interface IUnitEventHandler : IEventSystemHandler
+public interface IUnitEventsHandler : IEventSystemHandler
 {
-    void UnitDamaged( UnitEventData data, int preDamage );
+    void UnitDamaged( UnitEventData data, int damageDealt );
 }
 
 public class AttackAbility : TargetAbility
@@ -27,7 +27,7 @@ public class AttackAbility : TargetAbility
 
         target.HP -= Mathf.Min( AttackPower - target.Defense );
 
-        ExecuteEvents.Execute<IUnitEventHandler>(
+        ExecuteEvents.Execute<IUnitEventsHandler>(
             target.gameObject,
             new UnitEventData( EventSystem.current, target ),
             ( x, y ) => x.UnitDamaged( ExecuteEvents.ValidateEventData<UnitEventData>( y ), preDamage ) );

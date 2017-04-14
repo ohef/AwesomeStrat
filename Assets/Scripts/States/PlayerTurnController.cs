@@ -4,6 +4,13 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
+public interface IMonoBehaviourState
+{
+    void EnterState();
+    void ExitState();
+    void UpdateState();
+}
+
 public class PlayerTurnController : TurnController
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
@@ -85,17 +92,38 @@ public class PlayerTurnController : TurnController
         CommandsForReEnter.Clear();
     }
 
-    public void OnEnable()
+    //public void OnEnable()
+    //{
+    //    State = sys.GetState<ChoosingUnitState>();
+    //    State.gameObject.SetActive( true );
+    //    HasNotActed = new HashSet<Unit>( ControlledUnits );
+    //}
+
+    //public void OnDisable()
+    //{
+    //    State.gameObject.SetActive( false );
+    //    RefreshTurn();
+    //    ClearManagementHistory();
+    //}
+
+    public void Start()
+    {
+        EnterState();
+    }
+
+    public override void EnterState()
     {
         State = sys.GetState<ChoosingUnitState>();
         State.gameObject.SetActive( true );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
-    public void OnDisable()
+    public override void ExitState()
     {
         State.gameObject.SetActive( false );
         RefreshTurn();
         ClearManagementHistory();
     }
+
+    public override void UpdateState() { }
 }

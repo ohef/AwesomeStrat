@@ -43,7 +43,7 @@ public class BattleSystem : MonoBehaviour
 
     public void EndTurn()
     {
-        CurrentTurn.enabled = false;
+        CurrentTurn.ExitState();
 
         LinkedListNode<TurnController> nextTurn = currentTurn.Next;
         if ( nextTurn == null )
@@ -51,7 +51,7 @@ public class BattleSystem : MonoBehaviour
         else
             currentTurn = nextTurn;
 
-        CurrentTurn.enabled = true;
+        CurrentTurn.EnterState();
     }
 
     public List<BattleState> StateList = new List<BattleState>();

@@ -6,26 +6,6 @@ using UnityEngine;
 
 internal class AIController : TurnController
 {
-    public void OnEnable()
-    {
-        GameMap map = BattleSystem.Instance.Map;
-        //Get ordering for Units
-        foreach ( var myUnit in ControlledUnits )
-        {
-            Unit bestTarget = GetBestTarget( GetEnemies() );
-            Vector2Int positionMoved = DoMove( myUnit, bestTarget );
-            AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
-
-            Unit targetInSight = map.GetUnitsWithinRange( positionMoved, attackAbility.Range )
-                                    .Where( attackAbility.CanTargetFunction( this ) )
-                                    .FirstOrDefault( unit => unit == bestTarget );
-
-            if ( targetInSight != null )
-                attackAbility.ExecuteOnTarget( bestTarget );
-        }
-        BattleSystem.Instance.EndTurn();
-    }
-
     private Vector2Int DoMove( Unit myUnit, Unit bestTarget )
     {
         GameMap                 map                = BattleSystem.Instance.Map;
@@ -68,6 +48,30 @@ internal class AIController : TurnController
     {
         return enemyUnits.OrderByDescending( unit => unit.HP ).First();
     }
+
+    public override void EnterState()
+    {
+        GameMap map = BattleSystem.Instance.Map;
+        //Get ordering for Units
+        foreach ( var myUnit in ControlledUnits )
+        {
+            Unit bestTarget = GetBestTarget( GetEnemies() );
+            Vector2Int positionMoved = DoMove( myUnit, bestTarget );
+            AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
+
+            Unit targetInSight = map.GetUnitsWithinRange( positionMoved, attackAbility.Range )
+                                    .Where( attackAbility.CanTargetFunction( this ) )
+                                    .FirstOrDefault( unit => unit == bestTarget );
+
+            if ( targetInSight != null )
+                attackAbility.ExecuteOnTarget( bestTarget );
+        }
+        BattleSystem.Instance.EndTurn();
+    }
+
+    public override void ExitState() { }
+
+    public override void UpdateState() { }
 }
 
 //public interface IDecisionTreeNode
