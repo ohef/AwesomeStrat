@@ -7,7 +7,7 @@ using UnityEngine.Events;
 public class IntChangedEvent : UnityEvent<int> { }
 
 [RequireComponent( typeof( WaitAbility ) )]
-public class Unit : MonoBehaviour
+public class Unit : MonoBehaviour, IUnitEventHandler
 {
     [SerializeField]
     private int m_HP;
@@ -47,16 +47,24 @@ public class Unit : MonoBehaviour
 
     public UnityEvent UnitChanged;
 
+    public Animator animationController;
+
     void Awake()
     {
         if ( UnitChanged == null )
             UnitChanged = new UnityEvent();
 
         Abilities = GetComponents<Ability>().ToList();
+        animationController = this.GetComponentInChildren<Animator>();
     }
 
     void Start()
     {
         UnitChanged.Invoke();
+    }
+
+    public void UnitDamaged( UnitEventData data, int preDamage )
+    {
+        animationController.SetTrigger( "Damaged" );
     }
 }

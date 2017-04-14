@@ -49,4 +49,3 @@ public class ChoosingUnitState : BattleState
         Decorator.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
     }
 }
-

@@ -25,8 +25,8 @@ public class DoubleDictionary<A, B> : IEnumerable<KeyValuePair<A, B>>
     //TODO: This code could be erroneous, no testing gotta go go go
     public void Add( A a, B b )
     {
-        A removeA = default(A);
-        B removeB = default(B);
+        A removeA;
+        B removeB;
 
         if ( AtoBDict.TryGetValue( a, out removeB ) )
         {
