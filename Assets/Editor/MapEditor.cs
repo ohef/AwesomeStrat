@@ -176,6 +176,7 @@ public class MapEditorScene : Editor
         var TileAtPos = Map.TilePos[ pos ];
         Tile.name = TileAtPos.name;
         GameObject.DestroyImmediate( TileAtPos.gameObject );
+        Map.TilePos.Add( Tile, pos );
         EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
     }
 
