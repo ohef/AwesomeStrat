@@ -6,6 +6,7 @@ using System;
 using UnityEngine.Rendering;
 using Assets.General.UnityExtensions;
 using Assets.General.DataStructures;
+using System.Linq;
 
 [ExecuteInEditMode]
 public class MapEditor : EditorWindow
@@ -66,7 +67,7 @@ public class MapEditorScene : Editor
 
     static string[] ToolLabels = new string[] { "Native Editing", "Place Unit", "Place Tile", "Remove Unit" };
 
-    static GameObject UnitLayer;
+    //static GameObject UnitLayer;
     static GameObject TileLayer;
     static CommandBuffer buf = new CommandBuffer();
     static Camera SceneCamera = null;
@@ -76,6 +77,7 @@ public class MapEditorScene : Editor
 
     static Texture2D[] TilePreviews;
     static List<MonoBehaviour> TilePrefabs;
+    static TurnController[] TurnControllers;
 
     static MapEditorScene()
     {
@@ -91,9 +93,9 @@ public class MapEditorScene : Editor
             SceneCamera.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
         }
 
-        UnitLayer = UnitLayer == null ? GameObject.Find( "UnitLayer" ) : UnitLayer;
-        TileLayer = TileLayer == null ? GameObject.Find( "TileLayer" ) : TileLayer;
-        Map = Map == null ? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>() : Map;
+        TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
+        Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
+        TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
 
         Handles.BeginGUI();
         ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );
@@ -118,7 +120,9 @@ public class MapEditorScene : Editor
     {
         GUILayout.BeginArea( new Rect( 5, 50, 150, sceneView.position.height ) );
         GUILayout.Label( "Team membership" );
-        TeamSelectionIndex = GUILayout.SelectionGrid( TeamSelectionIndex, new string[] { "1", "2", "3", "4" }, 1 );
+        TeamSelectionIndex = GUILayout.SelectionGrid( 
+            TeamSelectionIndex, 
+            TurnControllers.Select( x => x.PlayerNo.ToString() ).ToArray(), 1 );
         GUILayout.EndArea();
     }
 
@@ -190,7 +194,7 @@ public class MapEditorScene : Editor
             if ( prefabUnit == null )
                 return;
             //Map.Data.SetUnitAtPosition( pos.x, pos.y, prefabUnit );
-            var unit = Instantiate( prefabUnit, UnitLayer.transform, false );
+            var unit = Instantiate( prefabUnit, TurnControllers[ TeamSelectionIndex ].transform, false );
             Map.UnitPos.Add( unit, pos );
             unit.transform.localPosition = pos.ToVector3();
             unit.GetComponent<UnitMapHelper>().PlayerOwner = TeamSelectionIndex;

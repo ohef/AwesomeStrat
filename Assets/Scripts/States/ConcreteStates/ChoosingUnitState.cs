@@ -32,16 +32,13 @@ public class ChoosingUnitState : BattleState
     public void OnEnable()
     {
         Decorator = sys.Map.GetComponent<MapDecorator>();
-        sys.Cursor.CursorMoved.AddListener( CursorMoved );
-    }
-
-    public void OnDisable()
-    {
-        sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
     }
 
     public void CursorMoved()
     {
-        Decorator.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
+        if ( this.gameObject.activeSelf )
+        {
+            Decorator.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
+        }
     }
 }

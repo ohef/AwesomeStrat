@@ -26,12 +26,6 @@ public class PlayerTurnController : TurnController
     private Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
     private Stack<IUndoCommand> CommandsForReEnter = new Stack<IUndoCommand>();
 
-    public PlayerTurnController( int PlayerNumber, Color color ) : base( PlayerNumber, color )
-    {
-        State = sys.GetState<ChoosingUnitState>();
-        State.gameObject.SetActive( true );
-    }
-
     public void GoToPreviousState()
     {
         if ( State is ChoosingUnitState )
@@ -91,21 +85,17 @@ public class PlayerTurnController : TurnController
         CommandsForReEnter.Clear();
     }
 
-    public override void Enter( BattleSystem sys )
+    public void OnEnable()
     {
         State = sys.GetState<ChoosingUnitState>();
         State.gameObject.SetActive( true );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
-    public override void Exit( BattleSystem sys )
+    public void OnDisable()
     {
         State.gameObject.SetActive( false );
         RefreshTurn();
         ClearManagementHistory();
-    }
-
-    public override void Update( BattleSystem sys )
-    {
     }
 }

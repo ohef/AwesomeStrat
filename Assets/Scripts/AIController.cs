@@ -6,11 +6,7 @@ using UnityEngine;
 
 internal class AIController : TurnController
 {
-    public AIController( int PlayerNumber, Color color ) : base( PlayerNumber, color )
-    {
-    }
-
-    public override void Enter( BattleSystem state )
+    public void OnEnable()
     {
         GameMap map = BattleSystem.Instance.Map;
         //Get ordering for Units
@@ -71,14 +67,6 @@ internal class AIController : TurnController
     private Unit GetBestTarget( IEnumerable<Unit> enemyUnits )
     {
         return enemyUnits.OrderByDescending( unit => unit.HP ).First();
-    }
-
-    public override void Exit( BattleSystem state )
-    {
-    }
-
-    public override void Update( BattleSystem state )
-    {
     }
 }
 

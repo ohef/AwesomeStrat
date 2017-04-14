@@ -9,7 +9,6 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 
-[RequireComponent( typeof( MeshFilter ), typeof( MeshRenderer ) )]
 public class CursorControl : MonoBehaviour
 {
     public GameMap Map;
@@ -36,27 +35,7 @@ public class CursorControl : MonoBehaviour
         }
     }
 
-    //private GameTile m_CurrentTile;
-    //public GameTile CurrentTile
-    //{
-    //    get
-    //    {
-    //        return m_CurrentTile;
-    //    }
-
-    //    set
-    //    {
-    //        if ( value != m_CurrentTile )
-    //        {
-    //            m_CurrentTile = value;
-    //            if ( CursorMoved != null )
-    //                CursorMoved.Invoke();
-    //        }
-    //    }
-    //}
-
     private bool IsMoving = false;
-
 
     void Awake()
     {

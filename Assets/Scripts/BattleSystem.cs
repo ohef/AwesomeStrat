@@ -33,23 +33,17 @@ public class BattleSystem : MonoBehaviour
 
     public void Start()
     {
-        TurnOrder = new LinkedList<TurnController>( new TurnController[] {
-            new PlayerTurnController( 0, new Color(1.0f, 0.5f, 0.5f) ),
-            new AIController( 1, new Color(0.5f, 1.0f, 0.5f) )
-        } );
-        currentTurn = TurnOrder.First;
-        currentTurn.Value.Enter( this );
-    }
+        TurnOrder = new LinkedList<TurnController>( 
+            this.transform.GetComponentsInChildren<TurnController>()
+            .OrderBy( x => x.PlayerNo ) );
 
-    // Update is called once per frame
-    void Update()
-    {
-        CurrentTurn.Update( this );
+        currentTurn = TurnOrder.First;
+        currentTurn.Value.enabled = true;
     }
 
     public void EndTurn()
     {
-        CurrentTurn.Exit( this );
+        CurrentTurn.enabled = false;
 
         LinkedListNode<TurnController> nextTurn = currentTurn.Next;
         if ( nextTurn == null )
@@ -57,7 +51,7 @@ public class BattleSystem : MonoBehaviour
         else
             currentTurn = nextTurn;
 
-        CurrentTurn.Enter( this );
+        CurrentTurn.enabled = true;
     }
 
     public List<BattleState> StateList = new List<BattleState>();

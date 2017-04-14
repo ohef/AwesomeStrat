@@ -5,37 +5,24 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public abstract class TurnController : ISystemState
+[ExecuteInEditMode]
+public abstract class TurnController : MonoBehaviour
 {
     public HashSet<Unit> ControlledUnits;
     public HashSet<Unit> HasNotActed;
     public int PlayerNo;
+    public Material PlayerMaterial;
 
-    public bool DoesControl( UnitMapHelper unit, int PlayerNumber )
+    public void Awake()
     {
-        return unit.PlayerOwner == PlayerNumber;
-    }
+        ControlledUnits = new HashSet<Unit>( this.transform.GetComponentsInChildren<Unit>() );
+        HasNotActed = new HashSet<Unit>( ControlledUnits );
 
-    public TurnController( int PlayerNumber, Color color )
-    {
-        PlayerNo = PlayerNumber;
-        var controlledUnits = BattleSystem.Instance.Map.UnitPos
-            .Select<KeyValuePair<Unit, Vector2Int>, UnitMapHelper>( kvp => kvp.Key.GetComponent<UnitMapHelper>() )
-            .Where( unit => DoesControl( unit, PlayerNumber ) ).ToList();
-
-        foreach ( var unit in controlledUnits )
+        //TODO probably don't need to do this, better to do one assignment.
+        foreach ( var unit in ControlledUnits )
         {
             unit.GetComponent<UnitGraphics>()
-                .UnitIndicator.material.color = color;
+                .UnitIndicator.sharedMaterial = PlayerMaterial;
         }
-
-        ControlledUnits = new HashSet<Unit>( controlledUnits
-            .Select( obj => obj.GetComponent<Unit>() )
-            .ToList() );
-        HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
-
-    public abstract void Enter( BattleSystem state );
-    public abstract void Exit( BattleSystem state );
-    public abstract void Update( BattleSystem state );
 }

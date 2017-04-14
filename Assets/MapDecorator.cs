@@ -16,6 +16,7 @@ public class MapDecorator : MonoBehaviour
     {
         UnitMovementBuffer = new CommandBuffer();
         UnitMovementBuffer.name = "Unit Movement Path";
+
         PointsBuffer = new CommandBuffer();
         PointsBuffer.name = "Points";
 

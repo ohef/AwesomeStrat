@@ -8,11 +8,6 @@ public abstract class BattleState : MonoBehaviour
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
     private PlayerTurnController context;
 
-    public BattleState[] StateComponents
-    {
-        get { return stateComponents; }
-    }
-
     protected PlayerTurnController Context
     {
         get
@@ -21,12 +16,5 @@ public abstract class BattleState : MonoBehaviour
                 context = sys.CurrentTurn as PlayerTurnController;
             return context;
         }
-    }
-
-    private BattleState[] stateComponents;
-
-    public void Awake()
-    {
-        stateComponents = GetComponents<BattleState>();
     }
 }
