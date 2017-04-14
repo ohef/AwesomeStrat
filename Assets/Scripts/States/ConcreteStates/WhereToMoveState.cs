@@ -16,19 +16,23 @@ public class WhereToMoveState : BattleState
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<Vector2Int> PointsToPass;
 
-    public static BattleState Create( Unit selectedUnit )
-    {
-        return new ControlCursorState( new CancelableState( new WhereToMoveState( selectedUnit ) ) );
-    }
-
-    private WhereToMoveState( Unit selectedUnit )
+    public void Initialize( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
         InitialUnitPosition = sys.Map.UnitPos[ SelectedUnit ];
         Decorator = sys.Map.GetComponent<MapDecorator>();
     }
 
-    public override void Update( PlayerTurnController context )
+    public void OnEnable()
+    {
+        sys.Cursor.CursorMoved.AddListener( CursorMoved );
+
+        PointsToPass = new LinkedList<Vector2Int>();
+        PointsToPass.AddFirst( InitialUnitPosition );
+        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
+    }
+
+    public void Update()
     {
         Unit unitUnderCursor = null;
         sys.Map.UnitPos.TryGetValue( sys.Cursor.CurrentPosition, out unitUnderCursor );
@@ -39,23 +43,17 @@ public class WhereToMoveState : BattleState
             bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentPosition );
             if ( canMoveHere )
             {
-                context.DoCommand(
+                Context.DoCommand(
                     sys.CreateMoveCommand( PointsToPass.ToList(), SelectedUnit ) );
-                context.State = ChoosingUnitActionsState.Create( SelectedUnit );
+
+                var state = sys.GetState<ChoosingUnitActionsState>();
+                state.Initialize( SelectedUnit );
+                Context.State = state;
             }
         }
     }
 
-    public override void Enter( PlayerTurnController context )
-    {
-        sys.Cursor.CursorMoved.AddListener( CursorMoved );
-
-        PointsToPass = new LinkedList<Vector2Int>();
-        PointsToPass.AddFirst( InitialUnitPosition );
-        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
-    }
-
-    public override void Exit( PlayerTurnController context )
+    public void OnDisable()
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );

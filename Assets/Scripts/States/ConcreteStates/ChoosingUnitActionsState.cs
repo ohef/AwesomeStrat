@@ -17,7 +17,7 @@ public class ChoosingUnitActionsState : MenuState
 
         public object Visit( WaitAbility ability )
         {
-            Context.GoToStateAndForget( ChoosingUnitState.Instance );
+            Context.GoToStateAndForget( BattleSystem.Instance.GetState<ChoosingUnitState>() );
             Context.UnitFinished( Container.SelectedUnit );
             return null;
         }
@@ -35,23 +35,23 @@ public class ChoosingUnitActionsState : MenuState
                 .Where( ability.CanTargetFunction( Context ) );
 
             if ( targetableUnits.Count() > 0 )
-                Context.State = ChooseTargetsState.Create( ability );
+            {
+                ChooseTargetsState state = BattleSystem.Instance.GetState<ChooseTargetsState>();
+                state.Initialize( ability );
+                Context.State = state;
+            }
             return null;
         }
     }
 
-    public static BattleState Create( Unit selectedUnit )
-    {
-        return new CancelableState( new ChoosingUnitActionsState( selectedUnit ) );
-    }
-
-    private ChoosingUnitActionsState( Unit selectedUnit )
+    public void Initialize( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
     }
 
-    public override void Enter( PlayerTurnController context )
+    public void OnEnable()
     {
+        var context = sys.CurrentTurn as PlayerTurnController;
         var visitor = new StateForAbility { Container = this, Context = context };
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
         sys.Menu.AddButtons( buttons );

@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using System.Linq;
-using UnityEditor;
 
 //[CustomPropertyDrawer(typeof(TileToVector2Int))]
 //public class TileToVector2IntEditor : PropertyDrawer

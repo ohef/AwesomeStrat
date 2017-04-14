@@ -5,18 +5,11 @@ using UnityEngine;
 
 public class ChoosingUnitState : BattleState
 {
-    private static BattleState instance = new ControlCursorState( new ChoosingUnitState() );
-    public static BattleState Instance
-    {
-        get
-        {
-            return instance;
-        }
-    }
     MapDecorator Decorator; 
 
-    public override void Update( PlayerTurnController context )
+    public void Update()
     {
+        var context = sys.CurrentTurn as PlayerTurnController;
         if ( Input.GetButtonDown( "Submit" ) )
         {
             Unit unitAtTile;
@@ -24,22 +17,25 @@ public class ChoosingUnitState : BattleState
                 && context.ControlledUnits.Contains( unitAtTile )
                 && context.HasNotActed.Contains( unitAtTile ) )
             {
-                context.State = WhereToMoveState.Create( unitAtTile );
+                var state = sys.GetState<WhereToMoveState>();
+                state.Initialize( unitAtTile );
+                context.State = state;
             }
             else
             {
-                context.State = TurnMenuState.Create();
+                var state = sys.GetState<TurnMenuState>();
+                context.State = state;
             }
         }
     }
 
-    public override void Enter( PlayerTurnController context )
+    public void OnEnable()
     {
         Decorator = sys.Map.GetComponent<MapDecorator>();
         sys.Cursor.CursorMoved.AddListener( CursorMoved );
     }
 
-    public override void Exit( PlayerTurnController context )
+    public void OnDisable()
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
     }

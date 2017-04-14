@@ -6,48 +6,44 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-class ChooseTargetsState : BattleState
+public class ChooseTargetsState : BattleState
 {
     private LinkedList<Unit> EligibleTargets;
     private LinkedListNode<Unit> CurrentlySelected;
     private TargetAbility SelectedAbility;
 
-    public static BattleState Create( TargetAbility ability )
-    {
-        return new CancelableState( new ChooseTargetsState( ability ), false );
-    }
-
-    public ChooseTargetsState( TargetAbility ability )
+    public void Initialize( TargetAbility ability )
     {
         SelectedAbility = ability;
     }
 
-    public override void Enter( PlayerTurnController context )
+    public void OnEnable()
     {
         var unitsInRange = sys.Map.GetUnitsWithinRange( 
             sys.Map.UnitPos[ SelectedAbility.Owner ],
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( context ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( Context ) ) );
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
     }
 
-    public override void Update( PlayerTurnController context )
+    public void Update()
     {
         HandleChoosing();
 
         if ( Input.GetButtonDown( "Submit" ) )
         {
             SelectedAbility.ExecuteOnTarget( CurrentlySelected.Value );
-            context.GoToStateAndForget( ChoosingUnitState.Instance );
-            context.UnitFinished( SelectedAbility.Owner );
+            //context.GoToStateAndForget( ChoosingUnitState.Instance );
+            Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
+            Context.UnitFinished( SelectedAbility.Owner );
         }
     }
 
-    public override void Exit( PlayerTurnController context )
+    public void OnDisable()
     {
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedAbility.Owner ] );
     }

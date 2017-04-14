@@ -3,24 +3,19 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CancelableState : DecoratorState
+public class CancelableState : BattleState
 {
-    private bool undo;
-    public CancelableState( ITurnState wrappee, bool undo = true ) : base( wrappee )
-    {
-        this.undo = undo;
-    }
+    public bool undo;
 
     // Update is called once per frame
-    public override void Update( PlayerTurnController context )
+    public void Update()
     {
         if ( Input.GetButtonDown( "Cancel" ) )
         {
             Input.ResetInputAxes();
             if ( undo == true )
-                context.UndoEverything();
-            context.GoToPreviousState();
+                Context.UndoEverything();
+            Context.GoToPreviousState();
         }
-        base.Update( context );
 	}
 }

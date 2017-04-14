@@ -5,7 +5,7 @@ using System.Text;
 
 public interface ITurnState
 {
-    void Update( PlayerTurnController context );
-    void Enter( PlayerTurnController context );
-    void Exit( PlayerTurnController context );
+    void UpdateState( PlayerTurnController context );
+    void EnterState( PlayerTurnController context );
+    void ExitState( PlayerTurnController context );
 }

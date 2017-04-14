@@ -8,9 +8,6 @@ public class PlayerTurnController : TurnController
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
 
-    //public HashSet<Unit> ControlledUnits;
-    //public HashSet<Unit> HasNotActed;
-
     private Stack<BattleState> StateStack = new Stack<BattleState>();
     public BattleState State
     {
@@ -19,30 +16,30 @@ public class PlayerTurnController : TurnController
         {
             if ( StateStack.Count > 0 )
             {
-                StateStack.Peek().Exit( this );
-                value.Enter( this );
+                StateStack.Peek().gameObject.SetActive( false );
+                value.gameObject.SetActive( true );
             }
             StateStack.Push( value );
         }
     }
 
-    public PlayerTurnController( int PlayerNumber, Color color ) : base( PlayerNumber, color )
-    {
-        State = ChoosingUnitState.Instance;
-        State.Enter( this );
-    }
-
     private Stack<IUndoCommand> Commands = new Stack<IUndoCommand>();
     private Stack<IUndoCommand> CommandsForReEnter = new Stack<IUndoCommand>();
 
+    public PlayerTurnController( int PlayerNumber, Color color ) : base( PlayerNumber, color )
+    {
+        State = sys.GetState<ChoosingUnitState>();
+        State.gameObject.SetActive( true );
+    }
+
     public void GoToPreviousState()
     {
-        if ( State == ChoosingUnitState.Instance )
+        if ( State is ChoosingUnitState )
             return;
 
-        ITurnState poppedState = StateStack.Pop();
-        poppedState.Exit( this );
-        State.Enter( this );
+        BattleState poppedState = StateStack.Pop();
+        poppedState.gameObject.SetActive( false );
+        State.gameObject.SetActive( true );
     }
 
     public void UndoEverything()
@@ -55,10 +52,10 @@ public class PlayerTurnController : TurnController
 
     public void GoToStateAndForget( BattleState state )
     {
-        ITurnState poppedState = StateStack.Pop();
-        poppedState.Exit( this );
+        BattleState poppedState = StateStack.Pop();
+        poppedState.gameObject.SetActive( false );
         ClearManagementHistory();
-        state.Enter( this );
+        state.gameObject.SetActive( true );
         State = state;
     }
 
@@ -96,20 +93,19 @@ public class PlayerTurnController : TurnController
 
     public override void Enter( BattleSystem sys )
     {
-        State = ChoosingUnitState.Instance;
-        State.Enter( this );
+        State = sys.GetState<ChoosingUnitState>();
+        State.gameObject.SetActive( true );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
     public override void Exit( BattleSystem sys )
     {
-        State.Exit( this );
+        State.gameObject.SetActive( false );
         RefreshTurn();
         ClearManagementHistory();
     }
 
     public override void Update( BattleSystem sys )
     {
-        State.Update( this );
     }
 }

@@ -3,13 +3,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BattleState : ITurnState
+public abstract class BattleState : MonoBehaviour
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
+    private PlayerTurnController context;
 
-    public virtual void Update( PlayerTurnController context ) { }
+    public BattleState[] StateComponents
+    {
+        get { return stateComponents; }
+    }
 
-    public virtual void Enter( PlayerTurnController context ) { }
+    protected PlayerTurnController Context
+    {
+        get
+        {
+            if ( context == null )
+                context = sys.CurrentTurn as PlayerTurnController;
+            return context;
+        }
+    }
 
-    public virtual void Exit( PlayerTurnController context ) { }
+    private BattleState[] stateComponents;
+
+    public void Awake()
+    {
+        stateComponents = GetComponents<BattleState>();
+    }
 }

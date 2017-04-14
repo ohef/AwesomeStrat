@@ -60,6 +60,18 @@ public class BattleSystem : MonoBehaviour
         CurrentTurn.Enter( this );
     }
 
+    public List<BattleState> StateList = new List<BattleState>();
+
+    public T GetState<T>() where T : class
+    {
+        foreach ( var state in StateList )
+        {
+            if ( state is T )
+                return state as T;
+        }
+        throw new Exception( "The given state could not be found!" );
+    }
+
     public UndoCommandAction CreateMoveCommand( IEnumerable<Vector2Int> path, Unit unit )
     {
         return new UndoCommandAction(

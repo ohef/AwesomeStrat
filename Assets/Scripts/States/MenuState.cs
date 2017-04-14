@@ -4,7 +4,7 @@ using UnityEngine;
 
 public abstract class MenuState : BattleState
 {
-    public override void Exit( PlayerTurnController context )
+    public void OnDisable()
     {
         //To prevent the next state from catching the submit button
         Input.ResetInputAxes();

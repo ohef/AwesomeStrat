@@ -35,7 +35,6 @@ public abstract class TurnController : ISystemState
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
-
     public abstract void Enter( BattleSystem state );
     public abstract void Exit( BattleSystem state );
     public abstract void Update( BattleSystem state );

@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ControlCursorState : DecoratorState
+public class ControlCursorState : BattleState
 {
-    public ControlCursorState( ITurnState wrappee ) : base( wrappee ) { }
-
-    public override void Update( PlayerTurnController context )
+    public void Update()
     {
         sys.Cursor.UpdateAction();
-        base.Update( context );
     }
 }
