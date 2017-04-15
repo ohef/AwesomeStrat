@@ -64,7 +64,7 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
         UnitChanged.Invoke();
     }
 
-    public void UnitDamaged( UnitEventData data, int preDamage )
+    public void UnitDamaged( int preDamage )
     {
         Animator.SetTrigger( "Damaged" );
         if ( HP <= 0 ) Die();

@@ -46,7 +46,7 @@ public class AIController : TurnController
 
     private Unit GetBestTarget( IEnumerable<Unit> enemyUnits )
     {
-        return enemyUnits.OrderByDescending( unit => unit.HP ).First();
+        return enemyUnits.OrderBy( unit => unit.HP ).First();
     }
 
     public override void EnterState()
