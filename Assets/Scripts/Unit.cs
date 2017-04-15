@@ -48,7 +48,7 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
 
     public UnityEvent UnitChanged;
 
-    public Animator animationController;
+    public Animator Animator;
 
     void Awake()
     {
@@ -56,7 +56,7 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
             UnitChanged = new UnityEvent();
 
         Abilities = GetComponents<Ability>().ToList();
-        animationController = this.GetComponentInChildren<Animator>();
+        Animator = this.GetComponentInChildren<Animator>();
     }
 
     void Start()
@@ -66,19 +66,13 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
 
     public void UnitDamaged( UnitEventData data, int preDamage )
     {
-        animationController.SetTrigger( "Damaged" );
+        Animator.SetTrigger( "Damaged" );
         if ( HP <= 0 ) Die();
     }
 
     public void Die()
     {
-        var hey = ExecuteEvents.ExecuteHierarchy<IUnitDeathHandler>
-            ( this.gameObject, null, ( x, y ) => x.OnUnitDeath( this ) );
-        Debug.Log( hey );
+        ExecuteEvents.ExecuteHierarchy<IUnitDeathHandler>
+           ( this.gameObject, null, ( x, y ) => x.OnUnitDeath( this ) );
     }
-}
-
-interface IUnitDeathHandler : IEventSystemHandler
-{
-    void OnUnitDeath( Unit deadUnit );
 }

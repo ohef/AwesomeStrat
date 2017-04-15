@@ -46,8 +46,12 @@ public class CursorControl : MonoBehaviour
     void Start()
     {
         CursorCamera.transform.LookAt( this.transform );
-        Unit firstunit = default( Unit );
+
+        var firstunit = Map.UnitPos.FirstOrDefault();
+        if ( firstunit.Value == null ) return;
+
         CurrentPosition = Map.UnitPos[ Map.UnitPos.First().Key ];
+
         MoveCursor( CurrentPosition );
     }
 

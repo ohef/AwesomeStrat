@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-internal class AIController : TurnController
+public class AIController : TurnController
 {
     private Vector2Int DoMove( Unit myUnit, Unit bestTarget )
     {
@@ -55,7 +55,15 @@ internal class AIController : TurnController
         //Get ordering for Units
         foreach ( var myUnit in ControlledUnits )
         {
-            Unit bestTarget = GetBestTarget( GetEnemies() );
+            var enemies = GetEnemies();
+            if ( enemies.Count() == 0 )
+            {
+                BattleSystem.Instance.EndTurn();
+                return;
+            }
+
+            Unit bestTarget = GetBestTarget( enemies );
+
             Vector2Int positionMoved = DoMove( myUnit, bestTarget );
             AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
 

@@ -2005,7 +2005,6 @@ GameObject:
   - component: {fileID: 4730263802458404}
   - component: {fileID: 114369728968354408}
   - component: {fileID: 114710482943083400}
-  - component: {fileID: 114054769335893970}
   - component: {fileID: 114832551986363796}
   - component: {fileID: 114899106963987626}
   - component: {fileID: 114556415849821256}
@@ -5211,18 +5210,6 @@ Animator:
   m_WarningMessage: 
   m_HasTransformHierarchy: 1
   m_AllowConstantClipSamplingOptimization: 1
---- !u!114 &114054769335893970
-MonoBehaviour:
-  m_ObjectHideFlags: 1
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 100100000}
-  m_GameObject: {fileID: 1688871731833668}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 15ceea6989eb8ae43930b74421c453a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  PlayerOwner: 0
 --- !u!114 &114227424166097596
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -5292,6 +5279,7 @@ MonoBehaviour:
         m_CallState: 2
     m_TypeName: UnityEngine.Events.UnityEvent, UnityEngine, Version=0.0.0.0, Culture=neutral,
       PublicKeyToken=null
+  Animator: {fileID: 0}
 --- !u!114 &114504270462996338
 MonoBehaviour:
   m_ObjectHideFlags: 1

@@ -85,6 +85,11 @@ public class MapEditorScene : Editor
         SceneView.onSceneGUIDelegate += OnSceneGUI;
     }
 
+    private static void LoadPlayers()
+    {
+        TurnControllers = GameObject.FindObjectsOfType<TurnController>();
+    }
+
     private static void OnSceneGUI( SceneView sceneView )
     {
         if ( SceneCamera == null )
@@ -99,6 +104,8 @@ public class MapEditorScene : Editor
 
         Handles.BeginGUI();
         ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );
+        if ( GUILayout.Button( "ReloadPlayers" ) )
+            LoadPlayers();
 
         switch ( ModeSelectionIndex )
         {
@@ -195,9 +202,8 @@ public class MapEditorScene : Editor
                 return;
             //Map.Data.SetUnitAtPosition( pos.x, pos.y, prefabUnit );
             var unit = Instantiate( prefabUnit, TurnControllers[ TeamSelectionIndex ].transform, false );
-            Map.UnitPos.Add( unit, pos );
             unit.transform.localPosition = pos.ToVector3();
-            unit.GetComponent<UnitMapHelper>().PlayerOwner = TeamSelectionIndex;
+            Map.UnitPos.Add( unit, pos );
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
     }

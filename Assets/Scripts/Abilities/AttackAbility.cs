@@ -23,13 +23,14 @@ public class AttackAbility : TargetAbility
 
     public override void ExecuteOnTarget( Unit target )
     {
-        int preDamage = target.HP;
+        this.Owner.Animator.SetTrigger( "Attack" );
 
-        target.HP -= Mathf.Min( AttackPower - target.Defense );
-
-        ExecuteEvents.Execute<IUnitEventsHandler>(
-            target.gameObject,
-            new UnitEventData( EventSystem.current, target ),
-            ( x, y ) => x.UnitDamaged( ExecuteEvents.ValidateEventData<UnitEventData>( y ), preDamage ) );
+        int damageDone = Mathf.Min( AttackPower - target.Defense );
+        target.HP -= damageDone;
+        if ( damageDone > 0 )
+        {
+            ExecuteEvents.Execute<IUnitEventsHandler>( target.gameObject, new UnitEventData( EventSystem.current, target ),
+                ( x, y ) => x.UnitDamaged( ExecuteEvents.ValidateEventData<UnitEventData>( y ), damageDone ) );
+        }
     }
 }

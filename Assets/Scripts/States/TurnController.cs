@@ -5,7 +5,6 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnitDeathHandler
 {
     public HashSet<Unit> ControlledUnits;
