@@ -19,4 +19,12 @@ public class AbilityButtonFactory : MonoBehaviour
         toret.GetComponentInChildren<Text>().text = ability.Name;
         return toret;
     }
+
+    public GameObject CreateWithoutFunctionality( Ability ability )
+    {
+        Button toDestroy = Create( ability );
+        GameObject toret = toDestroy.gameObject;
+        GameObject.Destroy( toDestroy );
+        return toret;
+    }
 }

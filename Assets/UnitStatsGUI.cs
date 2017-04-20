@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class UnitStatsGUI : MonoBehaviour {
     public ValueLabel HP;
-    public ValueLabel Attack;
     public ValueLabel Defense;
     public ValueLabel Movement;
 

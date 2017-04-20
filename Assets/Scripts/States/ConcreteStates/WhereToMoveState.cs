@@ -80,7 +80,9 @@ public class WhereToMoveState : BattleState
 
         if ( PointsToPass.Count > SelectedUnit.MovementRange || tooFarFromLast )
         {
-            PointsToPass = new LinkedList<Vector2Int>( MapSearcher.Search( InitialUnitPosition, to, MapSearcher.CalculateNodeMap( sys.Map, InitialUnitPosition, SelectedUnit.MovementRange ) ) );
+            PointsToPass = new LinkedList<Vector2Int>(
+                MapSearcher.Search( InitialUnitPosition, to,
+                MapSearcher.CalculateNodeMap( sys.Map, InitialUnitPosition, SelectedUnit.MovementRange ) ) );
             return;
         }
 

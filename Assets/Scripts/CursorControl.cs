@@ -13,7 +13,6 @@ public class CursorControl : MonoBehaviour
 {
     public GameMap Map;
     public Camera CursorCamera;
-    public Queue<Action> MoveCommands = new Queue<Action>();
     public UnityEvent CursorMoved;
 
     private Vector2Int m_CurrentPosition;
@@ -68,14 +67,6 @@ public class CursorControl : MonoBehaviour
         ShiftCursor( inputVector );
     }
 
-    public void Update()
-    {
-        if ( MoveCommands.Count == 0 == false && IsMoving == false )
-        {
-            MoveCommands.Dequeue()();
-        }
-    }
-
     /// <summary>
     /// Shifts the cursor according to directional vector, returns the updated position if successful
     /// else, returns the unmodified position.
@@ -87,7 +78,7 @@ public class CursorControl : MonoBehaviour
         if ( direction.AbsoluteNormal() != 0 )
         {
             Vector2Int updatedPosition = CurrentPosition + direction;
-            MoveCommands.Enqueue( () => MoveCursor( updatedPosition ) );
+            MoveCursor( updatedPosition );
         }
     }
 
@@ -102,7 +93,7 @@ public class CursorControl : MonoBehaviour
         if ( Map.IsOutOfBounds( to ) == false )
         {
             CurrentPosition = to;
-            StartCoroutine( CursorMotion( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3(), 0.08f ) ) );
+            StartCoroutine( CursorMotion( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3( Vector2IntExt.Axis.Z ), 0.08f ) ) );
         }
     }
 
@@ -112,4 +103,24 @@ public class CursorControl : MonoBehaviour
         yield return tweener;
         IsMoving = false;
     }
+}
+
+public class CursorEventData : BaseEventData
+{
+    public CursorControl Cursor;
+    public Vector2Int LastPosition;
+
+    public CursorEventData( EventSystem eventSystem ) : base( eventSystem )
+    {
+    }
+}
+
+interface IMapCursorEnter : IEventSystemHandler
+{
+    void CursorEnter( CursorEventData data );
+}
+
+interface IMapCursorExit : IEventSystemHandler
+{
+    void CursorExit( CursorEventData data );
 }
