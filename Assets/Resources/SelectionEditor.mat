@@ -10,7 +10,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 9d56d3bda6959be4384de357c6aa1da8, type: 3}
   m_ShaderKeywords: _GLOSSYREFLECTIONS_OFF _SPECULARHIGHLIGHTS_OFF
   m_LightmapFlags: 0
-  m_CustomRenderQueue: 2000
+  m_CustomRenderQueue: -1
   stringTagMap: {}
   m_SavedProperties:
     serializedVersion: 2
@@ -145,7 +145,7 @@ Material:
     m_Colors:
     - first:
         name: _Color
-      second: {r: 1, g: 0, b: 0.972414, a: 0}
+      second: {r: 1, g: 0, b: 0.972414, a: 0.491}
     - first:
         name: _EmissionColor
       second: {r: 0, g: 0, b: 0, a: 1}

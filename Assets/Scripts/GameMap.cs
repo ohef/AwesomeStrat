@@ -274,8 +274,10 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         return mesh;
     }
 
-    public void InitializeMap( int width, int height, GameTile prefabTile )
+    public void InitializeMap( int width, int height, GameTile prefabTile, bool clearMap = true, Vector2IntExt.Axis primaryAxis = Vector2IntExt.Axis.Y )
     {
+        if ( clearMap == true ) ClearMap();
+
         Width = width;
         Height = height;
         GameObject TileLayer = GameObject.Find( "TileLayer" );
@@ -283,12 +285,12 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         {
             var gameTile = Instantiate( prefabTile, TileLayer.transform, false );
             TilePos.Add( gameTile, pos );
-            gameTile.transform.localPosition = pos.ToVector3();
+            gameTile.transform.localPosition = pos.ToVector3( axis: primaryAxis );
             gameTile.name = pos.ToString();
         }
     }
 
-    public void ReInitializeMap( int width, int height, GameTile prefabTile )
+    public void ClearMap()
     {
         foreach ( var tile in GameObject.FindObjectsOfType<GameTile>() )
             GameObject.DestroyImmediate( tile.gameObject );
@@ -298,7 +300,6 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
 
         UnitPos.Clear();
         TilePos.Clear();
-        InitializeMap( width, height, prefabTile );
     }
 
     public bool Occupied( Vector2Int pos )

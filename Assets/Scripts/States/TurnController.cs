@@ -17,12 +17,12 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
         ControlledUnits = new HashSet<Unit>( this.transform.GetComponentsInChildren<Unit>() );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
 
-        //TODO probably don't need to do this, better to do one assignment.
-        foreach ( var unit in ControlledUnits )
-        {
-            unit.GetComponent<UnitGraphics>()
-                .UnitIndicator.sharedMaterial = PlayerMaterial;
-        }
+        ////TODO probably don't need to do this, better to do one assignment.
+        //foreach ( var unit in ControlledUnits )
+        //{
+        //    unit.GetComponent<UnitGraphics>()
+        //        .UnitIndicator.sharedMaterial = PlayerMaterial;
+        //}
     }
 
     public void OnUnitDeath( Unit deadUnit )

@@ -13,8 +13,9 @@ public class MapEditor : EditorWindow
 {
     public static GameMap map = null;
     public static GameTile InitTile;
-    public int Width = 0;
-    public int Height = 0;
+    public static int Width = 0;
+    public static int Height = 0;
+    public static Vector2IntExt.Axis InstantiationAxis;
 
     private static GameObject CameraToFocus;
     private static GameObject CursorFocusedOn;
@@ -39,11 +40,12 @@ public class MapEditor : EditorWindow
         EditorGUILayout.BeginHorizontal();
         Width = EditorGUILayout.IntField( "Width", Width );
         Height = EditorGUILayout.IntField( "Height", Height );
+        InstantiationAxis = ( Vector2IntExt.Axis )EditorGUILayout.EnumPopup( InstantiationAxis );
         EditorGUILayout.EndHorizontal();
 
         if ( GUILayout.Button( "Create Map" ) )
         {
-            map.ReInitializeMap( Width, Height, InitTile );
+            map.InitializeMap( Width, Height, InitTile, true, Vector2IntExt.Axis.Z );
             EditorSceneManager.MarkAllScenesDirty();
         }
 
@@ -156,7 +158,7 @@ public class MapEditorScene : Editor
                 var pos =
                 new Vector2Int(
                     ( int )Mathf.Floor( rayHitInfo.transform.localPosition.x ),
-                    ( int )Mathf.Floor( rayHitInfo.transform.localPosition.z ) );
+                    ( int )Mathf.Floor( rayHitInfo.transform.localPosition.y ) );
                 if ( tile != null )
                     handler( pos );
             }
@@ -165,17 +167,6 @@ public class MapEditorScene : Editor
         HandleUtility.AddDefaultControl( controlId );
     }
 
-    //private static Unit GetUnit( Vector2Int pos )
-    //{
-    //    Unit hitUnit =
-    //    FindObjectsOfType<Unit>().FirstOrDefault( unit =>
-    //    Mathf.Floor( unit.transform.localPosition.x ) == pos.x &&
-    //    Mathf.Floor( unit.transform.localPosition.z ) == pos.y
-    //    );
-
-    //    return hitUnit;
-    //}
-
     private static void PlaceTileAt( Vector2Int pos )
     {
         GameTile prefabTile = Selection.activeGameObject.GetComponent<GameTile>();
@@ -183,7 +174,7 @@ public class MapEditorScene : Editor
             return;
 
         GameTile Tile = GameObject.Instantiate<GameTile>( prefabTile, TileLayer.transform, false );
-        Tile.transform.localPosition = pos.ToVector3();
+        Tile.transform.localPosition = MapPositionTranslator.GetTransform( pos );
         var TileAtPos = Map.TilePos[ pos ];
         Tile.name = TileAtPos.name;
         GameObject.DestroyImmediate( TileAtPos.gameObject );
@@ -200,9 +191,8 @@ public class MapEditorScene : Editor
             Unit prefabUnit = Selection.activeGameObject.GetComponent<Unit>();
             if ( prefabUnit == null )
                 return;
-            //Map.Data.SetUnitAtPosition( pos.x, pos.y, prefabUnit );
             var unit = Instantiate( prefabUnit, TurnControllers[ TeamSelectionIndex ].transform, false );
-            unit.transform.localPosition = pos.ToVector3();
+            unit.transform.localPosition = MapPositionTranslator.GetTransform( pos );
             Map.UnitPos.Add( unit, pos );
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }

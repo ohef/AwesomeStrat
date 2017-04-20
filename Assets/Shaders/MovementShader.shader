@@ -1,16 +1,14 @@
 ﻿Shader "Custom/MovementShader" {
 	Properties{
 		_Color("Color", Color) = (1,1,1,1)
-		_Alpha("Alpha", Range(0.0,1.0)) = 1.0
 	}
 		SubShader{
-			Tags {"Queue" = "Geometry"}
+			Tags {"Queue" = "Transparent"}
 			Pass {
 				Fog{ Mode Off }
 
 				ZWrite Off
 				Blend SrcAlpha OneMinusSrcAlpha
-				Offset -1, -1
 
 				CGPROGRAM
 				#pragma target 3.0
@@ -18,7 +16,6 @@
 				#pragma fragment frag
 				#pragma exclude_renderers nomrt
 				half4 _Color;
-				float _Alpha;
 
 				float4 vert(float4 vertex : POSITION) : SV_POSITION
 				{
@@ -27,7 +24,7 @@
 
 				half4 frag() : SV_Target
 				{
-					return half4(_Color.rgb, _Alpha);
+					return _Color;
 				}
 				ENDCG
 		}

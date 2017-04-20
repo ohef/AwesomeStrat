@@ -14,8 +14,6 @@ public class AttackAbility : TargetAbility
 
     public override void ExecuteOnTarget( Unit target )
     {
-        this.Owner.Animator.SetTrigger( "Attack" );
-
         int damageDone = Mathf.Min( AttackPower - target.Defense );
         target.HP -= damageDone;
         if ( damageDone > 0 )
