@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using UnityEngine;
 
 public interface IMonoBehaviourState
@@ -74,14 +75,18 @@ public class PlayerTurnController : TurnController
 
     public void UnitFinished( Unit unit )
     {
-        foreach ( var ren in unit.GetComponentsInChildren<SkinnedMeshRenderer>() )
-        {
-            UndoCommandAction setFinishedColor = new UndoCommandAction (
-                delegate { ren.material.color = new Color( 0.75f, 0.75f, 0.75f ); },
-                delegate { ren.material.color = new Color( 1.00f, 1.00f, 1.00f ); } );
-            setFinishedColor.Execute();
-            CommandsForReEnter.Push( setFinishedColor );
-        }
+        var ren = unit.GetComponent<Renderer>();
+
+        var propBlock = new MaterialPropertyBlock();
+        ren.GetPropertyBlock( propBlock );
+
+        UndoCommandAction setFinishedColor = new UndoCommandAction(
+                delegate { propBlock.SetColor( "_Color", new Color( 0.75f, 0.75f, 0.75f ) ); ren.SetPropertyBlock( propBlock ); },
+                delegate { propBlock.SetColor( "_Color", new Color( 1.00f, 1.00f, 1.00f ) ); ren.SetPropertyBlock( propBlock ); }
+                );
+
+        setFinishedColor.Execute();
+        CommandsForReEnter.Push( setFinishedColor );
         HasNotActed.Remove( unit );
     }
 
@@ -91,20 +96,6 @@ public class PlayerTurnController : TurnController
             c.Undo();
         CommandsForReEnter.Clear();
     }
-
-    //public void OnEnable()
-    //{
-    //    State = sys.GetState<ChoosingUnitState>();
-    //    State.gameObject.SetActive( true );
-    //    HasNotActed = new HashSet<Unit>( ControlledUnits );
-    //}
-
-    //public void OnDisable()
-    //{
-    //    State.gameObject.SetActive( false );
-    //    RefreshTurn();
-    //    ClearManagementHistory();
-    //}
 
     public void Start()
     {

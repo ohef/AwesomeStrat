@@ -9,13 +9,19 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
 {
     public HashSet<Unit> ControlledUnits;
     public HashSet<Unit> HasNotActed;
+
     public int PlayerNo;
-    public Material PlayerMaterial;
+    public Color PlayerColor;
 
     public virtual void Awake()
     {
         ControlledUnits = new HashSet<Unit>( this.transform.GetComponentsInChildren<Unit>() );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
+
+        foreach ( var unit in ControlledUnits )
+        {
+            unit.GetComponent<SpriteRenderer>().color = PlayerColor;
+        }
 
         ////TODO probably don't need to do this, better to do one assignment.
         //foreach ( var unit in ControlledUnits )
