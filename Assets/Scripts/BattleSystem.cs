@@ -73,8 +73,7 @@ public class BattleSystem : MonoBehaviour
             {
                 Vector2Int targetPosition = path.Last();
                 unit.StartCoroutine(
-                        CustomAnimation.InterpolateBetweenPointsDecoupled( unit.transform,
-                        unit.transform.FindChild( "Model" ),
+                        CustomAnimation.InterpolateBetweenPoints( unit.transform,
                         path.Select( x => Map.TilePos[ x ].GetComponent<Transform>().localPosition ).ToList(), 0.22f ) );
 
                 Map.PlaceUnit( unit, targetPosition );

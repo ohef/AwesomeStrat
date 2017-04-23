@@ -175,16 +175,17 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         return temp;
     }
 
-    public HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
+    public HashSet<Vector2Int> GetFringeAttackTiles( IEnumerable<Vector2Int> movementTiles, int attackRange )
     {
         HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
+        HashSet<Vector2Int> movementTilesSet = new HashSet<Vector2Int>( movementTiles );
 
-        foreach ( Vector2Int tile in movementTiles )
+        foreach ( Vector2Int tile in movementTilesSet )
             foreach ( Vector2Int direction in new Vector2Int[] { Vector2Int.Up, Vector2Int.Down, Vector2Int.Left, Vector2Int.Right } )
                 foreach ( int coef in Enumerable.Range( 1, attackRange ) )
                 {
                     Vector2Int neighbour = tile + direction * coef;
-                    if ( IsOutOfBounds( neighbour ) == false && movementTiles.Contains( neighbour ) == false )
+                    if ( IsOutOfBounds( neighbour ) == false && movementTilesSet.Contains( neighbour ) == false )
                         attackTiles.Add( neighbour );
                 }
 

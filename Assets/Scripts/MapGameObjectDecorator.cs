@@ -8,11 +8,11 @@ using UnityEngine;
 [RequireComponent( typeof( GameMap ) )]
 public class MapGameObjectDecorator : MapDecorator
 {
-    private GameMap Map;
+    protected GameMap Map;
     public GameObject MovementObj;
     public GameObject SelectionObj;
-    private List<GameObject> movementObjBuffer;
-    private List<GameObject> pointsObjBuffer;
+    protected List<GameObject> movementObjBuffer;
+    protected List<GameObject> pointsObjBuffer;
 
     public void Awake()
     {
@@ -38,6 +38,15 @@ public class MapGameObjectDecorator : MapDecorator
         }
     }
 
+    private GameObject InstantiateDecoratorObjectForTile( GameTile tile, GameObject obj, Color color )
+    {
+        var instantiated = Instantiate( obj );
+        instantiated.hideFlags = HideFlags.HideInHierarchy;
+        instantiated.transform.position = tile.transform.position;
+        instantiated.GetComponent<Renderer>().material.SetColor( "_Color", color );
+        return instantiated;
+    }
+
     private GameObject InstantiateDecoratorObjectForTile( GameTile tile, GameObject obj )
     {
         var instantiated = Instantiate( obj );
@@ -61,6 +70,37 @@ public class MapGameObjectDecorator : MapDecorator
             .Select( pos => Map.TilePos[ pos ] )
             .Select( tile => InstantiateDecoratorObjectForTile( tile, MovementObj ) )
             .ToList();
+
+        var visitor = new AbilityTileVisitor { decorator = this, movePositions = validMovementTiles };
+        foreach ( var ability in unit.Abilities )
+        {
+            movementObjBuffer.AddRange( ability.Accept( visitor ) );
+        }
+    }
+
+    public class AbilityTileVisitor : IAbilityVisitor<IEnumerable<GameObject>>
+    {
+        public MapGameObjectDecorator decorator;
+        public IEnumerable<Vector2Int> movePositions;
+
+        public IEnumerable<GameObject> Visit( WaitAbility ability )
+        {
+            return Enumerable.Empty<GameObject>();
+        }
+
+        public IEnumerable<GameObject> Visit( AreaOfEffectAbility ability )
+        {
+            return Enumerable.Empty<GameObject>();
+        }
+
+        public IEnumerable<GameObject> Visit( TargetAbility ability )
+        {
+            var targetTiles = decorator.Map.GetFringeAttackTiles( movePositions, ability.Range );
+            return targetTiles
+            .Select( pos => decorator.Map.TilePos[ pos ] )
+            .Select( tile => decorator.InstantiateDecoratorObjectForTile( tile, decorator.MovementObj, ability.TileColor ) )
+            .ToList();
+        }
     }
 }
 

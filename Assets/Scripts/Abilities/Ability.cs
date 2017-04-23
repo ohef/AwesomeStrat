@@ -8,6 +8,7 @@ public abstract partial class Ability : MonoBehaviour
     public Unit Owner;
     public string Name;
     public Image AbliityImage;
+    public Color TileColor;
 
     public virtual void Awake()
     {

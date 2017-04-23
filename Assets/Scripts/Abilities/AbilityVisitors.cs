@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface IAbilityGeneric<T>
+public interface IAbilityVisitor<T>
 {
     T Visit( TargetAbility ability);
     T Visit( AreaOfEffectAbility ability );
@@ -11,12 +11,12 @@ public interface IAbilityGeneric<T>
 
 public abstract partial class Ability
 {
-    public abstract T Accept<T>( IAbilityGeneric<T> visitor );
+    public abstract T Accept<T>( IAbilityVisitor<T> visitor );
 }
 
 public abstract partial class TargetAbility : Ability
 {
-    public override T Accept<T>( IAbilityGeneric<T> visitor )
+    public override T Accept<T>( IAbilityVisitor<T> visitor )
     {
         return visitor.Visit( this );
     }
@@ -24,7 +24,7 @@ public abstract partial class TargetAbility : Ability
 
 public abstract partial class AreaOfEffectAbility : Ability
 {
-    public override T Accept<T>( IAbilityGeneric<T> visitor )
+    public override T Accept<T>( IAbilityVisitor<T> visitor )
     {
         return visitor.Visit( this );
     }
@@ -32,7 +32,7 @@ public abstract partial class AreaOfEffectAbility : Ability
 
 public partial class WaitAbility : Ability
 {
-    public override T Accept<T>( IAbilityGeneric<T> visitor )
+    public override T Accept<T>( IAbilityVisitor<T> visitor )
     {
         return visitor.Visit( this );
     }

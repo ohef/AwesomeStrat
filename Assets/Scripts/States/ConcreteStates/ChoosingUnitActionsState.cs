@@ -10,7 +10,7 @@ public class ChoosingUnitActionsState : MenuState
 {
     private Unit SelectedUnit;
 
-    public class StateForAbility : IAbilityGeneric<object>
+    public class StateForAbility : IAbilityVisitor<object>
     {
         public ChoosingUnitActionsState Container;
         public PlayerTurnController Context;

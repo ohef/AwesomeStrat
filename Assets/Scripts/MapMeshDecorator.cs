@@ -7,7 +7,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 [RequireComponent( typeof( GameMap ) )]
-public class MapMeshDecorator : MonoBehaviour
+public class MapMeshDecorator : MapDecorator
 {
     private CommandBuffer UnitMovementBuffer;
     private CommandBuffer PointsBuffer;
@@ -28,7 +28,7 @@ public class MapMeshDecorator : MonoBehaviour
         Camera.main.AddCommandBuffer( CameraEvent.BeforeForwardAlpha, PointsBuffer );
     }
 
-    public void RenderForPath( IEnumerable<Vector2Int> path )
+    public override void RenderForPath( IEnumerable<Vector2Int> path )
     {
         PointsBuffer.Clear();
         foreach ( var pos in path )
@@ -40,7 +40,7 @@ public class MapMeshDecorator : MonoBehaviour
         }
     }
 
-    public void ShowUnitMovement( Unit unit )
+    public override void ShowUnitMovement( Unit unit )
     {
         UnitMovementBuffer.Clear();
 
