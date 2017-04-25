@@ -90,6 +90,8 @@ public class MapEditorScene : Editor
     private static void LoadPlayers()
     {
         TurnControllers = GameObject.FindObjectsOfType<TurnController>();
+        Map = GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
+        TileLayer = GameObject.Find( "TileLayer" );
     }
 
     private static void OnSceneGUI( SceneView sceneView )
@@ -100,9 +102,9 @@ public class MapEditorScene : Editor
             SceneCamera.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
         }
 
-        TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
-        Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
-        TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
+        //TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
+        //Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
+        //TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
 
         Handles.BeginGUI();
         ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );

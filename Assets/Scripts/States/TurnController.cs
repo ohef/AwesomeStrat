@@ -20,7 +20,7 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
 
         foreach ( var unit in ControlledUnits )
         {
-            unit.GetComponent<SpriteRenderer>().color = PlayerColor;
+            unit.RegisterTurnController( this );
         }
 
         ////TODO probably don't need to do this, better to do one assignment.

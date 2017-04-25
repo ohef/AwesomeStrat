@@ -49,7 +49,7 @@ public class CursorControl : MonoBehaviour
         var firstunit = Map.UnitPos.FirstOrDefault();
         if ( firstunit.Value == null ) return;
 
-        CurrentPosition = Map.UnitPos[ Map.UnitPos.First().Key ];
+        CurrentPosition = Map.UnitPos[ firstunit.Key ];
 
         MoveCursor( CurrentPosition );
     }

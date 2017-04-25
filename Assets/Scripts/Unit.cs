@@ -75,4 +75,9 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
         ExecuteEvents.ExecuteHierarchy<IUnitDeathHandler>
            ( this.gameObject, null, ( x, y ) => x.OnUnitDeath( this ) );
     }
+    public void RegisterTurnController( TurnController controller )
+    {
+        GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
+    }
+}
 }
