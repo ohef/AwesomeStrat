@@ -22,8 +22,6 @@ public class BattleSystem : MonoBehaviour
     public GameMap Map;
     public CursorControl Cursor;
     public CommandMenu Menu;
-    public Transform UnitLayer;
-    public Transform TileLayer;
     public UnityEvent StateChanged;
 
     void Awake()

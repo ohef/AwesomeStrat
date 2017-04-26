@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public interface IMonoBehaviourState
 {
@@ -75,8 +76,7 @@ public class PlayerTurnController : TurnController
 
     public void UnitFinished( Unit unit )
     {
-        var ren = unit.GetComponent<Renderer>();
-
+        var ren = unit.GetComponentInChildren<SpriteRenderer>();
         var propBlock = new MaterialPropertyBlock();
         ren.GetPropertyBlock( propBlock );
 

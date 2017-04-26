@@ -8,8 +8,6 @@ using UnityEngine.UI;
 
 public class ChoosingUnitActionsState : MenuState
 {
-    private Unit SelectedUnit;
-
     public class StateForAbility : IAbilityVisitor<object>
     {
         public ChoosingUnitActionsState Container;
@@ -43,6 +41,8 @@ public class ChoosingUnitActionsState : MenuState
             return null;
         }
     }
+
+    private Unit SelectedUnit;
 
     public void Initialize( Unit selectedUnit )
     {

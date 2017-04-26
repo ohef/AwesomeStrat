@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class ChooseTargetsState : BattleState
+public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 {
     private LinkedList<Unit> EligibleTargets;
     private LinkedListNode<Unit> CurrentlySelected;
@@ -28,34 +29,12 @@ public class ChooseTargetsState : BattleState
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
-    }
-
-    public void Update()
-    {
-        HandleChoosing();
-
-        if ( Input.GetButtonDown( "Submit" ) )
-        {
-            SelectedAbility.ExecuteOnTarget( CurrentlySelected.Value );
-            //context.GoToStateAndForget( ChoosingUnitState.Instance );
-            Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
-            Context.UnitFinished( SelectedAbility.Owner );
-        }
+        EventSystem.current.SetSelectedGameObject( gameObject );
     }
 
     public void OnDisable()
     {
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedAbility.Owner ] );
-    }
-
-    private void HandleChoosing()
-    {
-        Vector2Int input = Vector2IntExt.GetInputAsDiscrete();
-        if ( EligibleTargets.Count > 0 )
-        {
-            HandleInput( input.x );
-            HandleInput( input.y );
-        }
     }
 
     private void HandleInput( int input )
@@ -78,5 +57,21 @@ public class ChooseTargetsState : BattleState
 
             sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
         }
+    }
+
+    public void OnMove( AxisEventData eventData )
+    {
+        if ( EligibleTargets.Count > 0 )
+        {
+            HandleInput( eventData.moveVector.ToVector2Int().x );
+            HandleInput( eventData.moveVector.ToVector2Int().y );
+        }
+    }
+
+    public void OnSubmit( BaseEventData eventData )
+    {
+        SelectedAbility.ExecuteOnTarget( CurrentlySelected.Value );
+        Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
+        Context.UnitFinished( SelectedAbility.Owner );
     }
 }

@@ -89,12 +89,10 @@
 	{
 		fixed4 c = SampleSpriteTexture(IN.texcoord);
 		fixed4 por = tex2D(_PortraitTex, IN.texcoord);
-		float3 white = { 1.0f,1.0f,1.0f };
 
 		c.a = por.b;
 		c.rgb = por.r * IN.color.rgb * 0.66f + (1 - por.g) * c.rgb;
 		c.rgb *= _Color;
-		//c.rgb *= IN.color.rgb;
 		c.rgb *= c.a;
 		return c;
 	}

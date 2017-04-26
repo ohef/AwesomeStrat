@@ -35,13 +35,13 @@ namespace Assets.General.UnityExtensions
                     return new Vector3( v.x, axisVal, v.y );
             }
         }
-
-        public static Vector2Int GetInputAsDiscrete()
+    }
+    
+    public static class Vector3Ext
+    {
+        public static Vector2Int ToVector2Int( this Vector2 v )
         {
-            int vertical = ( Input.GetButtonDown( "Up" ) ? 1 : 0 ) + ( Input.GetButtonDown( "Down" ) ? -1 : 0 );
-            int horizontal = ( Input.GetButtonDown( "Left" ) ? -1 : 0 ) + ( Input.GetButtonDown( "Right" ) ? 1 : 0 );
-            var inputVector = new Vector2Int( horizontal, vertical );
-            return inputVector;
+            return new Vector2Int( ( int )v.x, ( int )v.y );
         }
     }
 }

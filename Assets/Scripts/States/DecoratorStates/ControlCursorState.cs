@@ -1,11 +1,14 @@
-﻿using System.Collections;
+﻿using Assets.General.UnityExtensions;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class ControlCursorState : BattleState
+public class ControlCursorState : BattleState, IMoveHandler
 {
-    public void Update()
+    public void OnMove( AxisEventData eventData )
     {
-        sys.Cursor.UpdateAction();
+        sys.Cursor.ShiftCursor( eventData.moveVector.ToVector2Int() );
     }
 }

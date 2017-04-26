@@ -50,7 +50,7 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
 
     public Animator Animator;
 
-    void Awake()
+    public void Awake()
     {
         if ( UnitChanged == null )
             UnitChanged = new UnityEvent();
@@ -59,7 +59,7 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
         Animator = this.GetComponentInChildren<Animator>();
     }
 
-    void Start()
+    public void Start()
     {
         UnitChanged.Invoke();
     }
@@ -75,9 +75,9 @@ public class Unit : MonoBehaviour, IUnitEventsHandler
         ExecuteEvents.ExecuteHierarchy<IUnitDeathHandler>
            ( this.gameObject, null, ( x, y ) => x.OnUnitDeath( this ) );
     }
+
     public void RegisterTurnController( TurnController controller )
     {
         GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
     }
-}
 }

@@ -7,6 +7,7 @@ using System.Linq;
 using UnityEngine;
 using System;
 using UnityEngine.Rendering;
+using UnityEngine.EventSystems;
 
 public class WhereToMoveState : BattleState
 {
@@ -30,6 +31,7 @@ public class WhereToMoveState : BattleState
         PointsToPass = new LinkedList<Vector2Int>();
         PointsToPass.AddFirst( InitialUnitPosition );
         MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
+        EventSystem.current.SetSelectedGameObject( gameObject );
     }
 
     public void Update()

@@ -34,8 +34,6 @@ public class CursorControl : MonoBehaviour
         }
     }
 
-    private bool IsMoving = false;
-
     void Awake()
     {
         if ( CursorMoved == null )
@@ -59,12 +57,6 @@ public class CursorControl : MonoBehaviour
         Unit unitThere;
         Map.UnitPos.TryGetValue( this.CurrentPosition, out unitThere );
         return unitThere;
-    }
-
-    public void UpdateAction()
-    {
-        Vector2Int inputVector = Vector2IntExt.GetInputAsDiscrete();
-        ShiftCursor( inputVector );
     }
 
     /// <summary>
@@ -93,15 +85,8 @@ public class CursorControl : MonoBehaviour
         if ( Map.IsOutOfBounds( to ) == false )
         {
             CurrentPosition = to;
-            StartCoroutine( CursorMotion( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3( Vector2IntExt.Axis.Z ), 0.08f ) ) );
+            StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3( Vector2IntExt.Axis.Z ), 0.08f ) );
         }
-    }
-
-    private IEnumerator CursorMotion( IEnumerator tweener )
-    {
-        IsMoving = true;
-        yield return tweener;
-        IsMoving = false;
     }
 }
 
