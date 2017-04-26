@@ -102,9 +102,9 @@ public class MapEditorScene : Editor
             SceneCamera.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
         }
 
-        //TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
-        //Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
-        //TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
+        TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
+        Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
+        TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
 
         Handles.BeginGUI();
         ModeSelectionIndex = GUILayout.SelectionGrid( ModeSelectionIndex, ToolLabels, ToolLabels.Length );
@@ -196,6 +196,10 @@ public class MapEditorScene : Editor
             var unit = Instantiate( prefabUnit, TurnControllers[ TeamSelectionIndex ].transform, false );
             unit.transform.localPosition = MapPositionTranslator.GetTransform( pos );
             Map.UnitPos.Add( unit, pos );
+
+            unit.RegisterTurnController( TurnControllers[ TeamSelectionIndex ] );
+            unit.UnitChanged.Invoke();
+
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }
     }
