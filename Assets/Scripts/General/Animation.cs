@@ -67,5 +67,15 @@ namespace Assets.General
                 //yield return null;
             }
         }
+
+        public static IEnumerator InterpolateValue( float a, float b, float seconds, Action<float> setter )
+        {
+            float rate = 1.0f / seconds;
+            for ( float i = 0 ; i <= 1 ; i += Time.deltaTime * rate )
+            {
+                setter( Mathf.Lerp( a, b, i ) );
+                yield return null;
+            }
+        }
     }
 }
