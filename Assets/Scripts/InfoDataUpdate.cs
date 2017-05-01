@@ -31,7 +31,7 @@ public class InfoDataUpdate : MonoBehaviour {
         {
             HP.text = unitAtTile.HP.ToString();
             Move.text = unitAtTile.MovementRange.ToString();
-            Defense.text = unitAtTile.Defense.ToString();
+            //Defense.text = unitAtTile.Defense.ToString();
         }
     }
 }

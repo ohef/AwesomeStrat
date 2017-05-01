@@ -8,7 +8,6 @@ public class MapCameraController : MonoBehaviour {
     private Camera MapCam;
     private IEnumerator<float> ZoomLevels;
 
-
     public void Awake()
     {
         MapCam = GetComponent<Camera>();

@@ -30,7 +30,6 @@ public class AIController : TurnController
         if ( pathToAttackPosition.Count() > myUnit.MovementRange )
         {
             pathToAttackPosition = pathToAttackPosition.Take( myUnit.MovementRange ).ToList();
-            int pathCost = pathToAttackPosition.Select( pos => map.TilePos[ pos ] ).Sum( tile => tile.CostOfTraversal );
         }
 
         BattleSystem.Instance.CreateMoveCommand( pathToAttackPosition, myUnit ).Execute();
@@ -51,6 +50,7 @@ public class AIController : TurnController
 
     public override void EnterState()
     {
+        base.EnterState();
         GameMap map = BattleSystem.Instance.Map;
         //Get ordering for Units
         foreach ( var myUnit in ControlledUnits )
@@ -76,10 +76,6 @@ public class AIController : TurnController
         }
         BattleSystem.Instance.EndTurn();
     }
-
-    public override void ExitState() { }
-
-    public override void UpdateState() { }
 }
 
 //public interface IDecisionTreeNode

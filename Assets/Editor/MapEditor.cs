@@ -62,7 +62,6 @@ public class MapEditor : EditorWindow
 public class MapEditorScene : Editor
 {
     static GameMap Map;
-    static Vector2 scrollPosition = Vector2.zero;
 
     static int TeamSelectionIndex = 0;
     static int ModeSelectionIndex = 0;
@@ -198,7 +197,6 @@ public class MapEditorScene : Editor
             Map.UnitPos.Add( unit, pos );
 
             unit.RegisterTurnController( TurnControllers[ TeamSelectionIndex ] );
-            unit.UnitChanged.Invoke();
 
             EditorSceneManager.MarkSceneDirty( EditorSceneManager.GetActiveScene() );
         }

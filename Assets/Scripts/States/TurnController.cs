@@ -22,13 +22,6 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
         {
             unit.RegisterTurnController( this );
         }
-
-        ////TODO probably don't need to do this, better to do one assignment.
-        //foreach ( var unit in ControlledUnits )
-        //{
-        //    unit.GetComponent<UnitGraphics>()
-        //        .UnitIndicator.sharedMaterial = PlayerMaterial;
-        //}
     }
 
     public void OnUnitDeath( Unit deadUnit )
@@ -39,7 +32,13 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
         GameObject.Destroy( deadUnit.gameObject );
     }
 
-    public abstract void EnterState();
-    public abstract void ExitState();
-    public abstract void UpdateState();
+    public virtual void EnterState()
+    {
+        foreach ( var unit in ControlledUnits )
+        {
+            unit.HP = unit.MaxHP;
+        }
+    }
+    public virtual void ExitState() { }
+    public virtual void UpdateState() { }
 }

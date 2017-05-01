@@ -9,7 +9,7 @@ using System;
 using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
 
-public class WhereToMoveState : BattleState
+public class WhereToMoveState : BattleState, ISubmitHandler
 {
     private Unit SelectedUnit;
     private Vector2Int InitialUnitPosition;
@@ -36,23 +36,7 @@ public class WhereToMoveState : BattleState
 
     public void Update()
     {
-        Unit unitUnderCursor = null;
-        sys.Map.UnitPos.TryGetValue( sys.Cursor.CurrentPosition, out unitUnderCursor );
-
         Decorator.RenderForPath( PointsToPass );
-        if ( Input.GetButtonDown( "Submit" ) )
-        {
-            bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentPosition );
-            if ( canMoveHere )
-            {
-                Context.DoCommand(
-                    sys.CreateMoveCommand( PointsToPass.ToList(), SelectedUnit ) );
-
-                var state = sys.GetState<ChoosingUnitActionsState>();
-                state.Initialize( SelectedUnit );
-                Context.State = state;
-            }
-        }
     }
 
     public void OnDisable()
@@ -99,6 +83,20 @@ public class WhereToMoveState : BattleState
             {
                 PointsToPass.RemoveLast();
             }
+        }
+    }
+
+    public void OnSubmit( BaseEventData eventData )
+    {
+        bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentPosition );
+        if ( canMoveHere )
+        {
+            Context.DoCommand(
+                sys.CreateMoveCommand( PointsToPass.ToList(), SelectedUnit ) );
+
+            var state = sys.GetState<ChoosingUnitActionsState>();
+            state.Initialize( SelectedUnit );
+            Context.State = state;
         }
     }
 }

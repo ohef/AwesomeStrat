@@ -22,6 +22,14 @@ public class ChoosingUnitState : BattleState, ISubmitHandler
         }
     }
 
+    //public void Update()
+    //{
+    //    if ( Input.GetKeyDown( KeyCode.Semicolon ) )
+    //    {
+    //        sys.Cursor.GetComponentInChildren<CameraController>();
+    //    }
+    //}
+
     public void OnSubmit( BaseEventData eventData )
     {
         Unit unitAtTile;
@@ -39,5 +47,6 @@ public class ChoosingUnitState : BattleState, ISubmitHandler
             var state = sys.GetState<TurnMenuState>();
             context.State = state;
         }
+        eventData.Use();
     }
 }

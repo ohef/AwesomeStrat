@@ -10,5 +10,6 @@ public class ControlCursorState : BattleState, IMoveHandler
     public void OnMove( AxisEventData eventData )
     {
         sys.Cursor.ShiftCursor( eventData.moveVector.ToVector2Int() );
+        eventData.Use();
     }
 }

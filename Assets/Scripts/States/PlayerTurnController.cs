@@ -104,6 +104,7 @@ public class PlayerTurnController : TurnController
 
     public override void EnterState()
     {
+        base.EnterState();
         State = sys.GetState<ChoosingUnitState>();
         State.gameObject.SetActive( true );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
@@ -115,6 +116,4 @@ public class PlayerTurnController : TurnController
         RefreshTurn();
         ClearManagementHistory();
     }
-
-    public override void UpdateState() { }
 }

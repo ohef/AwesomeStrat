@@ -65,6 +65,7 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
         {
             HandleInput( eventData.moveVector.ToVector2Int().x );
             HandleInput( eventData.moveVector.ToVector2Int().y );
+            eventData.Use();
         }
     }
 
@@ -73,5 +74,6 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
         SelectedAbility.ExecuteOnTarget( CurrentlySelected.Value );
         Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
         Context.UnitFinished( SelectedAbility.Owner );
+        eventData.Use();
     }
 }

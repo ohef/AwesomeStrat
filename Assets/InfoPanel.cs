@@ -22,7 +22,7 @@ public class InfoPanel : MonoBehaviour {
         out unit ) )
         {
             HP.UpdateValue( unit.HP );
-            Defense.UpdateValue( unit.Defense );
+            //Defense.UpdateValue( unit.Defense );
             Movement.UpdateValue( unit.MovementRange );
             unit.Abilities.ForEach(
                 ability => 
