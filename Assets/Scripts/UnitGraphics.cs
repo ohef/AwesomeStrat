@@ -14,7 +14,7 @@ public class UnitGraphics : MonoBehaviour {
     void Awake()
     {
         Unit = this.GetComponent<Unit>();
-        Unit.UnitChanged.AddListener( UpdateRelatedViews );
+        //Unit.UnitChanged += UpdateRelatedViews;
     }
 
     public void UpdateRelatedViews()

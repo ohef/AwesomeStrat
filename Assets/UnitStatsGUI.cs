@@ -16,7 +16,7 @@ public class UnitStatsGUI : MonoBehaviour {
         out unit ) )
         {
             HP.UpdateValue( unit.HP );
-            Defense.UpdateValue( unit.Defense );
+            //Defense.UpdateValue( unit.Defense );
             Movement.UpdateValue( unit.MovementRange );
         }
     }
