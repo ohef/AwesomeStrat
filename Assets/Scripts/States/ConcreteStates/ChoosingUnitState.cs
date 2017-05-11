@@ -22,14 +22,6 @@ public class ChoosingUnitState : BattleState, ISubmitHandler
         }
     }
 
-    //public void Update()
-    //{
-    //    if ( Input.GetKeyDown( KeyCode.Semicolon ) )
-    //    {
-    //        sys.Cursor.GetComponentInChildren<CameraController>();
-    //    }
-    //}
-
     public void OnSubmit( BaseEventData eventData )
     {
         Unit unitAtTile;

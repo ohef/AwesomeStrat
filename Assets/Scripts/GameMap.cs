@@ -19,12 +19,6 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public int Width;
     public int Height;
 
-    public Material NormalMat;
-    public Material MovementMat;
-    public Material AttackRangeMat;
-    public Material DefaultMat;
-    public Material SelectionMat;
-
     [Serializable]
     public struct UnitToVector2Int
     {
@@ -92,11 +86,6 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
             }
         }
     }
-
-    //public IEnumerable<Vector2Int> AllMapPositions()
-    //{
-    //    return TilePos.Select( kvp => kvp.Value );
-    //}
 
     private IEnumerable<int> TrianglesForPosition( Vector2Int pos )
     {

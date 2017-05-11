@@ -13,6 +13,8 @@ public class MapMeshDecorator : MapDecorator
     private CommandBuffer PointsBuffer;
     private GameMap Map;
     public GameObject DecoratorShader;
+    public Material MovementMat;
+    public Material SelectionMat;
 
     public void Awake()
     {
@@ -36,7 +38,7 @@ public class MapMeshDecorator : MapDecorator
             GameTile foundTile = Map.TilePos[ pos ];
             PointsBuffer.DrawMesh( DecoratorShader.GetComponent<MeshFilter>().mesh,
                 foundTile.transform.localToWorldMatrix,
-                Map.SelectionMat );
+                SelectionMat );
         }
     }
 
@@ -55,7 +57,7 @@ public class MapMeshDecorator : MapDecorator
             UnitMovementBuffer.DrawMesh( 
                 DecoratorShader.GetComponent<MeshFilter>().mesh,
                 tile.transform.localToWorldMatrix,
-                Map.MovementMat, 0 );
+                MovementMat, 0 );
         }
     }
 }

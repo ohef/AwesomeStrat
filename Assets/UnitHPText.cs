@@ -17,9 +17,4 @@ public class UnitHPText : MonoBehaviour {
         Action<Unit> toWire = delegate ( Unit eventUnit ) { text.text = prop.GetValue( eventUnit, null ).ToString(); };
         unit.UnitChanged += toWire;
     }
-
-    //public void UpdateForHP()
-    //{
-    //    text.text = unit.HP.ToString();
-    //}
 }
