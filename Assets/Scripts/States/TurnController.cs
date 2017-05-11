@@ -36,7 +36,7 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
     {
         foreach ( var unit in ControlledUnits )
         {
-            unit.HP = unit.MaxHP;
+            unit.OnTurnStart();
         }
     }
     public virtual void ExitState() { }

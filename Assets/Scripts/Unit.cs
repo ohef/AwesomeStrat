@@ -5,13 +5,14 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public class IntChangedEvent : UnityEvent<int> { }
+public interface IStartTurnHandler
+{
+    void OnTurnStart();
+}
 
 [RequireComponent( typeof( WaitAbility ) )]
-public class Unit : MonoBehaviour, IUnitDamagedHandler
-//public class Unit : MonoBehaviour, IUnitDamagedHandler, IEffectProvider
+public class Unit : MonoBehaviour, IUnitDamagedHandler, IStartTurnHandler
 {
-    [SerializeField]
     private int m_HP;
     public int HP
     {
@@ -26,7 +27,6 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
         }
     }
 
-    [SerializeField]
     private int m_MaxHP;
     public int MaxHP
     {
@@ -87,18 +87,19 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     [SerializeField]
     private int white;
 
-    public int AttackPower { get { return Black + Red + White + Blue + Green; } }
-
     public int MovementRange;
+
+    public event Action<Unit> UnitChanged;
 
     [HideInInspector]
     public List<Ability> Abilities = new List<Ability>();
 
-    public event Action<Unit> UnitChanged;
+    public int AttackPower { get { return Black / 2 + Red + White / 2 + Blue / 3 + Green; } }
 
     public void Awake()
     {
         Abilities = GetComponents<Ability>().ToList();
+        HP = MaxHP = Black * 2 + Red + White + Blue / 2 + Green * 3;
     }
 
     public void Start()
@@ -109,6 +110,22 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     public void UnitDamaged( int preDamage )
     {
         if ( HP <= 0 ) Die();
+        else
+        {
+            PendingEffects.Add(
+                new EffectEntry
+                {
+                    CountDown = 2,
+                    OnFinish = () => HP = HP + preDamage >= MaxHP ? MaxHP : preDamage
+                } );
+        }
+    }
+
+    private List<EffectEntry> PendingEffects = new List<EffectEntry>();
+    class EffectEntry
+    {
+        public int CountDown;
+        public Action OnFinish;
     }
 
     public void Die()
@@ -121,39 +138,15 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     {
         GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
     }
+
+    public void OnTurnStart()
+    {
+        foreach ( var effect in PendingEffects )
+        {
+            effect.CountDown -= 1;
+            if ( effect.CountDown == 0 )
+                effect.OnFinish();
+        }
+        PendingEffects.RemoveAll( effect => effect.CountDown == 0 );
+    }
 }
-
-//public interface IEffectProvider
-//{
-//    int Green { get; set; }
-//    int Blue { get; set; }
-//    int Black { get; set; }
-//    int White { get; set; }
-//    int Red { get; set; }
-//}
-
-//public interface ICanApplyEffect
-//{
-//    void ApplyEffect( IEffectProvider effects );
-//}
-
-//public struct EffectBlock : IEffectProvider
-//{
-//    public int Green { get; set; }
-//    public int Blue  { get; set; }
-//    public int Black { get; set; }
-//    public int White { get; set; }
-//    public int Red   { get; set; }
-
-//    public static EffectBlock AddEffect( IEffectProvider b, IEffectProvider a )
-//    {
-//        return new EffectBlock
-//        {
-//            Green = a.Green + b.Green,
-//            Red   = a.Red   + b.Red,
-//            Blue  = a.Blue  + b.Blue,
-//            White = a.White + b.White,
-//            Black = a.Black + b.Black,
-//        };
-//    }
-//}
