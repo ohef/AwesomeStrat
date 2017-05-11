@@ -1,24 +1,23 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public interface IUnitEventsHandler : IEventSystemHandler
+public interface IUnitDamagedHandler : IEventSystemHandler
 {
     void UnitDamaged( int damageDealt );
 }
 
 public class AttackAbility : TargetAbility
 {
-    public int AttackPower;
-
     public override void ExecuteOnTarget( Unit target )
     {
-        int damageDone = Mathf.Min( AttackPower - target.Defense );
+        int damageDone = Owner.AttackPower;
         target.HP -= damageDone;
         if ( damageDone > 0 )
         {
-            ExecuteEvents.Execute<IUnitEventsHandler>( target.gameObject, null,
+            ExecuteEvents.Execute<IUnitDamagedHandler>( target.gameObject, null,
                 ( x, y ) => x.UnitDamaged( damageDone ) );
         }
     }
