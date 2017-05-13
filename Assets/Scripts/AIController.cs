@@ -19,7 +19,7 @@ public class AIController : TurnController
 
         foreach ( var viableAttack in tilesAround )
         {
-            pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], viableAttack, MapSearcher.CalculateNodeMap( map ) );
+            pathToAttackPosition = MapSearcher.Search( map.UnitPos[ myUnit ], viableAttack, map );
             if ( pathToAttackPosition != null )
                 break;
         }

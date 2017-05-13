@@ -11,7 +11,7 @@ public interface IHeuristic<TNode, THeurVal>
 
 public class MapSearcher
 {
-    public static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map, Vector2Int startPosition, int bound )
+    private static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map, Vector2Int startPosition, int bound )
     {
         var toRet = new Dictionary<Vector2Int, GridNode>();
 
@@ -28,7 +28,7 @@ public class MapSearcher
         return toRet;
     }
 
-    public static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map )
+    private static Dictionary<Vector2Int, GridNode> CalculateNodeMap( GameMap map )
     {
         var toRet = new Dictionary<Vector2Int, GridNode>();
 
@@ -70,8 +70,19 @@ public class MapSearcher
         return nodesToReturn;
     }
 
-    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, Dictionary<Vector2Int, GridNode> gridNodeMap )
-    //public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound = int.MaxValue )
+    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map )
+    {
+        Dictionary<Vector2Int, GridNode> gridNodeMap = CalculateNodeMap( map );
+        return Search( start, goal, gridNodeMap );
+    }
+
+    public static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, GameMap map, int bound )
+    {
+        Dictionary<Vector2Int, GridNode> gridNodeMap = CalculateNodeMap( map, start, bound );
+        return Search( start, goal, gridNodeMap, bound );
+    }
+
+    private static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, Dictionary<Vector2Int, GridNode> gridNodeMap, int bound = int.MaxValue )
     {
         if ( start == goal )
             return new List<Vector2Int> { goal };
@@ -101,6 +112,9 @@ public class MapSearcher
                     continue;
                 int tempPCost = currentNode.pCost + neighbour.Cost;
 
+                if ( tempPCost > bound )
+                    continue;
+
                 if ( !frontier.Contains( neighbour ) )
                     frontier.Push( neighbour );
                 else if ( tempPCost >= neighbour.pCost )
@@ -117,7 +131,7 @@ public class MapSearcher
         return null;
     }
 
-    public static List<Vector2Int> ReconstructPath( GridNode finalNode, GridNode startNode )
+    private static List<Vector2Int> ReconstructPath( GridNode finalNode, GridNode startNode )
     {
         var path = new List<Vector2Int>();
         GridNode temp = finalNode;
@@ -136,7 +150,7 @@ public class MapSearcher
 
 }
 
-public class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
+internal class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
 {
     public int Cost;
     public int fCost

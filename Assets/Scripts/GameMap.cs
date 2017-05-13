@@ -152,9 +152,8 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
     {
         Vector2Int unitPosition = UnitPos[ unit ];
-        var nodeMap = MapSearcher.CalculateNodeMap( this, unitPosition, unit.MovementRange );
         return GetTilesWithinAbsoluteRange( unitPosition, unit.MovementRange )
-            .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, nodeMap ) != null );
+            .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, this, unit.MovementRange ) != null );
     }
 
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
