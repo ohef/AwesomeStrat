@@ -85,7 +85,6 @@ public class BattleSystem : MonoBehaviour
                 unit.transform.position = Map.TilePos[ initialPosition ].transform.position;
 
                 Cursor.MoveCursor( initialPosition);
-                Map.GetComponent<MapDecorator>().ShowUnitMovement( unit );
             } );
     }
 }

@@ -32,13 +32,7 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
         GameObject.Destroy( deadUnit.gameObject );
     }
 
-    public virtual void EnterState()
-    {
-        foreach ( var unit in ControlledUnits )
-        {
-            unit.OnTurnStart();
-        }
-    }
+    public virtual void EnterState() { }
     public virtual void ExitState() { }
     public virtual void UpdateState() { }
 }
