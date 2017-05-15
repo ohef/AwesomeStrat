@@ -1,15 +1,17 @@
 ﻿using Assets.General;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
+using UnityEngine;
 
+[CreateAssetMenu( menuName = "Ability/Switch" )]
 public class SwitchAbility : TargetAbility
 {
-    public override void ExecuteOnTarget( Unit target )
+    public override void ExecuteOnTarget( Unit user, Unit target )
     {
         var sys = BattleSystem.Instance;
-        var ownerTile = sys.Map.UnitPos[ this.Owner ];
+        var ownerTile = sys.Map.UnitPos[ user ];
         var targetTile = sys.Map.UnitPos[ target ];
-        ChangePosition( this.Owner, targetTile );
+        ChangePosition( user, targetTile );
         ChangePosition( target, ownerTile );
     }
 

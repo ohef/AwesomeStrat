@@ -68,11 +68,11 @@ public class AIController : TurnController
             AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
 
             Unit targetInSight = map.GetUnitsWithinRange( positionMoved, attackAbility.Range )
-                                    .Where( attackAbility.CanTargetFunction( this ) )
+                                    .Where( attackAbility.CanTargetFunction( myUnit, this ) )
                                     .FirstOrDefault( unit => unit == bestTarget );
 
             if ( targetInSight != null )
-                attackAbility.ExecuteOnTarget( bestTarget );
+                attackAbility.ExecuteOnTarget( myUnit, bestTarget );
         }
         BattleSystem.Instance.EndTurn();
     }

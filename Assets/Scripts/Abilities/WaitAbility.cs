@@ -5,6 +5,7 @@ using UnityEngine;
 
 public partial class WaitAbility : Ability
 {
+    public static WaitAbility Instance = new WaitAbility();
     public WaitAbility()
     {
         Name = "Wait";

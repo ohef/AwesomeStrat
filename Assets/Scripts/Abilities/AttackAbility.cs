@@ -9,11 +9,13 @@ public interface IUnitDamagedHandler : IEventSystemHandler
     void UnitDamaged( int damageDealt );
 }
 
+[CreateAssetMenu( menuName = "Ability/Attack" )]
 public class AttackAbility : TargetAbility
 {
-    public override void ExecuteOnTarget( Unit target )
+    public int AttackDamage;
+    public override void ExecuteOnTarget( Unit user, Unit target )
     {
-        int damageToDeal = Owner.AttackPower;
+        int damageToDeal = AttackDamage;
 
         target.HP -= damageToDeal;
         if ( damageToDeal > 0 )

@@ -2,18 +2,26 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-[RequireComponent( typeof( Unit ) )]
-public abstract partial class Ability : MonoBehaviour
+public abstract partial class Ability : ScriptableObject
 {
-    [HideInInspector]
-    public Unit Owner;
     public string Name;
     public Image AbliityImage;
     public Color TileColor;
 
-    public virtual void Awake()
+    public int GreenRequirement;
+    public int BlueRequirement ;
+    public int RedRequirement  ;
+    public int WhiteRequirement;
+    public int BlackRequirement;
+
+    public bool Useable( Unit user )
     {
-        Owner = this.GetComponent<Unit>();
+        return
+            user.Green >= GreenRequirement &&
+            user.Red   >= RedRequirement &&
+            user.Blue  >= BlueRequirement &&
+            user.Black >= BlackRequirement &&
+            user.White >= WhiteRequirement;
     }
 }
 
