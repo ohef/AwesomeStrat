@@ -12,20 +12,22 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
     private LinkedList<Unit> EligibleTargets;
     private LinkedListNode<Unit> CurrentlySelected;
     private TargetAbility SelectedAbility;
+    private Unit AbilityUser;
 
-    public void Initialize( TargetAbility ability )
+    public void Initialize( TargetAbility ability, Unit abilityUser )
     {
         SelectedAbility = ability;
+        AbilityUser = abilityUser;
     }
 
     public void OnEnable()
     {
-        var unitsInRange = sys.Map.GetUnitsWithinRange( 
-            sys.Map.UnitPos[ SelectedAbility.Owner ],
+        var unitsInRange = sys.Map.GetUnitsWithinRange(
+            sys.Map.UnitPos[AbilityUser],
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( Context ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( AbilityUser, Context ) ) );
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
@@ -34,7 +36,7 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 
     public void OnDisable()
     {
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedAbility.Owner ] );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ AbilityUser ] );
     }
 
     private void HandleInput( int input )
@@ -71,9 +73,9 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 
     public void OnSubmit( BaseEventData eventData )
     {
-        SelectedAbility.ExecuteOnTarget( CurrentlySelected.Value );
+        SelectedAbility.ExecuteOnTarget( AbilityUser, CurrentlySelected.Value );
         Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
-        Context.UnitFinished( SelectedAbility.Owner );
+        Context.UnitFinished( AbilityUser );
         eventData.Use();
     }
 }

@@ -11,7 +11,6 @@ public interface IStartTurnHandler
     void OnTurnStart();
 }
 
-[RequireComponent( typeof( WaitAbility ) )]
 public class Unit : MonoBehaviour, IUnitDamagedHandler
 {
     [SerializeField]
@@ -46,16 +45,22 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
         }
     }
 
+    public string Name;
     public int MovementRange;
+
+    public int White; 
+    public int Blue; 
+    public int Black; 
+    public int Red; 
+    public int Green; 
 
     public event Action<Unit> UnitChanged;
 
-    [HideInInspector]
-    public List<Ability> Abilities = new List<Ability>();
+    public UnitClass Class;
+    public IEnumerable<Ability> Abilities { get { return Class.GetActiveAbilities( this ); } }
 
     public void Awake()
     {
-        Abilities = GetComponents<Ability>().ToList();
     }
 
     public void Start()
@@ -77,5 +82,20 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     public void RegisterTurnController( TurnController controller )
     {
         GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
+    }
+}
+
+public class UnitClass : MonoBehaviour
+{
+    public string Name;
+    public List<Ability> ClassAbilities;
+
+    public IEnumerable<Ability> GetActiveAbilities( Unit unit )
+    {
+        yield return WaitAbility.Instance;
+        foreach ( var ability in ClassAbilities.Where( ability => ability.Useable( unit ) ) )
+        {
+            yield return ability;
+        }
     }
 }
