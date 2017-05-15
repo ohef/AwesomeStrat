@@ -20,25 +20,6 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
         AbilityUser = abilityUser;
     }
 
-    public void OnEnable()
-    {
-        var unitsInRange = sys.Map.GetUnitsWithinRange(
-            sys.Map.UnitPos[AbilityUser],
-            SelectedAbility.Range );
-
-        EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( AbilityUser, Context ) ) );
-
-        CurrentlySelected = EligibleTargets.First;
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
-        EventSystem.current.SetSelectedGameObject( gameObject );
-    }
-
-    public void OnDisable()
-    {
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ AbilityUser ] );
-    }
-
     private void HandleInput( int input )
     {
         if ( input == 1 )
@@ -67,7 +48,6 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
         {
             HandleInput( eventData.moveVector.ToVector2Int().x );
             HandleInput( eventData.moveVector.ToVector2Int().y );
-            eventData.Use();
         }
     }
 
@@ -76,6 +56,25 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
         SelectedAbility.ExecuteOnTarget( AbilityUser, CurrentlySelected.Value );
         Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
         Context.UnitFinished( AbilityUser );
-        eventData.Use();
+    }
+
+    public override void Enter()
+    {
+        var unitsInRange = sys.Map.GetUnitsWithinRange(
+            sys.Map.UnitPos[AbilityUser],
+            SelectedAbility.Range );
+
+        EligibleTargets = new LinkedList<Unit>(
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( AbilityUser, Context ) ) );
+
+        CurrentlySelected = EligibleTargets.First;
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
+        base.Enter();
+    }
+
+    public override void Exit()
+    {
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ AbilityUser ] );
+        base.Exit();
     }
 }

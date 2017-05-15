@@ -2,9 +2,16 @@
 using UnityEngine.UI;
 using System.Collections.Generic;
 using System;
+using UnityEngine.EventSystems;
 
 public class CommandMenu : MonoBehaviour {
     private List<Button> m_Buttons = new List<Button>();
+
+    public void AddButtons( IEnumerable<Button> buttons )
+    {
+        foreach ( var button in buttons )
+            this.AddButton( button );
+    }
 
     public void AddButton( Button button )
     {
@@ -12,12 +19,6 @@ public class CommandMenu : MonoBehaviour {
         m_Buttons.Add( button );
     }
     
-    public void AddButtons( IEnumerable<Button> buttons )
-    {
-        foreach ( var button in buttons )
-            this.AddButton( button );
-    }
-
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {
         Button toadd = Instantiate( AbilityButtonFactory.instance.DefaultButton );

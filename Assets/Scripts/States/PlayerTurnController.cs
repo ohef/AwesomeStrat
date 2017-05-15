@@ -13,7 +13,7 @@ public interface IMonoBehaviourState
     void UpdateState();
 }
 
-public class PlayerTurnController : TurnController
+public class PlayerTurnController : TurnController, ISubmitHandler, IMoveHandler, ICancelHandler
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
 
@@ -24,10 +24,10 @@ public class PlayerTurnController : TurnController
         set
         {
             if ( StateStack.Count > 0 )
-            {
-                StateStack.Peek().gameObject.SetActive( false );
-                value.gameObject.SetActive( true );
-            }
+                TransitionCalls( StateStack.Peek(), value );
+            else
+                TransitionCalls( value, value );
+
             StateStack.Push( value );
         }
     }
@@ -40,9 +40,14 @@ public class PlayerTurnController : TurnController
         if ( State is ChoosingUnitState )
             return;
 
-        BattleState poppedState = StateStack.Pop();
-        poppedState.gameObject.SetActive( false );
-        State.gameObject.SetActive( true );
+        TransitionCalls( StateStack.Pop(), State );
+    }
+
+    private void TransitionCalls( BattleState from, BattleState to )
+    {
+        from.Exit();
+
+        to.Enter();
     }
 
     public void UndoEverything()
@@ -55,14 +60,12 @@ public class PlayerTurnController : TurnController
 
     public void GoToStateAndForget( BattleState state )
     {
-        BattleState poppedState = StateStack.Pop();
-        poppedState.gameObject.SetActive( false );
-        ClearManagementHistory();
-        state.gameObject.SetActive( true );
+        TransitionCalls( StateStack.Pop(), state );
+        ClearStateHistory();
         State = state;
     }
 
-    public void ClearManagementHistory()
+    public void ClearStateHistory()
     {
         StateStack.Clear();
         Commands.Clear();
@@ -106,14 +109,29 @@ public class PlayerTurnController : TurnController
     {
         base.EnterState();
         State = sys.GetState<ChoosingUnitState>();
-        State.gameObject.SetActive( true );
         HasNotActed = new HashSet<Unit>( ControlledUnits );
     }
 
     public override void ExitState()
     {
-        State.gameObject.SetActive( false );
+        base.ExitState();
+        State.Exit();
         RefreshTurn();
-        ClearManagementHistory();
+        ClearStateHistory();
+    }
+
+    public void OnSubmit( BaseEventData eventData )
+    {
+        ExecuteEvents.Execute<ISubmitHandler>( State.gameObject, eventData, ExecuteEvents.submitHandler );
+    }
+
+    public void OnMove( AxisEventData eventData )
+    {
+        ExecuteEvents.Execute<IMoveHandler>( State.gameObject, eventData, ExecuteEvents.moveHandler );
+    }
+
+    public void OnCancel( BaseEventData eventData )
+    {
+        ExecuteEvents.Execute<ICancelHandler>( State.gameObject, eventData, ExecuteEvents.cancelHandler );
     }
 }

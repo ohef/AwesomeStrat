@@ -6,20 +6,29 @@ using UnityEngine.EventSystems;
 
 public class ChoosingUnitState : BattleState, ISubmitHandler
 {
-    MapDecorator Decorator; 
+    MapDecorator Decorator;
 
-    public void OnEnable()
+    public void Start()
     {
         Decorator = sys.Map.GetComponent<MapDecorator>();
-        EventSystem.current.SetSelectedGameObject( gameObject );
     }
 
     public void CursorMoved()
     {
-        if ( this.gameObject.activeSelf )
-        {
+        if ( Decorator != null )
             Decorator.ShowUnitMovement( sys.Cursor.GetCurrentUnit() );
-        }
+    }
+
+    public override void Enter()
+    {
+        sys.Cursor.CursorMoved.AddListener( CursorMoved );
+        base.Enter();
+    }
+
+    public override void Exit()
+    {
+        sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
+        base.Exit();
     }
 
     public void OnSubmit( BaseEventData eventData )
@@ -39,6 +48,5 @@ public class ChoosingUnitState : BattleState, ISubmitHandler
             var state = sys.GetState<TurnMenuState>();
             context.State = state;
         }
-        eventData.Use();
     }
 }

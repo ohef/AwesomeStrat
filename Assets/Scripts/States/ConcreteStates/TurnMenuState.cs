@@ -1,13 +1,15 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class TurnMenuState : MenuState
 {
-    public void OnEnable()
+    public override void Enter()
     {
-        var def = sys.Menu.AddButton( "End Turn", sys.EndTurn );
-        EventSystem.current.SetSelectedGameObject( def.gameObject );
+        Button button = sys.Menu.AddButton( "End Turn", sys.EndTurn );
+        EventSystem.current.SetSelectedGameObject( button.gameObject );
     }
 }

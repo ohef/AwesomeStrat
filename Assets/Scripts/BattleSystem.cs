@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using Assets.General.UnityExtensions;
 using Assets.General;
 
-public class BattleSystem : MonoBehaviour
+public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler
 {
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
@@ -36,7 +36,6 @@ public class BattleSystem : MonoBehaviour
             .OrderBy( x => x.PlayerNo ) );
 
         currentTurn = TurnOrder.First;
-        currentTurn.Value.enabled = true;
     }
 
     public void EndTurn()
@@ -86,5 +85,20 @@ public class BattleSystem : MonoBehaviour
 
                 Cursor.MoveCursor( initialPosition);
             } );
+    }
+
+    public void OnSubmit( BaseEventData eventData )
+    {
+        ExecuteEvents.Execute<ISubmitHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.submitHandler );
+    }
+
+    public void OnMove( AxisEventData eventData )
+    {
+        ExecuteEvents.Execute<IMoveHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.moveHandler );
+    }
+
+    public void OnCancel( BaseEventData eventData )
+    {
+        ExecuteEvents.Execute<ICancelHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.cancelHandler );
     }
 }

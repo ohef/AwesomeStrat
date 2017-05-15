@@ -24,29 +24,6 @@ public class WhereToMoveState : BattleState, ISubmitHandler
         Decorator = sys.Map.GetComponent<MapDecorator>();
     }
 
-    public void OnEnable()
-    {
-        sys.Cursor.CursorMoved.AddListener( CursorMoved );
-
-        PointsToPass = new LinkedList<Vector2Int>();
-        PointsToPass.AddFirst( InitialUnitPosition );
-        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
-        EventSystem.current.SetSelectedGameObject( gameObject );
-    }
-
-    public void Update()
-    {
-        Decorator.RenderForPath( PointsToPass );
-    }
-
-    public void OnDisable()
-    {
-        sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
-        PointsToPass.Clear();
-        Decorator.RenderForPath( PointsToPass );
-    }
-
     private void CursorMoved()
     {
         bool withinMoveRange = MovementTiles.Contains( sys.Cursor.CurrentPosition );
@@ -99,5 +76,24 @@ public class WhereToMoveState : BattleState, ISubmitHandler
             state.Initialize( SelectedUnit );
             Context.State = state;
         }
+    }
+
+    public override void Enter()
+    {
+        sys.Cursor.CursorMoved.AddListener( CursorMoved );
+
+        PointsToPass = new LinkedList<Vector2Int>();
+        PointsToPass.AddFirst( InitialUnitPosition );
+        MovementTiles = new HashSet<Vector2Int>( sys.Map.GetValidMovementPositions( SelectedUnit ) );
+        base.Enter();
+    }
+
+    public override void Exit()
+    {
+        sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
+        PointsToPass.Clear();
+        Decorator.RenderForPath( PointsToPass );
+        base.Exit();
     }
 }

@@ -1,14 +1,16 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public abstract class MenuState : BattleState
 {
-    public void OnDisable()
+    public override void Exit()
     {
-        //To prevent the next state from catching the submit button
-        Input.ResetInputAxes();
+        base.Exit();
         sys.Menu.ClearButtons();
+        EventSystem.current.SetSelectedGameObject( sys.gameObject );
     }
 }
 

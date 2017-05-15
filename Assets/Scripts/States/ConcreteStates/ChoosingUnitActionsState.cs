@@ -8,7 +8,7 @@ using UnityEngine.UI;
 
 public class ChoosingUnitActionsState : MenuState
 {
-    public class StateForAbility : IAbilityVisitor<object>
+    private class StateForAbility : IAbilityVisitor<object>
     {
         public ChoosingUnitActionsState Container;
         public PlayerTurnController Context;
@@ -49,15 +49,6 @@ public class ChoosingUnitActionsState : MenuState
         SelectedUnit = selectedUnit;
     }
 
-    public void OnEnable()
-    {
-        var context = sys.CurrentTurn as PlayerTurnController;
-        var visitor = new StateForAbility { Container = this, Context = context };
-        List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
-        sys.Menu.AddButtons( buttons );
-        EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
-    }
-
     private IEnumerable<Button> GetButtons( IEnumerable<Ability> abilities, StateForAbility visitor )
     {
         foreach ( Ability ability in abilities )
@@ -66,5 +57,15 @@ public class ChoosingUnitActionsState : MenuState
             button.onClick.AddListener( () => ability.Accept( visitor ) );
             yield return button;
         }
+    }
+
+    public override void Enter()
+    {
+        var context = sys.CurrentTurn as PlayerTurnController;
+        var visitor = new StateForAbility { Container = this, Context = context };
+        List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
+        sys.Menu.AddButtons( buttons );
+        EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
+        base.Enter();
     }
 }

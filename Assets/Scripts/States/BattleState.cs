@@ -2,8 +2,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public abstract class BattleState : MonoBehaviour
+public interface IState
+{
+    void Enter();
+    void Exit();
+}
+
+public abstract class BattleState : MonoBehaviour, IState
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
     private PlayerTurnController context;
@@ -16,5 +23,13 @@ public abstract class BattleState : MonoBehaviour
                 context = sys.CurrentTurn as PlayerTurnController;
             return context;
         }
+    }
+
+    public virtual void Enter()
+    {
+    }
+
+    public virtual void Exit()
+    {
     }
 }
