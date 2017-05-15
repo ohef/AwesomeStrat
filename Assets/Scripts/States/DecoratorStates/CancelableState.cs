@@ -2,20 +2,17 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
-public class CancelableState : BattleState
+public class CancelableState : BattleState, ICancelHandler
 {
     public bool undo;
 
-    // Update is called once per frame
-    public void Update()
+    public void OnCancel( BaseEventData eventData )
     {
-        if ( Input.GetButtonDown( "Cancel" ) )
-        {
-            Input.ResetInputAxes();
-            if ( undo == true )
-                Context.UndoEverything();
-            Context.GoToPreviousState();
-        }
-	}
+        Input.ResetInputAxes();
+        if ( undo == true )
+            Context.UndoEverything();
+        Context.GoToPreviousState();
+    }
 }
