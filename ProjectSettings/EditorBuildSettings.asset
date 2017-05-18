@@ -7,5 +7,9 @@ EditorBuildSettings:
   m_Scenes:
   - enabled: 0
     path: Assets/Scenes/boogie.unity
+  - enabled: 0
+    path: Assets/maptest.unity
   - enabled: 1
-    path: Assets/Scenes/maptest.unity
+    path: Assets/Level 1.unity
+  - enabled: 1
+    path: Assets/MainMenu.unity

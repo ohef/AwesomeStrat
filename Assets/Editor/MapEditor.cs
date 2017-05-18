@@ -84,6 +84,8 @@ public class MapEditorScene : Editor
     {
         SceneView.onSceneGUIDelegate -= OnSceneGUI;
         SceneView.onSceneGUIDelegate += OnSceneGUI;
+        if ( GameObject.FindGameObjectWithTag( "Map" ) == null )
+            SceneView.onSceneGUIDelegate -= OnSceneGUI;
     }
 
     private static void LoadPlayers()
@@ -101,8 +103,8 @@ public class MapEditorScene : Editor
             SceneCamera.AddCommandBuffer( CameraEvent.AfterSkybox, buf );
         }
 
-        TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
         Map = Map ?? GameObject.FindGameObjectWithTag( "Map" ).GetComponent<GameMap>();
+        TileLayer = TileLayer ?? GameObject.Find( "TileLayer" );
         TurnControllers = TurnControllers ?? GameObject.FindObjectsOfType<TurnController>();
 
         Handles.BeginGUI();

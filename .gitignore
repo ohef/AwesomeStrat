@@ -34,6 +34,8 @@ sysinfo.txt
 bin/
 Plugins/
 Plugins.meta
+*.psd*
+*.jpg*
 
 *_Data/
 *.exe

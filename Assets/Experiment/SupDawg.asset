@@ -1,0 +1,17 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: SupDawg
+  m_EditorClassIdentifier: Assembly-CSharp::DialogueScene
+  Entries:
+  - {fileID: 11400000, guid: bbb24909eca92f64882e82fee9632bdb, type: 2}
+  - {fileID: 11400000, guid: 03aa2f5cc0d43864ebdd7148a0cf90fc, type: 2}
+  - {fileID: 11400000, guid: e40a4950d9513c8439cd91f3cf00b071, type: 2}

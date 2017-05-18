@@ -6,7 +6,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
 
-[CustomEditor( typeof( InfluenceMapPlayer ) )]
+//[CustomEditor( typeof( InfluenceMapPlayer ) )]
 public class InfluenceMapPlayerEditor : Editor
 {
     private float[,] InfluenceMap;
@@ -15,19 +15,19 @@ public class InfluenceMapPlayerEditor : Editor
 
     public void OnEnable()
     {
-        buf = new CommandBuffer();
-        SceneView.onSceneGUIDelegate += OnScene;
+        //buf = new CommandBuffer();
+        //SceneView.onSceneGUIDelegate += OnScene;
 
-        var obj = target as InfluenceMapPlayer;
-        foreach ( Vector2Int pos in obj.Map.AllMapPositions() )
-        {
-            var instantiatedObj = Instantiate<TextMesh>( obj.textMeshPrefab, obj.Map.transform.Find( "Offset" ), false );
-            instantiatedObj.transform.localPosition = pos.ToVector3();
-            instantiatedObj.hideFlags = HideFlags.HideInInspector;
-            PosToTexts[ pos ] = instantiatedObj;
-        }
+        //var obj = target as InfluenceMapPlayer;
+        //foreach ( Vector2Int pos in obj.Map.AllMapPositions() )
+        //{
+        //    var instantiatedObj = Instantiate<TextMesh>( obj.textMeshPrefab, obj.Map.transform.Find( "Offset" ), false );
+        //    instantiatedObj.transform.localPosition = pos.ToVector3();
+        //    instantiatedObj.hideFlags = HideFlags.HideInInspector;
+        //    PosToTexts[ pos ] = instantiatedObj;
+        //}
 
-        CalculateInfluenceMap();
+        //CalculateInfluenceMap();
     }
 
     public void OnDisable()
