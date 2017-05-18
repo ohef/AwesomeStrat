@@ -5,6 +5,7 @@ using System;
 using UnityEngine.EventSystems;
 
 public class CommandMenu : MonoBehaviour {
+    public Button ButtonPrefab;
     private List<Button> m_Buttons = new List<Button>();
 
     public void AddButtons( IEnumerable<Button> buttons )
@@ -21,7 +22,7 @@ public class CommandMenu : MonoBehaviour {
     
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {
-        Button toadd = Instantiate( AbilityButtonFactory.instance.DefaultButton );
+        Button toadd = Instantiate( ButtonPrefab );
         toadd.GetComponentInChildren<Text>().text = text;
         toadd.onClick.AddListener( onClick );
         toadd.name = text;
