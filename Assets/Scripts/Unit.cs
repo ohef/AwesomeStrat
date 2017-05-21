@@ -85,7 +85,8 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     }
 }
 
-public class UnitClass : MonoBehaviour
+[CreateAssetMenu]
+public class UnitClass : ScriptableObject
 {
     public string Name;
     public List<Ability> ClassAbilities;
