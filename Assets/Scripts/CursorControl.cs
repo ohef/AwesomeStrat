@@ -85,7 +85,7 @@ public class CursorControl : MonoBehaviour
         if ( Map.IsOutOfBounds( to ) == false )
         {
             CurrentPosition = to;
-            StartCoroutine( CustomAnimation.MotionTweenLinear( this.transform, to.ToVector3( Vector2IntExt.Axis.Z ), 0.08f ) );
+            StartCoroutine( CustomAnimation.InterpolateToPoint( this.transform, to.ToVector3( Vector2IntExt.Axis.Z ), 0.08f ) );
         }
     }
 }

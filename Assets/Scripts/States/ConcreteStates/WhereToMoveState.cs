@@ -9,7 +9,7 @@ using System;
 using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
 
-public class WhereToMoveState : BattleState, ISubmitHandler
+sealed class WhereToMoveState : BattleState, ISubmitHandler
 {
     private Unit SelectedUnit;
     private Vector2Int InitialUnitPosition;

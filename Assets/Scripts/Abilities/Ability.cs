@@ -18,8 +18,8 @@ public abstract partial class Ability : ScriptableObject
     {
         return
             user.Green >= GreenRequirement &&
-            user.Red   >= RedRequirement &&
-            user.Blue  >= BlueRequirement &&
+            user.Red   >= RedRequirement   &&
+            user.Blue  >= BlueRequirement  &&
             user.Black >= BlackRequirement &&
             user.White >= WhiteRequirement;
     }

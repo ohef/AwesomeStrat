@@ -9,7 +9,7 @@ namespace Assets.General
 {
     public static class CustomAnimation
     {
-        public static IEnumerator MotionTweenLinear( Transform from, Vector3 to, float seconds )
+        public static IEnumerator InterpolateToPoint( Transform from, Vector3 to, float seconds )
         {
             float rate = 1.0f / seconds;
             for ( float i = 0 ; i <= 1.0f ; i += Time.deltaTime * rate )

@@ -39,6 +39,6 @@ public class PushAbility : TargetAbility
         Vector2Int finalPoint = GetComputedPushPosition( target, user );
 
         BattleSystem.Instance.Map.PlaceUnit( target, finalPoint );
-        target.StartCoroutine( CustomAnimation.MotionTweenLinear( target.transform, MapPositionTranslator.GetTransform( finalPoint ), 0.11f ) );
+        target.StartCoroutine( CustomAnimation.InterpolateToPoint( target.transform, MapPositionTranslator.GetTransform( finalPoint ), 0.11f ) );
     }
 }

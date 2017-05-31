@@ -7,65 +7,61 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
+sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 {
     private LinkedList<Unit> EligibleTargets;
     private LinkedListNode<Unit> CurrentlySelected;
     private TargetAbility SelectedAbility;
-    private Unit AbilityUser;
+    private Unit SelectedUnit;
 
-    public void Initialize( TargetAbility ability, Unit abilityUser )
+    public void Initialize( TargetAbility ability, Unit selectedUnit )
     {
         SelectedAbility = ability;
-        AbilityUser = abilityUser;
+        SelectedUnit = selectedUnit;
     }
 
     private void HandleInput( int input )
     {
-        if ( input == 1 )
+        if ( input == 1 ) 
         {
             if ( CurrentlySelected.Next == null )
-                CurrentlySelected = EligibleTargets.First;
+                CurrentlySelected = EligibleTargets.First; 
             else
                 CurrentlySelected = CurrentlySelected.Next;
-
-            sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
         }
-        else if ( input == -1 )
+        else if ( input == -1 ) 
         {
             if ( CurrentlySelected.Previous == null )
-                CurrentlySelected = EligibleTargets.Last;
+                CurrentlySelected = EligibleTargets.Last; 
             else
                 CurrentlySelected = CurrentlySelected.Previous;
 
-            sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
         }
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
     }
 
     public void OnMove( AxisEventData eventData )
     {
-        if ( EligibleTargets.Count > 0 )
-        {
-            HandleInput( eventData.moveVector.ToVector2Int().x );
-            HandleInput( eventData.moveVector.ToVector2Int().y );
-        }
+        Vector2Int v = eventData.moveVector.ToVector2Int();
+        HandleInput( v.x );
+        HandleInput( v.y );
     }
 
     public void OnSubmit( BaseEventData eventData )
     {
-        SelectedAbility.ExecuteOnTarget( AbilityUser, CurrentlySelected.Value );
+        SelectedAbility.ExecuteOnTarget( SelectedUnit, CurrentlySelected.Value );
         Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
-        Context.UnitFinished( AbilityUser );
+        Context.UnitFinished( SelectedUnit );
     }
 
     public override void Enter()
     {
         var unitsInRange = sys.Map.GetUnitsWithinRange(
-            sys.Map.UnitPos[AbilityUser],
+            sys.Map.UnitPos[ SelectedUnit ],
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( AbilityUser, Context ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( SelectedUnit, Context ) ) );
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
@@ -74,7 +70,7 @@ public class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 
     public override void Exit()
     {
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ AbilityUser ] );
+        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
         base.Exit();
     }
 }

@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ChoosingUnitState : BattleState, ISubmitHandler
+sealed class ChoosingUnitState : BattleState, ISubmitHandler
 {
     MapDecorator Decorator;
 

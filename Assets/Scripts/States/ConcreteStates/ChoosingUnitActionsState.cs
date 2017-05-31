@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-public class ChoosingUnitActionsState : MenuState
+sealed class ChoosingUnitActionsState : MenuState
 {
     private class StateForAbility : IAbilityVisitor<object>
     {

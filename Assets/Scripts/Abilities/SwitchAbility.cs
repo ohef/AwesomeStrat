@@ -19,7 +19,7 @@ public class SwitchAbility : TargetAbility
     {
         BattleSystem.Instance.Map.UnitPos.Add( unit, to );
         unit.StartCoroutine(
-            CustomAnimation.MotionTweenLinear
+            CustomAnimation.InterpolateToPoint
             ( unit.transform, MapPositionTranslator.GetTransform( to ), 0.11f ) );
     }
 }
