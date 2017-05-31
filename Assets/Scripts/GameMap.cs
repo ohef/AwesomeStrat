@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Assets.General.DataStructures;
 using Assets.General.UnityExtensions;
 using System.Linq;
+using Assets.Scripts.General;
 
 //[CustomPropertyDrawer(typeof(TileToVector2Int))]
 //public class TileToVector2IntEditor : PropertyDrawer
@@ -105,35 +106,14 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         yield return indiceFormat + Height + 1;
     }
 
-    /// <summary>
-    /// Basic Utility Function that should probably not be here. Works like the python range function
-    /// for simple iteration over a list of ints
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <param name="step"></param>
-    /// <returns></returns>
-    public IEnumerable<int> Range( int start, int end, int step = 1 )
-    {
-        for ( int i = start ; i <= end ; i += step )
-        {
-            yield return i;
-        }
-    }
-
     public IEnumerable<Vector2Int> GetTilesWithinAbsoluteRange( Vector2Int startingPos, int range )
     {
-        IEnumerable<int> rangeInterval = Range( -range, range );
-        IEnumerable<int> xInterval = rangeInterval.Select( i => startingPos.x + i ).Where( i => !IsOverBound( i, 0, Width - 1 ) );
-        IEnumerable<int> yInterval = rangeInterval.Select( i => startingPos.y + i ).Where( i => !IsOverBound( i, 0, Height - 1 ) );
-
-        foreach ( var i in xInterval )
-            foreach ( var j in yInterval )
-            {
-                Vector2Int toReturn = new Vector2Int( i, j );
-                if ( ( startingPos - toReturn ).AbsoluteNormal() <= range )
-                    yield return toReturn;
-            }
+        IEnumerable<int> rangeInterval = CustomMath.Range( -range, range );
+        IEnumerable<int> xInterval = rangeInterval.Select( i => startingPos.x + i );
+        IEnumerable<int> yInterval = rangeInterval.Select( i => startingPos.y + i );
+        return xInterval
+            .SelectMany( x => yInterval.Select( y => new Vector2Int( x, y ) ) )
+            .Where( v => IsOutOfBounds( v ) == false && ( startingPos - v ).AbsoluteNormal() <= range );
     }
 
     public IEnumerable<Unit> GetUnitsWithinRange( Vector2Int startingPos, int range )
@@ -142,9 +122,7 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         {
             Unit unit;
             if ( UnitPos.TryGetValue( pos, out unit ) )
-            {
                 yield return unit;
-            }
         }
         yield break;
     }
@@ -163,17 +141,16 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         return temp;
     }
 
-    public HashSet<Vector2Int> GetFringeAttackTiles( IEnumerable<Vector2Int> movementTiles, int attackRange )
+    public HashSet<Vector2Int> GetFringeAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
     {
         HashSet<Vector2Int> attackTiles = new HashSet<Vector2Int>();
-        HashSet<Vector2Int> movementTilesSet = new HashSet<Vector2Int>( movementTiles );
 
-        foreach ( Vector2Int tile in movementTilesSet )
-            foreach ( Vector2Int direction in new Vector2Int[] { Vector2Int.Up, Vector2Int.Down, Vector2Int.Left, Vector2Int.Right } )
+        foreach ( Vector2Int tile in movementTiles )
+            foreach ( Vector2Int direction in Vector2Int.AllDirections )
                 foreach ( int coef in Enumerable.Range( 1, attackRange ) )
                 {
                     Vector2Int neighbour = tile + direction * coef;
-                    if ( IsOutOfBounds( neighbour ) == false && movementTilesSet.Contains( neighbour ) == false )
+                    if ( IsOutOfBounds( neighbour ) == false && movementTiles.Contains( neighbour ) == false )
                         attackTiles.Add( neighbour );
                 }
 
@@ -303,34 +280,27 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
             UnitPos.Add( unit, pos );
     }
 
-    private static bool IsOverBound( int i, int lowerBound, int upperBound )
-    {
-        return i < lowerBound || i > upperBound;
-    }
-
-    private static T ClampNumber<T>( T i, T lowerBound, T upperBound ) where T : IComparable<T>
-    {
-        i = i.CompareTo( lowerBound ) < 0 ? lowerBound : i;
-        i = i.CompareTo( upperBound ) > 0 ? upperBound : i;
-        return i;
-    }
-
     public Vector2Int ClampWithinMap( Vector2Int toClamp )
     {
-        toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
-        toClamp.y = ClampNumber( toClamp.y, 0, Height - 1 );
+        toClamp.x = CustomMath.ClampNumber( toClamp.x, 0, Width - 1 );
+        toClamp.y = CustomMath.ClampNumber( toClamp.y, 0, Height - 1 );
         return toClamp;
     }
 
-    public Vector3 ClampWithinMap( Vector3 toClamp )
+    public Vector2 ClampWithinMap( Vector2 toClamp )
     {
-        toClamp.x = ClampNumber( toClamp.x, 0, Width - 1 );
-        toClamp.z = ClampNumber( toClamp.z, 0, Height - 1 );
+        toClamp.x = CustomMath.ClampNumber( toClamp.x, 0, Width - 1 );
+        toClamp.y = CustomMath.ClampNumber( toClamp.y, 0, Height - 1 );
         return toClamp;
     }
 
     public bool IsOutOfBounds( Vector2Int v )
     {
-        return IsOverBound( v.x, 0, Width - 1 ) || IsOverBound( v.y, 0, Height - 1 );
+        return CustomMath.IsOverBound( v.x, 0, Width - 1 ) || CustomMath.IsOverBound( v.y, 0, Height - 1 );
+    }
+
+    public bool IsOutOfBounds( Vector2 v )
+    {
+        return CustomMath.IsOverBound( v.x, 0, Width - 1 ) || CustomMath.IsOverBound( v.y, 0, Height - 1 );
     }
 }

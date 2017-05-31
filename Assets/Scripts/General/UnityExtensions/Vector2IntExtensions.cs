@@ -43,5 +43,10 @@ namespace Assets.General.UnityExtensions
         {
             return new Vector2Int( ( int )v.x, ( int )v.y );
         }
+
+        public static Vector2 ToVector2( this Vector3 v )
+        {
+            return new Vector2( v.x, v.y );
+        }
     }
 }

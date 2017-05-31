@@ -47,8 +47,7 @@ public class MapSearcher
     private static List<GridNode> GetNeighborsCross( Vector2Int pos, GameMap map, Dictionary<Vector2Int, GridNode> graph )
     {
         var nodesToReturn = new List<GridNode>( 4 );
-        Vector2Int[] directions = { new Vector2Int( 0, 1 ), new Vector2Int( 1, 0 ), new Vector2Int( -1, 0 ), new Vector2Int( 0, -1 ) };
-        foreach ( var direction in directions )
+        foreach ( var direction in Vector2Int.AllDirections )
         {
             Vector2Int updatedDirection = pos + direction;
 

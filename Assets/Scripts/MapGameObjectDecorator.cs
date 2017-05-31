@@ -95,7 +95,7 @@ public class MapGameObjectDecorator : MapDecorator
 
         public IEnumerable<GameObject> Visit( TargetAbility ability )
         {
-            var targetTiles = decorator.Map.GetFringeAttackTiles( movePositions, ability.Range );
+            var targetTiles = decorator.Map.GetFringeAttackTiles( new HashSet<Vector2Int>( movePositions ), ability.Range );
             return targetTiles
             .Select( pos => decorator.Map.TilePos[ pos ] )
             .Select( tile => decorator.InstantiateDecoratorObjectForTile( tile, decorator.MovementObj, ability.TileColor ) )

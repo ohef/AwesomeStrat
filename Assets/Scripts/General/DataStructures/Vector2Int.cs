@@ -87,5 +87,7 @@ namespace Assets.General.DataStructures
 
         private static Vector2Int _Zero = new Vector2Int( 1, 0 );
         public static Vector2Int Zero { get { return _Zero; } }
+
+        public static readonly Vector2Int[] AllDirections = new Vector2Int[] { Vector2Int.Up, Vector2Int.Right, Vector2Int.Left, Vector2Int.Down };
     }
 }
