@@ -84,19 +84,3 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
         GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
     }
 }
-
-[CreateAssetMenu]
-public class UnitClass : ScriptableObject
-{
-    public string Name;
-    public List<Ability> ClassAbilities;
-
-    public IEnumerable<Ability> GetActiveAbilities( Unit unit )
-    {
-        yield return WaitAbility.Instance;
-        foreach ( var ability in ClassAbilities.Where( ability => ability.Useable( unit ) ) )
-        {
-            yield return ability;
-        }
-    }
-}
