@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using Assets.General.UnityExtensions;
 using Assets.General;
 
-public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler
+public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler, IEventSystemHandler
 {
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
@@ -22,7 +22,6 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
     public GameMap Map;
     public CursorControl Cursor;
     public CommandMenu Menu;
-    public UnityEvent StateChanged;
 
     void Awake()
     {
@@ -89,16 +88,16 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
 
     public void OnSubmit( BaseEventData eventData )
     {
-        ExecuteEvents.Execute<ISubmitHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.submitHandler );
+        ExecuteEvents.Execute( CurrentTurn.gameObject, eventData, ExecuteEvents.submitHandler );
     }
 
     public void OnMove( AxisEventData eventData )
     {
-        ExecuteEvents.Execute<IMoveHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.moveHandler );
+        ExecuteEvents.Execute( CurrentTurn.gameObject, eventData, ExecuteEvents.moveHandler );
     }
 
     public void OnCancel( BaseEventData eventData )
     {
-        ExecuteEvents.Execute<ICancelHandler>( CurrentTurn.gameObject, eventData, ExecuteEvents.cancelHandler );
+        ExecuteEvents.Execute( CurrentTurn.gameObject, eventData, ExecuteEvents.cancelHandler );
     }
 }
