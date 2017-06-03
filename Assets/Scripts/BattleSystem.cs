@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using Assets.General.UnityExtensions;
 using Assets.General;
 
-public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler, IEventSystemHandler
+public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler, IPointerClickHandler, IPointerEnterHandler 
 {
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
@@ -99,5 +99,30 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
     public void OnCancel( BaseEventData eventData )
     {
         ExecuteEvents.Execute( CurrentTurn.gameObject, eventData, ExecuteEvents.cancelHandler );
+    }
+
+    public void OnPointerClick( PointerEventData eventData )
+    {
+        var tile = eventData.pointerPress.GetComponent<GameTile>();
+        if ( tile != null )
+        {
+            var tilePosition = Map.TilePos[ tile ];
+            if ( Cursor.CurrentPosition == tilePosition )
+                OnSubmit( eventData );
+            else
+                Cursor.MoveCursor( tilePosition );
+        }
+
+        EventSystem.current.SetSelectedGameObject( gameObject );
+    }
+
+    public void OnPointerEnter( PointerEventData eventData )
+    {
+        var tile = eventData.pointerEnter.GetComponent<GameTile>();
+        if ( tile != null )
+        {
+            var tilePosition = Map.TilePos[ tile ];
+            Map.GetComponent<MapDecorator>().CursorRenderer.ShadeAtPosition( tilePosition, true );
+        }
     }
 }

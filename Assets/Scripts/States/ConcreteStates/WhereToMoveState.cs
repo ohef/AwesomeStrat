@@ -30,7 +30,7 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
         if ( withinMoveRange )
         {
             LengthenMovementPath( sys.Cursor.CurrentPosition );
-            Decorator.RenderForPath( PointsToPass );
+            Decorator.RenderMovePath( PointsToPass );
         }
     }
 
@@ -93,7 +93,7 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
         PointsToPass.Clear();
-        Decorator.RenderForPath( PointsToPass );
+        Decorator.RenderMovePath( PointsToPass );
         base.Exit();
     }
 }

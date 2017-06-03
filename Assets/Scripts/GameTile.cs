@@ -1,20 +1,27 @@
-﻿using Assets.General.DataStructures;
+﻿using System;
+using Assets.General.DataStructures;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class GameTile : MonoBehaviour, IPointerEnterHandler
+public class GameTile : MonoBehaviour, IPointerEnterHandler, IPointerClickHandler
 {
     public int CostOfTraversal;
 
-    MapDecorator decorator;
+    //MapDecorator decorator;
 
     public void Start()
     {
-        decorator = BattleSystem.Instance.Map.GetComponent<MapDecorator>();
+        //decorator = BattleSystem.Instance.Map.GetComponent<MapDecorator>();
     }
 
     public void OnPointerEnter( PointerEventData eventData )
     {
-        decorator.RenderForPath( new Vector2Int[] { BattleSystem.Instance.Map.TilePos[ this ] } );
+        ExecuteEvents.ExecuteHierarchy( transform.parent.gameObject, eventData, ExecuteEvents.pointerEnterHandler );
+        //decorator.RenderForPath( new Vector2Int[] { BattleSystem.Instance.Map.TilePos[ this ] } );
+    }
+
+    public void OnPointerClick( PointerEventData eventData )
+    {
+        ExecuteEvents.ExecuteHierarchy( transform.parent.gameObject, eventData, ExecuteEvents.pointerClickHandler );
     }
 }
