@@ -21,7 +21,7 @@ namespace Assets.General.UnityExtensions
             return new Vector2( v.x, v.y );
         }
 
-        public static Vector3 ToVector3( this Vector2Int v, Axis axis = Axis.Y, float axisVal = 0 )
+        public static Vector3 ToVector3( this Vector2Int v, Axis axis = Axis.Z, float axisVal = 0 )
         {
             switch ( axis )
             {

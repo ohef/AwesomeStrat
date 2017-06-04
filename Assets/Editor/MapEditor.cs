@@ -152,10 +152,10 @@ public class MapEditorScene : Editor
         int controlId = GUIUtility.GetControlID( FocusType.Passive );
         Ray ray = HandleUtility.GUIPointToWorldRay( Event.current.mousePosition );
 
-        RaycastHit rayHitInfo;
-        if ( Physics.Raycast( ray, out rayHitInfo ) )
+        if ( JustMouseDown() )
         {
-            if ( JustMouseDown() )
+            RaycastHit rayHitInfo;
+            if ( Physics.Raycast( ray, out rayHitInfo ) )
             {
                 GameTile tile = rayHitInfo.collider.GetComponent<GameTile>();
                 var pos =

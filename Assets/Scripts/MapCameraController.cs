@@ -47,7 +47,7 @@ public class MapCameraController : MonoBehaviour {
         return toClamp;
     }
 
-    public void Update()
+    public void FixedUpdate()
     {
         transform.position = Vector3.SmoothDamp(
             transform.position,

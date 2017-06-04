@@ -70,7 +70,7 @@ namespace Assets.General.DataStructures
         //Assuming that vector2ints don't get literally huge? :) 
         public int GetHashCode( Vector2Int obj )
         {
-            return obj.x + 500 * obj.y;
+            return obj.x + obj.y >> 16;
         }
 
         private static Vector2Int _Up = new Vector2Int( 0, 1 );

@@ -146,7 +146,6 @@ public class MapSearcher
         path.Reverse();
         return path;
     }
-
 }
 
 internal class GridNode : IComparable<GridNode>, IEqualityComparer<GridNode>
