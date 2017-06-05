@@ -75,8 +75,6 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     [HideInInspector]
     public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
 
-    void Awake() { }
-
     public IEnumerable<Vector2Int> AllMapPositions()
     {
         for ( int i = 0 ; i < Width ; i++ )

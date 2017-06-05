@@ -47,7 +47,7 @@ public class MapCameraController : MonoBehaviour {
         return toClamp;
     }
 
-    public void FixedUpdate()
+    public void Update()
     {
         transform.position = Vector3.SmoothDamp(
             transform.position,
@@ -55,7 +55,7 @@ public class MapCameraController : MonoBehaviour {
             ref CurrentVelocity,
             CameraSpeed );
 
-        if ( Input.GetKeyUp( KeyCode.Semicolon ) )
+        if ( Input.GetKeyDown( KeyCode.Semicolon ) )
         {
             float a = ZoomLevels.Current;
             ZoomLevels.MoveNext();
