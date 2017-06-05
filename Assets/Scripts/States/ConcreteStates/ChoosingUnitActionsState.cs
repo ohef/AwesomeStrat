@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -65,7 +63,14 @@ sealed class ChoosingUnitActionsState : MenuState
         var visitor = new StateForAbility { Container = this, Context = context };
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
         sys.Menu.AddButtons( buttons );
-        EventSystem.current.SetSelectedGameObject( buttons.First().gameObject );
         base.Enter();
+    }
+
+    public void Update()
+    {
+        //How do we get the menu to position itself after animations are done?
+        // TODO: Update functions suck
+        var vector = Camera.main.WorldToScreenPoint( sys.Cursor.transform.position );
+        sys.Menu.transform.position = vector;
     }
 }
