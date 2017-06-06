@@ -46,7 +46,6 @@ public class PlayerTurnController : TurnController, ISubmitHandler, IMoveHandler
     private void TransitionCalls( BattleState from, BattleState to )
     {
         from.Exit();
-
         to.Enter();
     }
 
