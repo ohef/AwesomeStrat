@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using Assets.General.UnityExtensions;
 using Assets.General;
 
-public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler, IPointerClickHandler, IPointerEnterHandler 
+public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancelHandler, IPointerDownHandler, IPointerEnterHandler 
 {
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
@@ -19,8 +19,19 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
 
     public TurnController CurrentTurn { get { return currentTurn.Value; } }
 
+    /// <summary>
+    /// The single map object (singleton?) =)
+    /// </summary>
     public GameMap Map;
+
+    /// <summary>
+    /// The single map cursor
+    /// </summary>
     public CursorControl Cursor;
+
+    /// <summary>
+    /// TODO: This menu is used by all clients; probably should change it 
+    /// </summary>
     public CommandMenu Menu;
 
     void Awake()
@@ -82,7 +93,7 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
                 Map.PlaceUnit( unit, initialPosition );
                 unit.transform.position = Map.TilePos[ initialPosition ].transform.position;
 
-                Cursor.MoveCursor( initialPosition);
+                Cursor.MoveCursor( initialPosition );
             } );
     }
 
@@ -101,7 +112,17 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
         ExecuteEvents.Execute( CurrentTurn.gameObject, eventData, ExecuteEvents.cancelHandler );
     }
 
-    public void OnPointerClick( PointerEventData eventData )
+    public void OnPointerEnter( PointerEventData eventData )
+    {
+        var tile = eventData.pointerEnter.GetComponent<GameTile>();
+        if ( tile != null )
+        {
+            var tilePosition = Map.TilePos[ tile ];
+            Map.GetComponent<MapDecorator>().CursorRenderer.ShadeAtPosition( tilePosition, true );
+        }
+    }
+
+    public void OnPointerDown( PointerEventData eventData )
     {
         var tile = eventData.pointerPress.GetComponent<GameTile>();
         if ( tile != null )
@@ -114,15 +135,5 @@ public class BattleSystem : MonoBehaviour, ISubmitHandler, IMoveHandler, ICancel
         }
 
         EventSystem.current.SetSelectedGameObject( gameObject );
-    }
-
-    public void OnPointerEnter( PointerEventData eventData )
-    {
-        var tile = eventData.pointerEnter.GetComponent<GameTile>();
-        if ( tile != null )
-        {
-            var tilePosition = Map.TilePos[ tile ];
-            Map.GetComponent<MapDecorator>().CursorRenderer.ShadeAtPosition( tilePosition, true );
-        }
     }
 }
