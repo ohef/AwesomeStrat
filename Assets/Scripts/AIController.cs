@@ -1,5 +1,6 @@
 ﻿using Assets.General.DataStructures;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -8,9 +9,9 @@ public class AIController : TurnController
 {
     private Vector2Int DoMove( Unit myUnit, Unit bestTarget )
     {
-        GameMap                 map                = BattleSystem.Instance.Map;
-        Vector2Int              bestTargetPosition = map.UnitPos[ bestTarget ];
-        IEnumerable<Vector2Int> tilesAround        = 
+        GameMap map = BattleSystem.Instance.Map;
+        Vector2Int bestTargetPosition = map.UnitPos[ bestTarget ];
+        IEnumerable<Vector2Int> tilesAround =
             map.GetTilesWithinAbsoluteRange( bestTargetPosition,
             ( myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility ).Range )
             .Where( pos => map.Occupied( pos ) == false && pos != bestTargetPosition );
@@ -50,7 +51,11 @@ public class AIController : TurnController
 
     public override void EnterState()
     {
-        base.EnterState();
+        StartCoroutine( ControlUnits() );
+    }
+
+    public IEnumerator ControlUnits()
+    {
         GameMap map = BattleSystem.Instance.Map;
         //Get ordering for Units
         foreach ( var myUnit in ControlledUnits )
@@ -59,7 +64,7 @@ public class AIController : TurnController
             if ( enemies.Count() == 0 )
             {
                 BattleSystem.Instance.EndTurn();
-                return;
+                continue;
             }
 
             Unit bestTarget = GetBestTarget( enemies );
@@ -67,12 +72,16 @@ public class AIController : TurnController
             Vector2Int positionMoved = DoMove( myUnit, bestTarget );
             AttackAbility attackAbility = myUnit.Abilities.First( ability => ability is AttackAbility ) as AttackAbility;
 
+            yield return null;
             Unit targetInSight = map.GetUnitsWithinRange( positionMoved, attackAbility.Range )
                                     .Where( attackAbility.CanTargetFunction( myUnit, this ) )
                                     .FirstOrDefault( unit => unit == bestTarget );
 
             if ( targetInSight != null )
                 attackAbility.ExecuteOnTarget( myUnit, bestTarget );
+
+            //Coroutine stops work for this frame for one unit
+            yield return null;
         }
         BattleSystem.Instance.EndTurn();
     }
