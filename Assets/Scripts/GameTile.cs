@@ -7,10 +7,6 @@ public class GameTile : MonoBehaviour, IPointerEnterHandler, IPointerDownHandler
 {
     public int CostOfTraversal;
 
-    public void Start()
-    {
-    }
-
     public void OnPointerEnter( PointerEventData eventData )
     {
         ExecuteEvents.ExecuteHierarchy( transform.parent.gameObject, eventData, ExecuteEvents.pointerEnterHandler );

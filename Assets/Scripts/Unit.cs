@@ -59,10 +59,6 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     public UnitClass Class;
     public IEnumerable<Ability> Abilities { get { return Class.GetActiveAbilities( this ); } }
 
-    public void Awake()
-    {
-    }
-
     public void Start()
     {
         UnitChanged( this );

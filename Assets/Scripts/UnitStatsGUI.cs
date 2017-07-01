@@ -28,5 +28,10 @@ public class UnitStatsGUI : MonoBehaviour {
             UnitName.text = unit.Name;
             ClassName.text = unit.Class.Name;
         }
+        else
+        {
+            UnitName.text = "";
+            ClassName.text = "";
+        }
     }
 }
