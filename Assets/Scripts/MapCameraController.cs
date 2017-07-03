@@ -22,19 +22,21 @@ public class MapCameraController : MonoBehaviour {
     public void Awake()
     {
         MapCam = GetComponent<Camera>();
-        ZoomLevels = GetNextZoom().GetEnumerator();
-        ZoomLevels.MoveNext();
     }
 
     public void Start()
     {
         Cursor = BattleSystem.Instance.Cursor;
         Target = KeepMapInFocus( Cursor.transform.TransformPoint( Cursor.CurrentPosition.ToVector3( axisVal: -10 ) ) );
+
+        //TODO: Maybe it's unnecessary to cache this 
         MouseAtScreenBoundaries = CreateScreenBoundaryCheck();
+
+        ZoomLevels = GetNextZoom().GetEnumerator();
+        ZoomLevels.MoveNext();
     }
 
-
-    public IEnumerable<float> GetNextZoom()
+    private IEnumerable<float> GetNextZoom()
     {
         while ( true )
         {
@@ -77,14 +79,14 @@ public class MapCameraController : MonoBehaviour {
 
         transform.position = Vector3.SmoothDamp(
             transform.position, Target, ref CurrentVelocity, CameraSpeed );
+    }
 
-        if ( Input.GetKeyDown( KeyCode.Semicolon ) )
-        {
-            float a = ZoomLevels.Current;
-            ZoomLevels.MoveNext();
-            float b = ZoomLevels.Current;
-            StartCoroutine( CustomAnimation.InterpolateValue( a, b, 0.22f, val => MapCam.orthographicSize = val ) );
-        }
+    public void DoNextZoom()
+    {
+        float a = ZoomLevels.Current;
+        ZoomLevels.MoveNext();
+        float b = ZoomLevels.Current;
+        StartCoroutine( CustomAnimation.InterpolateValue( a, b, 0.22f, val => MapCam.orthographicSize = val ) );
     }
 
     private Func<bool> CreateScreenBoundaryCheck( int margin = 10 )
