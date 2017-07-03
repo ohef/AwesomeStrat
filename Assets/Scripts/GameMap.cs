@@ -6,15 +6,6 @@ using Assets.General.UnityExtensions;
 using System.Linq;
 using Assets.Scripts.General;
 
-//[CustomPropertyDrawer(typeof(TileToVector2Int))]
-//public class TileToVector2IntEditor : PropertyDrawer
-//{
-//    public override void OnGUI( Rect position, SerializedProperty property, GUIContent label )
-//    {
-//        base.OnGUI( position, property, label );
-//    }
-//}
-
 public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
 {
     public int Width;

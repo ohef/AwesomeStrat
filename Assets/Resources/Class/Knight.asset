@@ -8,10 +8,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
-  m_Name: Mage
-  m_EditorClassIdentifier: Assembly-CSharp::UnitClass
-  Name: Mage
+  m_Script: {fileID: 11500000, guid: 1ee613b8f5d70b648a8ade3b472f7e56, type: 3}
+  m_Name: Knight
+  m_EditorClassIdentifier: 
+  Name: Knight
   ClassAbilities:
   - {fileID: 11400000, guid: 4ffb3fb14b776f34ba14ab4c8bfb26f6, type: 2}
   - {fileID: 11400000, guid: ffc5417496d07d643a7dd600369588e0, type: 2}
+  - {fileID: 11400000, guid: 6cd811b0c85a60d48a059f77464ec184, type: 2}

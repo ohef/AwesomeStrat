@@ -294,14 +294,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HP: 20
   m_MaxHP: 20
-  Name: Miiikuu
+  Name: Some Dude
   MovementRange: 5
-  White: 0
-  Blue: 0
-  Black: 0
-  Red: 2
-  Green: 0
-  Class: {fileID: 11400000, guid: 80485844519b48b459be6c4e63110132, type: 2}
+  White: 10
+  Blue: 10
+  Black: 10
+  Red: 10
+  Green: 10
+  Class: {fileID: 11400000, guid: 812887444ba7d304f9f181dcb432d49c, type: 2}
 --- !u!212 &212803029441363544
 SpriteRenderer:
   m_ObjectHideFlags: 1
@@ -333,7 +333,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingOrder: 1
-  m_Sprite: {fileID: 21300000, guid: 92143c2665d35e34986374f4f875875c, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 52cc6daf069307f4bb316d59415a2964, type: 3}
   m_Color: {r: 0, g: 1, b: 0.21379304, a: 1}
   m_FlipX: 0
   m_FlipY: 0

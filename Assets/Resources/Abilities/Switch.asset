@@ -19,5 +19,5 @@ MonoBehaviour:
   RedRequirement: 0
   WhiteRequirement: 0
   BlackRequirement: 0
-  Targets: 0
+  Targets: 2
   Range: 1
