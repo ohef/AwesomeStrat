@@ -89,23 +89,3 @@ public class CursorControl : MonoBehaviour
         }
     }
 }
-
-public class CursorEventData : BaseEventData
-{
-    public CursorControl Cursor;
-    public Vector2Int LastPosition;
-
-    public CursorEventData( EventSystem eventSystem ) : base( eventSystem )
-    {
-    }
-}
-
-interface IMapCursorEnter : IEventSystemHandler
-{
-    void CursorEnter( CursorEventData data );
-}
-
-interface IMapCursorExit : IEventSystemHandler
-{
-    void CursorExit( CursorEventData data );
-}

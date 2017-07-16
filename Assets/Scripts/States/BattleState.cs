@@ -1,28 +1,19 @@
-﻿using System;
+﻿using Assets.General.DataStructures;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public interface IState
-{
-    void Enter();
-    void Exit();
-}
-
 public abstract class BattleState : MonoBehaviour, IState
 {
     protected BattleSystem sys { get { return BattleSystem.Instance; } }
-    private PlayerTurnController context;
 
-    protected PlayerTurnController Context
+    public void Transition<T>( Action<T> initializer ) where T : BattleState
     {
-        get
-        {
-            if ( context == null )
-                context = sys.CurrentTurn as PlayerTurnController;
-            return context;
-        }
+        var state = sys.GetState<T>();
+        initializer( state );
+        sys.State = state;
     }
 
     public virtual void Enter() { }

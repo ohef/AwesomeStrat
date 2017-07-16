@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
-public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnitDeathHandler
+public class TurnController : MonoBehaviour, IUnitDeathHandler, IState
 {
     public HashSet<Unit> ControlledUnits;
     public HashSet<Unit> HasNotActed;
@@ -32,7 +32,11 @@ public abstract class TurnController : MonoBehaviour, IMonoBehaviourState, IUnit
         GameObject.Destroy( deadUnit.gameObject );
     }
 
-    public virtual void EnterState() { }
-    public virtual void ExitState() { }
-    public virtual void UpdateState() { }
+    public virtual void Enter() { }
+
+    public virtual void Exit() { }
+
+    public void GetMovementTiles( Unit unit )
+    {
+    }
 }

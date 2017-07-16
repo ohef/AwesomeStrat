@@ -16,4 +16,10 @@ namespace Assets.General.DataStructures
         T Pop();
         int Count { get; }
     }
+
+    public interface IState
+    {
+        void Enter();
+        void Exit();
+    }
 }

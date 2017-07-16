@@ -49,7 +49,7 @@ public class AIController : TurnController
         return enemyUnits.OrderBy( unit => unit.HP ).First();
     }
 
-    public override void EnterState()
+    public override void Enter()
     {
         StartCoroutine( ControlUnits() );
     }

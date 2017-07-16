@@ -10,6 +10,8 @@ using UnityEngine.Rendering;
 using UnityEngine.EventSystems;
 
 sealed class WhereToMoveState : BattleState, ISubmitHandler
+    , IBeginDragHandler, IDragHandler, IEndDragHandler
+    , IPointerDownHandler 
 {
     private Unit SelectedUnit;
     private Vector2Int InitialUnitPosition;
@@ -17,11 +19,12 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
     private HashSet<Vector2Int> MovementTiles;
     private LinkedList<Vector2Int> PointsToPass;
 
-    public void Initialize( Unit selectedUnit )
+    public WhereToMoveState Initialize( Unit selectedUnit )
     {
         SelectedUnit = selectedUnit;
         InitialUnitPosition = sys.Map.UnitPos[ SelectedUnit ];
         Decorator = sys.Map.GetComponent<MapDecorator>();
+        return this;
     }
 
     private void CursorMoved()
@@ -69,12 +72,11 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
         bool canMoveHere = MovementTiles.Contains( sys.Cursor.CurrentPosition );
         if ( canMoveHere )
         {
-            Context.DoCommand(
+            sys.DoCommand(
                 sys.CreateMoveCommand( PointsToPass.ToList(), SelectedUnit ) );
 
-            var state = sys.GetState<ChoosingUnitActionsState>();
-            state.Initialize( SelectedUnit );
-            Context.State = state;
+            Transition<ChoosingUnitActionsState>(
+                state => state.Initialize( SelectedUnit ) );
         }
     }
 
@@ -91,9 +93,81 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
     public override void Exit()
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
-        sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
+        //sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
         PointsToPass.Clear();
         Decorator.RenderMovePath( PointsToPass );
         base.Exit();
+    }
+
+    public void OnPointerDown( Unit unit )
+    {
+    }
+
+    public void OnPointerDown( GameTile tile )
+    {
+        if ( tile != null && false == MovementTiles.Contains( sys.Map.TilePos[ tile ] ) )
+        {
+            ExecuteEvents.Execute( gameObject, null, ExecuteEvents.cancelHandler );
+        }
+    }
+
+    public void OnPointerDown( PointerEventData eventData )
+    {
+        GameObject obj = eventData.pointerPressRaycast.gameObject;
+        OnPointerDown( obj.GetComponent<GameTile>() );
+        OnPointerDown( obj.GetComponent<Unit>() );
+    }
+
+    //UnitMemento BeforeDrag;
+    Unit DraggingUnit;
+
+    public void OnBeginDrag( PointerEventData eventData )
+    {
+        Debug.Log( "OnBeginDrag" );
+        //BeforeDrag = eventData.pointerCurrentRaycast.gameObject.GetComponent<Unit>().CreateMemento();
+        DraggingUnit = eventData.pointerCurrentRaycast.gameObject.GetComponent<Unit>();
+        DraggingUnit = DraggingUnit == SelectedUnit ? DraggingUnit : null;
+    }
+
+    public void OnDrag( PointerEventData eventData )
+    {
+        if ( DraggingUnit != null )
+        {
+            DraggingUnit.transform.position = eventData.pointerCurrentRaycast.worldPosition;
+
+            List<RaycastResult> result = new List<RaycastResult>();
+
+            Camera.main.GetComponent<PhysicsRaycaster>().Raycast( eventData, result );
+
+            sys.Cursor.MoveCursor( sys.Map.TilePos[
+                result.First( val => val.gameObject.GetComponent<GameTile>() != null )
+                .gameObject.GetComponent<GameTile>() ] );
+        }
+    }
+
+    public void OnEndDrag( PointerEventData eventData )
+    {
+        if ( DraggingUnit != null )
+        {
+            //Validate movement position
+            if ( CurrentCursorPositionIsValid() )
+            {
+                sys.DoCommand( sys.CreateMoveCommand( sys.Cursor.CurrentPosition, SelectedUnit ) );
+                Transition<ChoosingUnitActionsState>( state => state.Initialize( SelectedUnit ) );
+            }
+            else
+            {
+                StartCoroutine( CustomAnimation.InterpolateToPoint( DraggingUnit.transform, InitialUnitPosition.ToVector3(), 0.25f ) );
+            }
+        }
+    }
+
+    private bool CurrentCursorPositionIsValid()
+    {
+        var cursorPosition = sys.Cursor.CurrentPosition;
+        return
+            cursorPosition != InitialUnitPosition &&
+            sys.Map.Occupied( cursorPosition ) == false &&
+            MovementTiles.Contains( cursorPosition );
     }
 }

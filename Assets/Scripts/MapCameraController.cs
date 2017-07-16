@@ -51,7 +51,7 @@ public class MapCameraController : MonoBehaviour {
         GameMap map = BattleSystem.Instance.Map;
 
         //TODO Don't compute this at runtime?
-        float orthographicSizeWidth = Camera.main.orthographicSize * Screen.width / Screen.height;
+        float orthographicSizeWidth = Camera.main.orthographicSize * Camera.main.pixelWidth / Camera.main.pixelHeight;
 
         toClamp.x = CustomMath.ClampNumber( toClamp.x, orthographicSizeWidth - 0.5f, map.Width - orthographicSizeWidth - 0.5f );
         toClamp.y = CustomMath.ClampNumber( toClamp.y, MapCam.orthographicSize - 0.5f, map.Height - MapCam.orthographicSize - 0.5f );
@@ -74,8 +74,8 @@ public class MapCameraController : MonoBehaviour {
 
     public void Update()
     {
-        if ( MouseAtScreenBoundaries() )
-            MoveInDirectionOfMouse();
+        //if ( MouseAtScreenBoundaries() )
+        //    MoveInDirectionOfMouse();
 
         transform.position = Vector3.SmoothDamp(
             transform.position, Target, ref CurrentVelocity, CameraSpeed );

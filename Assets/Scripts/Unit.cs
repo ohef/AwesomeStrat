@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Assets.General;
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,12 +8,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
-public interface IStartTurnHandler
-{
-    void OnTurnStart();
-}
-
-public class Unit : MonoBehaviour, IUnitDamagedHandler
+public class Unit : MonoBehaviour, IUnitMemento, IUnitDamagedHandler
+    //, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField]
     private int m_HP;
@@ -79,4 +77,43 @@ public class Unit : MonoBehaviour, IUnitDamagedHandler
     {
         GetComponentInChildren<SpriteRenderer>().color = controller.PlayerColor;
     }
+
+    #region Memento Implementation
+    public void SetMemento( UnitMemento memento )
+    {
+        SetPositionFromMemento( memento );
+        SetMaterialBlockFromMemento( memento );
+    }
+
+    public UnitMemento CreateMemento()
+    {
+        return new UnitMemento( this );
+    }
+
+    public void SetPositionFromMemento( UnitMemento memento )
+    {
+        transform.position = memento.Position;
+    }
+
+    public void SetMaterialBlockFromMemento( UnitMemento memento )
+    {
+        GetComponent<Renderer>().SetPropertyBlock( memento.MaterialProperty );
+    }
+    #endregion
+
+    //UnitMemento BeforeDrag;
+    //public void OnBeginDrag( PointerEventData eventData )
+    //{
+    //    BeforeDrag = CreateMemento();
+    //}
+
+    //public void OnDrag( PointerEventData eventData )
+    //{
+    //    transform.position = eventData.pointerCurrentRaycast.worldPosition;
+    //}
+
+    //public void OnEndDrag( PointerEventData eventData )
+    //{
+    //    StartCoroutine( CustomAnimation.InterpolateToPoint( transform, BeforeDrag.Position, 0.25f ) );
+    //}
 }

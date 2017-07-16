@@ -12,7 +12,7 @@ public class CancelableState : BattleState, ICancelHandler
     {
         Input.ResetInputAxes();
         if ( undo == true )
-            Context.UndoEverything();
-        Context.GoToPreviousState();
+            sys.UndoEverything();
+        sys.GoToPreviousState();
     }
 }

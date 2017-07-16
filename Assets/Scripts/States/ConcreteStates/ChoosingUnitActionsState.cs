@@ -9,12 +9,12 @@ sealed class ChoosingUnitActionsState : MenuState
     private class StateForAbility : IAbilityVisitor<object>
     {
         public ChoosingUnitActionsState Container;
-        public PlayerTurnController Context;
+        public TurnController Context;
 
         public object Visit( WaitAbility ability )
         {
-            Context.GoToStateAndForget( BattleSystem.Instance.GetState<ChoosingUnitState>() );
-            Context.UnitFinished( Container.SelectedUnit );
+            BattleSystem.Instance.GoToState( BattleSystem.Instance.GetState<ChoosingUnitState>() );
+            BattleSystem.Instance.UnitFinished( Container.SelectedUnit );
             return null;
         }
 
@@ -32,15 +32,14 @@ sealed class ChoosingUnitActionsState : MenuState
 
             if ( targetableUnits.Count() > 0 )
             {
-                ChooseTargetsState state = BattleSystem.Instance.GetState<ChooseTargetsState>();
-                state.Initialize( ability, Container.SelectedUnit );
-                Context.State = state;
+                Container.Transition<ChooseTargetsState>(
+                    state => state.Initialize( ability, Container.SelectedUnit ) );
             }
             return null;
         }
     }
 
-    private Unit SelectedUnit;
+    public Unit SelectedUnit;
 
     public void Initialize( Unit selectedUnit )
     {
@@ -59,7 +58,7 @@ sealed class ChoosingUnitActionsState : MenuState
 
     public override void Enter()
     {
-        var context = sys.CurrentTurn as PlayerTurnController;
+        var context = sys.CurrentTurn;
         var visitor = new StateForAbility { Container = this, Context = context };
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
         sys.Menu.AddButtons( buttons );

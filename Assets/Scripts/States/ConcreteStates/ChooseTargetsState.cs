@@ -9,10 +9,10 @@ using UnityEngine.EventSystems;
 
 sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 {
-    private LinkedList<Unit> EligibleTargets;
-    private LinkedListNode<Unit> CurrentlySelected;
-    private TargetAbility SelectedAbility;
-    private Unit SelectedUnit;
+    LinkedList<Unit> EligibleTargets;
+    LinkedListNode<Unit> CurrentlySelected;
+    TargetAbility SelectedAbility;
+    Unit SelectedUnit;
 
     public void Initialize( TargetAbility ability, Unit selectedUnit )
     {
@@ -49,9 +49,15 @@ sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
 
     public void OnSubmit( BaseEventData eventData )
     {
-        SelectedAbility.ExecuteOnTarget( SelectedUnit, CurrentlySelected.Value );
-        Context.GoToStateAndForget( sys.GetState<ChoosingUnitState>() );
-        Context.UnitFinished( SelectedUnit );
+        Unit unitAtCursor;
+        if (
+        sys.Map.UnitPos.TryGetValue( sys.Cursor.CurrentPosition, out unitAtCursor ) &&
+        EligibleTargets.Contains( unitAtCursor ) )
+        {
+            SelectedAbility.ExecuteOnTarget( SelectedUnit, unitAtCursor );
+            sys.GoToState( sys.GetState<ChoosingUnitState>() );
+            sys.UnitFinished( SelectedUnit );
+        }
     }
 
     public override void Enter()
@@ -61,16 +67,14 @@ sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( SelectedUnit, Context ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( SelectedUnit, sys.CurrentTurn ) ) );
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
-        base.Enter();
     }
 
     public override void Exit()
     {
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
-        base.Exit();
     }
 }

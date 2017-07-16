@@ -5,11 +5,12 @@ using System.IO;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Assets.Scripts.General;
 
 public class DialogueSystem : MonoBehaviour, ISubmitHandler
 {
     public DialogueScene ToUse;
-    public LinearStateMachine<ActorEntry> Session;
+    public ReversableIterator<ActorEntry> Session;
     private TextMeshProUGUI SpeakerText;
     private TextMeshProUGUI DialogueText;
 
@@ -27,7 +28,7 @@ public class DialogueSystem : MonoBehaviour, ISubmitHandler
 
     public void BeginDialogue( DialogueScene scene )
     {
-        Session = new LinearStateMachine<ActorEntry>( ToUse.Entries );
+        Session = new ReversableIterator<ActorEntry>( ToUse.Entries );
         UpdateGraphics( Session.Current );
     }
 
@@ -70,39 +71,4 @@ public enum EntryActions
 {
     Enter,
     Exit,
-}
-
-public class LinearStateMachine<T> where T : class
-{
-    private LinkedList<T> Entries;
-    private LinkedListNode<T> current;
-    public T Current { get { return current.Value; } }
-
-    public LinearStateMachine( IEnumerable<T> entries )
-    {
-        Entries = new LinkedList<T>( entries as IEnumerable<T> );
-        current = Entries.First;
-    }
-
-    public T Next()
-    {
-        if ( current.Next == null )
-            return null;
-        else
-        {
-            current = current.Next;
-            return current.Value;
-        }
-    }
-
-    public T Previous()
-    {
-        if ( current.Previous == null )
-            return null;
-        else
-        {
-            current = current.Previous;
-            return current.Value;
-        }
-    }
 }
