@@ -12,7 +12,6 @@ using System.Collections.Generic;
 public class CursorControl : MonoBehaviour
 {
     public GameMap Map;
-    public Camera CursorCamera;
     public UnityEvent CursorMoved;
 
     private Vector2Int m_CurrentPosition;
@@ -42,8 +41,6 @@ public class CursorControl : MonoBehaviour
 
     void Start()
     {
-        CursorCamera.transform.LookAt( this.transform );
-
         var firstunit = Map.UnitPos.FirstOrDefault();
         if ( firstunit.Key == null ) return;
 

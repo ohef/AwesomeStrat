@@ -60,6 +60,7 @@ public class MapSearcher
 
             //Assuming that i tile with a cost of 9999 is impassable, probably bad to do this but it works for now
             //It'll definitely need to be changed if you have different units that can cross or something
+            //TODO: Don't do this?
             bool costWayHigh = map.TilePos[ updatedDirection ].CostOfTraversal > 1000;
             if ( costWayHigh == true ) continue;
 
@@ -79,6 +80,42 @@ public class MapSearcher
     {
         Dictionary<Vector2Int, GridNode> gridNodeMap = CalculateNodeMap( map, start, bound );
         return Search( start, goal, gridNodeMap, bound );
+    }
+
+    public static List<Vector2Int> ReachablePoints( Vector2Int start, GameMap map, int bound = int.MaxValue )
+    {
+        Dictionary<Vector2Int, GridNode> gridNodeMap = CalculateNodeMap( map, start, bound );
+
+        HashSet<GridNode> closedSet = new HashSet<GridNode>();
+        Stack<GridNode> frontier = new Stack<GridNode>();
+
+        GridNode startNode = gridNodeMap[ start ];
+
+        startNode.pCost = 0;
+        frontier.Push( startNode );
+
+        while ( frontier.Count != 0 )
+        {
+            var currentNode = frontier.Pop();
+
+            closedSet.Add( currentNode );
+
+            foreach ( GridNode neighbour in currentNode.Neighbours )
+            {
+                int tempPCost = currentNode.pCost + neighbour.Cost;
+
+                if ( tempPCost > bound )
+                    continue;
+
+                if ( !frontier.Contains( neighbour ) )
+                    frontier.Push( neighbour );
+                else if ( tempPCost >= neighbour.pCost )
+                    continue;
+
+                neighbour.pCost = tempPCost;
+            }
+        }
+        return closedSet.Select( node => node.Location ).ToList();
     }
 
     private static List<Vector2Int> Search( Vector2Int start, Vector2Int goal, Dictionary<Vector2Int, GridNode> gridNodeMap, int bound = int.MaxValue )

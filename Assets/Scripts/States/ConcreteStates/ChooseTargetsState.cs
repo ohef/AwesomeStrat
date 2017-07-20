@@ -7,7 +7,9 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
+sealed class ChooseTargetsState : BattleState
+    , IMoveHandler, ISubmitHandler
+    , IPointerDownHandler
 {
     LinkedList<Unit> EligibleTargets;
     LinkedListNode<Unit> CurrentlySelected;
@@ -67,7 +69,10 @@ sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
             SelectedAbility.Range );
 
         EligibleTargets = new LinkedList<Unit>(
-            unitsInRange.Where( SelectedAbility.CanTargetFunction( SelectedUnit, sys.CurrentTurn ) ) );
+            unitsInRange.Where( SelectedAbility.CanTargetFunction( SelectedUnit, sys.CurrentTurnController ) ) );
+
+        foreach ( var target in EligibleTargets )
+            target.GetComponentInChildren<SpriteRenderer>().material.EnableKeyword( "SHADECOLOR_ON" );
 
         CurrentlySelected = EligibleTargets.First;
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ CurrentlySelected.Value ] );
@@ -76,5 +81,24 @@ sealed class ChooseTargetsState : BattleState, IMoveHandler, ISubmitHandler
     public override void Exit()
     {
         sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
+
+        foreach ( var target in EligibleTargets )
+            target.GetComponentInChildren<SpriteRenderer>().material.DisableKeyword( "SHADECOLOR_ON" );
+    }
+
+    public void OnPointerDown( PointerEventData eventData )
+    {
+        var unit = eventData.pointerPressRaycast.gameObject.GetComponent<Unit>();
+        if ( unit != null && EligibleTargets.Contains( unit ) )
+        {
+            SelectedAbility.ExecuteOnTarget( SelectedUnit, unit );
+
+            sys.GoToState( sys.GetState<ChoosingUnitState>() );
+            sys.UnitFinished( SelectedUnit );
+        }
+        else
+        {
+            sys.GoToPreviousState();
+        }
     }
 }

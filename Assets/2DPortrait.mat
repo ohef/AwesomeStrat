@@ -98,6 +98,9 @@ Material:
         name: PixelSnap
       second: 0
     - first:
+        name: ShadeColor
+      second: 0
+    - first:
         name: _Ambient
       second: 0.5
     - first:
@@ -294,6 +297,9 @@ Material:
       second: 1
     m_Colors:
     - first:
+        name: ShadeColor
+      second: {r: 1, g: 1, b: 1, a: 1}
+    - first:
         name: _ClipRect
       second: {r: -32767, g: -32767, b: 32767, a: 32767}
     - first:
@@ -323,6 +329,9 @@ Material:
     - first:
         name: _ReflectOutlineColor
       second: {r: 0, g: 0, b: 0, a: 1}
+    - first:
+        name: _ShadeColor
+      second: {r: 1, g: 0, b: 0, a: 1}
     - first:
         name: _SpecularColor
       second: {r: 1, g: 1, b: 1, a: 1}

@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-sealed class ChoosingUnitActionsState : MenuState
+sealed class ChoosingUnitActionsState : MenuState, IPointerDownHandler
 {
     private class StateForAbility : IAbilityVisitor<object>
     {
@@ -58,7 +59,7 @@ sealed class ChoosingUnitActionsState : MenuState
 
     public override void Enter()
     {
-        var context = sys.CurrentTurn;
+        var context = sys.CurrentTurnController;
         var visitor = new StateForAbility { Container = this, Context = context };
         List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
         sys.Menu.AddButtons( buttons );
@@ -71,5 +72,12 @@ sealed class ChoosingUnitActionsState : MenuState
         // TODO: Update functions suck
         var vector = Camera.main.WorldToScreenPoint( sys.Cursor.transform.position );
         sys.Menu.transform.position = vector;
+    }
+
+    public void OnPointerDown( PointerEventData eventData )
+    {
+        var unit = eventData.pointerPressRaycast.gameObject.GetComponent<Unit>();
+        if ( unit == null )
+            sys.GoToPreviousState();
     }
 }

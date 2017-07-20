@@ -16,7 +16,7 @@ public class BattleSystem : MonoBehaviour
     public static BattleSystem Instance { get { return instance; } }
 
     LinearStateMachine<TurnController> TurnStateMachine;
-    public TurnController CurrentTurn { get { return TurnStateMachine.Current; } }
+    public TurnController CurrentTurnController { get { return TurnStateMachine.Current; } }
 
     /// <summary>
     /// The single map object (singleton?) =)
@@ -200,7 +200,7 @@ public class BattleSystem : MonoBehaviour
 
         setFinishedColor.Execute();
         CommandsForReEnter.Push( setFinishedColor );
-        CurrentTurn.HasNotActed.Remove( unit );
+        CurrentTurnController.HasNotActed.Remove( unit );
     }
 
     public void RefreshTurn()

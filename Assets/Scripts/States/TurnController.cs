@@ -34,9 +34,11 @@ public class TurnController : MonoBehaviour, IUnitDeathHandler, IState
 
     public virtual void Enter() { }
 
-    public virtual void Exit() { }
-
-    public void GetMovementTiles( Unit unit )
+    public virtual void Exit()
     {
+        HasNotActed = new HashSet<Unit>( ControlledUnits );
+        BattleSystem.Instance.RefreshTurn();
     }
+
+    public void GetMovementTiles( Unit unit ) { }
 }
