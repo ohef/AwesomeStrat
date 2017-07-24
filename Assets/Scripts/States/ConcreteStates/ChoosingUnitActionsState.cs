@@ -78,6 +78,6 @@ sealed class ChoosingUnitActionsState : MenuState, IPointerDownHandler
     {
         var unit = eventData.pointerPressRaycast.gameObject.GetComponent<Unit>();
         if ( unit == null )
-            sys.GoToPreviousState();
+            ExecuteEvents.Execute( gameObject, eventData, ExecuteEvents.cancelHandler );
     }
 }

@@ -99,9 +99,7 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
         base.Exit();
     }
 
-    public void OnPointerDown( Unit unit )
-    {
-    }
+    public void OnPointerDown( Unit unit ) { }
 
     public void OnPointerDown( GameTile tile )
     {

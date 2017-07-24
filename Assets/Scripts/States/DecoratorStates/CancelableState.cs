@@ -6,13 +6,19 @@ using UnityEngine.EventSystems;
 
 public class CancelableState : BattleState, ICancelHandler
 {
-    public bool undo;
-
     public void OnCancel( BaseEventData eventData )
     {
         Input.ResetInputAxes();
-        if ( undo == true )
-            sys.UndoEverything();
+        sys.GoToPreviousState();
+    }
+}
+
+public class UndoCancelableState : BattleState, ICancelHandler
+{
+    public void OnCancel( BaseEventData eventData )
+    {
+        Input.ResetInputAxes();
+        sys.UndoEverything();
         sys.GoToPreviousState();
     }
 }

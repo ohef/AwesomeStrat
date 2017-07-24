@@ -98,7 +98,7 @@ sealed class ChooseTargetsState : BattleState
         }
         else
         {
-            sys.GoToPreviousState();
+            ExecuteEvents.Execute( gameObject, eventData, ExecuteEvents.cancelHandler );
         }
     }
 }

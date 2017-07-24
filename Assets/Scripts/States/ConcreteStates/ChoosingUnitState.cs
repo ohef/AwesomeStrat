@@ -59,7 +59,6 @@ sealed class ChoosingUnitState : BattleState
 
     public void OnPointerDown( PointerEventData eventData )
     {
-        Debug.Log( "Pointer Down" );
         var unit = eventData.pointerPressRaycast.gameObject.GetComponent<Unit>();
         if ( unit != null && sys.CurrentTurnController.HasNotActed.Contains( unit ) )
         {

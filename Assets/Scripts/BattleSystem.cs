@@ -48,10 +48,10 @@ public class BattleSystem : MonoBehaviour
 
         StateList = new List<GameObject> {
             CreateStateGameObj( typeof( ChoosingUnitState ), typeof( ControlCursorState ) ),
-            CreateStateGameObj( typeof( WhereToMoveState ), typeof( ControlCursorState ), typeof( CancelableState ) ),
-            CreateStateGameObj( typeof( ChoosingUnitActionsState ), typeof( CancelableState) ),
-            CreateStateGameObj( typeof( ChooseTargetsState ), typeof( CancelableState) ),
-            CreateStateGameObj( typeof( TurnMenuState ), typeof( CancelableState) ) }
+            CreateStateGameObj( typeof( WhereToMoveState ), typeof( UndoCancelableState ), typeof( ControlCursorState ) ),
+            CreateStateGameObj( typeof( ChoosingUnitActionsState ), typeof( UndoCancelableState) ),
+            CreateStateGameObj( typeof( ChooseTargetsState ), typeof( CancelableState) ) }
+        //,CreateStateGameObj( typeof( TurnMenuState ), typeof( CancelableState) ) }
         .Select( obj => obj.GetComponent<BattleState>() ).ToList();
 
         foreach ( var state in StateList )
