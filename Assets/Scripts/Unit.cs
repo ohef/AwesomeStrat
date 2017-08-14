@@ -55,11 +55,12 @@ public class Unit : MonoBehaviour, IUnitMemento, IUnitDamagedHandler
     public event Action<Unit> UnitChanged;
 
     public UnitClass Class;
-    public IEnumerable<Ability> Abilities { get { return Class.GetActiveAbilities( this ); } }
+    public IEnumerable<IAbility> Abilities { get { return Class.GetActiveAbilities( this ); } }
 
     public void Start()
     {
-        UnitChanged( this );
+        if ( UnitChanged != null )
+            UnitChanged( this );
     }
 
     public void UnitDamaged( int preDamage )

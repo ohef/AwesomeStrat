@@ -11,14 +11,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 210a40238fab87944b6879beb2643630, type: 3}
   m_Name: Push
   m_EditorClassIdentifier: 
-  Name: Push
-  AbliityImage: {fileID: 0}
-  TileColor: {r: 0, g: 0, b: 0, a: 0}
-  GreenRequirement: 0
-  BlueRequirement: 2
-  RedRequirement: 0
-  WhiteRequirement: 0
-  BlackRequirement: 0
+  _Name: Push
+  _AbliityImage: {fileID: 0}
+  _TileColor: {r: 0, g: 1, b: 0.25517225, a: 0.572}
   Targets: 0
   Range: 1
   PushRange: 2

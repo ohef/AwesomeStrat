@@ -16,17 +16,16 @@ public class CommandMenu : MonoBehaviour {
 
     public void AddButton( Button button )
     {
-        button.transform.SetParent( transform );
+        button.transform.SetParent( transform, false );
         m_Buttons.Add( button );
     }
-    
+
     public Button AddButton( string text, UnityEngine.Events.UnityAction onClick )
     {
-        Button toadd = Instantiate( ButtonPrefab );
+        Button toadd = Instantiate( ButtonPrefab, transform, true );
         toadd.GetComponentInChildren<Text>().text = text;
         toadd.onClick.AddListener( onClick );
         toadd.name = text;
-        toadd.transform.SetParent( transform );
         m_Buttons.Add( toadd );
 
         //LinkButtonNavigation();

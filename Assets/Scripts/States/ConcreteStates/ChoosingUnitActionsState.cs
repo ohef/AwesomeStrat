@@ -2,29 +2,32 @@
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 sealed class ChoosingUnitActionsState : MenuState, IPointerDownHandler
 {
-    private class StateForAbility : IAbilityVisitor<object>
+    private class ActionForAbility : IAbilityVisitor<UnityAction>
     {
         public ChoosingUnitActionsState Container;
         public TurnController Context;
 
-        public object Visit( WaitAbility ability )
+        public UnityAction Visit( WaitAbility ability )
         {
-            BattleSystem.Instance.GoToState( BattleSystem.Instance.GetState<ChoosingUnitState>() );
-            BattleSystem.Instance.UnitFinished( Container.SelectedUnit );
+            return delegate
+            {
+                BattleSystem.Instance.GoToState( BattleSystem.Instance.GetState<ChoosingUnitState>() );
+                BattleSystem.Instance.UnitFinished( Container.SelectedUnit );
+            };
+        }
+
+        public UnityAction Visit( AreaOfEffectAbility ability )
+        {
             return null;
         }
 
-        public object Visit( AreaOfEffectAbility ability )
-        {
-            return null;
-        }
-
-        public object Visit( TargetAbility ability )
+        public UnityAction Visit( TargetAbility ability )
         {
             var map = BattleSystem.Instance.Map;
             var unitPos = map.UnitPos[ Container.SelectedUnit ];
@@ -32,11 +35,11 @@ sealed class ChoosingUnitActionsState : MenuState, IPointerDownHandler
                 .Where( ability.CanTargetFunction( Container.SelectedUnit, Context ) );
 
             if ( targetableUnits.Count() > 0 )
-            {
-                Container.Transition<ChooseTargetsState>(
+                return delegate {
+                    Container.Transition<ChooseTargetsState>(
                     state => state.Initialize( ability, Container.SelectedUnit ) );
-            }
-            return null;
+                };
+            else return null;
         }
     }
 
@@ -47,22 +50,24 @@ sealed class ChoosingUnitActionsState : MenuState, IPointerDownHandler
         SelectedUnit = selectedUnit;
     }
 
-    private IEnumerable<Button> GetButtons( IEnumerable<Ability> abilities, StateForAbility visitor )
+    private IEnumerable<Button> GetButtons( IEnumerable<IAbility> abilities, ActionForAbility visitor )
     {
-        foreach ( Ability ability in abilities )
+        foreach ( var result in abilities
+            .Select( ability => new { Ability = ability, Callback = ability.Accept( visitor ) } )
+            .Where( result => result.Callback != null ) )
         {
-            Button button = AbilityButtonFactory.instance.Create( ability );
-            button.onClick.AddListener( () => ability.Accept( visitor ) );
+            Button button = AbilityButtonFactory.instance.Create( result.Ability );
+            button.onClick.AddListener( result.Callback );
             yield return button;
         }
     }
 
     public override void Enter()
     {
-        var context = sys.CurrentTurnController;
-        var visitor = new StateForAbility { Container = this, Context = context };
-        List<Button> buttons = GetButtons( SelectedUnit.Abilities, visitor ).ToList();
-        sys.Menu.AddButtons( buttons );
+        sys.Menu.AddButtons( GetButtons( 
+            SelectedUnit.Abilities,
+            new ActionForAbility { Container = this, Context = sys.CurrentTurnController } )
+            .ToList() );
         base.Enter();
     }
 

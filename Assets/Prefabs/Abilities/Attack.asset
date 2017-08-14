@@ -11,14 +11,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ec547308333b8c6429728ab0074c6167, type: 3}
   m_Name: Attack
   m_EditorClassIdentifier: 
-  Name: Attack
-  AbliityImage: {fileID: 0}
-  TileColor: {r: 1, g: 0, b: 0, a: 0.553}
-  GreenRequirement: 0
-  BlueRequirement: 0
-  RedRequirement: 1
-  WhiteRequirement: 0
-  BlackRequirement: 0
+  _Name: Attack
+  _AbliityImage: {fileID: 0}
+  _TileColor: {r: 1, g: 0, b: 0, a: 0.516}
   Targets: 1
   Range: 1
   AttackDamage: 10

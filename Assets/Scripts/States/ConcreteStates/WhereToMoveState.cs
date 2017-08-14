@@ -99,21 +99,26 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
         base.Exit();
     }
 
-    public void OnPointerDown( Unit unit ) { }
+    public void OnPointerDown( Unit unit, PointerEventData eventData ) { }
 
-    public void OnPointerDown( GameTile tile )
+    public void OnPointerDown( GameTile tile, PointerEventData eventData )
     {
-        if ( tile != null && false == MovementTiles.Contains( sys.Map.TilePos[ tile ] ) )
-        {
+        if ( tile == null ) return;
+        //Cancel the state if we are hitting somewhere other than we can move
+        if ( MovementTiles.Contains( sys.Map.TilePos[ tile ] ) == false
+            && eventData.clickCount == 1 )
             ExecuteEvents.Execute( gameObject, null, ExecuteEvents.cancelHandler );
+        else if ( eventData.clickCount > 1 )
+        {
+            OnSubmit( eventData );
         }
     }
 
     public void OnPointerDown( PointerEventData eventData )
     {
         GameObject obj = eventData.pointerPressRaycast.gameObject;
-        OnPointerDown( obj.GetComponent<GameTile>() );
-        OnPointerDown( obj.GetComponent<Unit>() );
+        OnPointerDown( obj.GetComponent<GameTile>(), eventData );
+        OnPointerDown( obj.GetComponent<Unit>(), eventData );
     }
 
     //UnitMemento BeforeDrag;
@@ -121,8 +126,6 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
 
     public void OnBeginDrag( PointerEventData eventData )
     {
-        Debug.Log( "OnBeginDrag" );
-        //BeforeDrag = eventData.pointerCurrentRaycast.gameObject.GetComponent<Unit>().CreateMemento();
         DraggingUnit = eventData.pointerCurrentRaycast.gameObject.GetComponent<Unit>();
         DraggingUnit = DraggingUnit == SelectedUnit ? DraggingUnit : null;
     }

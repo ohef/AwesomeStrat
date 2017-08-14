@@ -11,13 +11,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4df9c4b9fcdc5b34bab46cf075f0224c, type: 3}
   m_Name: Switch
   m_EditorClassIdentifier: 
-  Name: Switch
-  AbliityImage: {fileID: 0}
-  TileColor: {r: 0, g: 0, b: 0, a: 0}
-  GreenRequirement: 0
-  BlueRequirement: 2
-  RedRequirement: 0
-  WhiteRequirement: 0
-  BlackRequirement: 0
+  _Name: Switch
+  _AbliityImage: {fileID: 0}
+  _TileColor: {r: 0.9034481, g: 0, b: 1, a: 0.547}
   Targets: 2
   Range: 1

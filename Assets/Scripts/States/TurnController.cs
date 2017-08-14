@@ -39,6 +39,4 @@ public class TurnController : MonoBehaviour, IUnitDeathHandler, IState
         HasNotActed = new HashSet<Unit>( ControlledUnits );
         BattleSystem.Instance.RefreshTurn();
     }
-
-    public void GetMovementTiles( Unit unit ) { }
 }

@@ -10,7 +10,7 @@ public class UnitClass : ScriptableObject
     public string Name;
     public List<Ability> ClassAbilities;
 
-    public IEnumerable<Ability> GetActiveAbilities( Unit unit )
+    public IEnumerable<IAbility> GetActiveAbilities( Unit unit )
     {
         yield return WaitAbility.Instance;
         foreach ( var ability in ClassAbilities.Where( ability => ability.Useable( unit ) ) )

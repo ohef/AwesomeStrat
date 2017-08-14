@@ -12,7 +12,7 @@ public class AbilityButtonFactory : MonoBehaviour
         instance = instance == null ? this : instance;
     }
 
-    public Button Create( Ability ability )
+    public Button Create( IAbility ability )
     {
         Button toret = GameObject.Instantiate<Button>( DefaultButton );
         toret.name = ability.Name;
@@ -20,7 +20,7 @@ public class AbilityButtonFactory : MonoBehaviour
         return toret;
     }
 
-    public GameObject CreateWithoutFunctionality( Ability ability )
+    public GameObject CreateWithoutFunctionality( IAbility ability )
     {
         Button toDestroy = Create( ability );
         GameObject toret = toDestroy.gameObject;

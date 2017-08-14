@@ -24,4 +24,9 @@ public abstract partial class TargetAbility : Ability
         }
         return predicate;
     }
+
+    public override T Accept<T>( IAbilityVisitor<T> visitor )
+    {
+        return visitor.Visit( this );
+    }
 }
