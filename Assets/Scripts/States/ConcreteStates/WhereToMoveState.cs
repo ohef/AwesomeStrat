@@ -11,7 +11,7 @@ using UnityEngine.EventSystems;
 
 sealed class WhereToMoveState : BattleState, ISubmitHandler
     , IBeginDragHandler, IDragHandler, IEndDragHandler
-    , IPointerDownHandler 
+    , IPointerDownHandler, IPointerClickHandler 
 {
     private Unit SelectedUnit;
     private Vector2Int InitialUnitPosition;
@@ -93,22 +93,21 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
     public override void Exit()
     {
         sys.Cursor.CursorMoved.RemoveListener( CursorMoved );
-        //sys.Cursor.MoveCursor( sys.Map.UnitPos[ SelectedUnit ] );
         PointsToPass.Clear();
         Decorator.RenderMovePath( PointsToPass );
         base.Exit();
     }
 
-    public void OnPointerDown( Unit unit, PointerEventData eventData ) { }
+    public void OnPointerClick( Unit unit, PointerEventData eventData ) { }
 
-    public void OnPointerDown( GameTile tile, PointerEventData eventData )
+    public void OnPointerClick( GameTile tile, PointerEventData eventData )
     {
         if ( tile == null ) return;
-        //Cancel the state if we are hitting somewhere other than we can move
-        if ( MovementTiles.Contains( sys.Map.TilePos[ tile ] ) == false
-            && eventData.clickCount == 1 )
+
+        //Cancel the state if we are hitting somewhere other than where we can move
+        if ( MovementTiles.Contains( sys.Map.TilePos[ tile ] ) == false )
             ExecuteEvents.Execute( gameObject, null, ExecuteEvents.cancelHandler );
-        else if ( eventData.clickCount > 1 )
+        else if ( eventData.clickCount == 2 )
         {
             OnSubmit( eventData );
         }
@@ -116,9 +115,16 @@ sealed class WhereToMoveState : BattleState, ISubmitHandler
 
     public void OnPointerDown( PointerEventData eventData )
     {
+        //GameObject obj = eventData.pointerPressRaycast.gameObject;
+        //OnPointerDown( obj.GetComponent<GameTile>(), eventData );
+        //OnPointerDown( obj.GetComponent<Unit>(), eventData );
+    }
+
+    public void OnPointerClick( PointerEventData eventData )
+    {
         GameObject obj = eventData.pointerPressRaycast.gameObject;
-        OnPointerDown( obj.GetComponent<GameTile>(), eventData );
-        OnPointerDown( obj.GetComponent<Unit>(), eventData );
+        OnPointerClick( obj.GetComponent<GameTile>(), eventData );
+        OnPointerClick( obj.GetComponent<Unit>(), eventData );
     }
 
     //UnitMemento BeforeDrag;

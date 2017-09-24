@@ -21,7 +21,6 @@ public class CursorControl : MonoBehaviour
         {
             return m_CurrentPosition;
         }
-
         set
         {
             if ( value != m_CurrentPosition )
@@ -33,14 +32,11 @@ public class CursorControl : MonoBehaviour
         }
     }
 
-    void Awake()
+    void Start()
     {
         if ( CursorMoved == null )
             CursorMoved = new UnityEvent();
-    }
 
-    void Start()
-    {
         var firstunit = Map.UnitPos.FirstOrDefault();
         if ( firstunit.Key == null ) return;
 

@@ -9,7 +9,6 @@ using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 public class Unit : MonoBehaviour, IUnitMemento, IUnitDamagedHandler
-    //, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     [SerializeField]
     private int m_HP;
@@ -101,20 +100,4 @@ public class Unit : MonoBehaviour, IUnitMemento, IUnitDamagedHandler
         GetComponent<Renderer>().SetPropertyBlock( memento.MaterialProperty );
     }
     #endregion
-
-    //UnitMemento BeforeDrag;
-    //public void OnBeginDrag( PointerEventData eventData )
-    //{
-    //    BeforeDrag = CreateMemento();
-    //}
-
-    //public void OnDrag( PointerEventData eventData )
-    //{
-    //    transform.position = eventData.pointerCurrentRaycast.worldPosition;
-    //}
-
-    //public void OnEndDrag( PointerEventData eventData )
-    //{
-    //    StartCoroutine( CustomAnimation.InterpolateToPoint( transform, BeforeDrag.Position, 0.25f ) );
-    //}
 }

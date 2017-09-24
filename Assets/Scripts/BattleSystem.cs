@@ -10,7 +10,7 @@ using Assets.Scripts.General;
 using Assets.General;
 
 public class BattleSystem : MonoBehaviour
-    , IPointerDownHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
+    , IPointerDownHandler, IPointerClickHandler, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private static BattleSystem instance;
     public static BattleSystem Instance { get { return instance; } }
@@ -245,6 +245,11 @@ public class BattleSystem : MonoBehaviour
     public void OnEndDrag( PointerEventData eventData )
     {
         ExecuteEvents.Execute( State.gameObject, eventData, ExecuteEvents.endDragHandler );
+    }
+
+    public void OnPointerClick( PointerEventData eventData )
+    {
+        ExecuteEvents.Execute( State.gameObject, eventData, ExecuteEvents.pointerClickHandler );
     }
     #endregion
 }

@@ -11,6 +11,7 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public int Width;
     public int Height;
 
+    #region HerpDerpSerialization
     [Serializable]
     public struct UnitToVector2Int
     {
@@ -37,12 +38,12 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
         SerializeUnitPos.Clear();
         SerializeTilePos.Clear();
 
-        foreach ( KeyValuePair<Unit,Vector2Int> kvp in UnitPos )
+        foreach ( KeyValuePair<Unit, Vector2Int> kvp in UnitPos )
         {
             SerializeUnitPos.Add( new UnitToVector2Int { unit = kvp.Key, x = kvp.Value.x, y = kvp.Value.y } );
         }
 
-        foreach ( KeyValuePair<GameTile,Vector2Int> kvp in TilePos )
+        foreach ( KeyValuePair<GameTile, Vector2Int> kvp in TilePos )
         {
             SerializeTilePos.Add( new TileToVector2Int { tile = kvp.Key, x = kvp.Value.x, y = kvp.Value.y } );
         }
@@ -65,6 +66,7 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
     public DoubleDictionary<Unit, Vector2Int> UnitPos = new DoubleDictionary<Unit, Vector2Int>();
     [HideInInspector]
     public DoubleDictionary<GameTile, Vector2Int> TilePos = new DoubleDictionary<GameTile, Vector2Int>();
+    #endregion
 
     public IEnumerable<Vector2Int> AllMapPositions()
     {
@@ -118,10 +120,7 @@ public class GameMap : MonoBehaviour, ISerializationCallbackReceiver
 
     public IEnumerable<Vector2Int> GetValidMovementPositions( Unit unit )
     {
-        Vector2Int unitPosition = UnitPos[ unit ];
-        //return GetTilesWithinAbsoluteRange( unitPosition, unit.MovementRange )
-        //    .Where( tilePos => MapSearcher.Search( unitPosition, tilePos, this, unit.MovementRange ) != null );
-        return MapSearcher.ReachablePoints( unitPosition, this, unit.MovementRange );
+        return MapSearcher.ReachablePoints( UnitPos[ unit ], this, unit.MovementRange );
     }
 
     public HashSet<Vector2Int> GetAttackTiles( HashSet<Vector2Int> movementTiles, int attackRange )
